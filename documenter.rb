@@ -376,7 +376,7 @@ end
 
 # Support for other kinds of output would be useful in the future.
 # When the need arises, maybe the interface to 'output' subsystems will need
-# more formailisation than just 'document_types()'
+# more formalisation than just 'document_types()'
 require 'html_output'
 
 type_agregator = GlobalTypeAgregator.new
