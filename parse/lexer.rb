@@ -113,8 +113,8 @@ Keywords = [
   "instanceof",
   "interface",   # reserved, but unused in ECMA
   "intrinsic",   # non-ECMA
-  "is",
-#  "namespace",
+#  "is",         # not a keyword in AS
+#  "namespace",  # not a keyword in AS
   "new",
   "null",
   "package",
