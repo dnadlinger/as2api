@@ -1,4 +1,3 @@
-
  - Proper command-line options
 
  - Have some way of pre-populating namespace with standard types (String,
