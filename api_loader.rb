@@ -130,7 +130,7 @@ class DocASHandler < ActionScript::Parse::ASHandler
   end
 
   def start_member_field(name, type)
-    field = ASField.new(@last_modifier, name.body)
+    field = ASExplicitField.new(@last_modifier, name.body)
     unless type.nil?
       field.field_type = @type_resolver.resolve(type)
     end
@@ -146,6 +146,16 @@ class DocASHandler < ActionScript::Parse::ASHandler
   end
 
   def member_function(name, sig)
+    if sig.implicit_property_modifier.nil?
+      real_member_function(name, sig)
+    else
+      implicit_property_function(name, sig)
+    end
+  end
+
+  private
+
+  def create_method(name, sig)
     method = ASMethod.new(@last_modifier, name.body)
     if sig.return_type
       method.return_type = @type_resolver.resolve(sig.return_type)
@@ -160,7 +170,27 @@ class DocASHandler < ActionScript::Parse::ASHandler
     if @doc_comment
       method.comment = @doc_comment
     end
-    @defined_type.add_method(method)
+    method
+  end
+
+  def real_member_function(name, sig)
+    @defined_type.add_method(create_method(name, sig))
+  end
+
+  def implicit_property_function(name, sig)
+    field = @defined_type.get_field_called(name.body)
+    if field.nil?
+      field = ASImplicitField.new(name.body)
+      @defined_type.add_field(field)
+    end
+    func = create_method(name, sig)
+    if sig.implicit_property_modifier == "get"
+      field.getter_method = func
+    elsif sig.implicit_property_modifier == "set"
+      field.setter_method = func
+    else
+      raise "unknown property-modifier #{sig.implicit_property_modifier.inspect}"
+    end
   end
 end
 

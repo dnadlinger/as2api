@@ -46,21 +46,57 @@ end
 
 def field_synopsis(out, field)
   out.element("code", {"class", "field_synopsis"}) do
-    if field.access.is_static
-      out.pcdata("static ")
-    end
-    unless field.access.visibility.nil?
-      out.pcdata("#{field.access.visibility.body} ")
-    end
-    out.element("strong", {"class"=>"method_name"}) do
-      out.pcdata(field.name)
-    end
-    if field.field_type
-      out.pcdata(":")
-      link_type(out, field.field_type)
+    if field.instance_of?(ASImplicitField)
+      implicit_field_synopsis(out, field)
+    else
+      explicit_field_synopsis(out, field)
     end
   end
 end
+
+def explicit_field_synopsis(out, field)
+  if field.access.is_static
+    out.pcdata("static ")
+  end
+  unless field.access.visibility.nil?
+    out.pcdata("#{field.access.visibility.body} ")
+  end
+  out.element("strong", {"class"=>"method_name"}) do
+    out.pcdata(field.name)
+  end
+  if field.field_type
+    out.pcdata(":")
+    link_type(out, field.field_type)
+  end
+end
+
+def implicit_field_synopsis(out, field)
+  if field.access.is_static
+    out.pcdata("static ")
+  end
+  unless field.access.visibility.nil?
+    out.pcdata("#{field.access.visibility.body} ")
+  end
+  out.element("strong", {"class"=>"method_name"}) do
+    out.pcdata(field.name)
+  end
+  field_type = field.field_type
+  unless field_type.nil?
+    out.pcdata(":")
+    link_type(out, field_type)
+  end
+  unless field.readwrite?
+    out.pcdata(" ")
+    out.element("em", {"class"=>"read_write_only"}) do
+      if field.read?
+	out.pcdata("[Read Only]")
+      else
+	out.pcdata("[Write Only]")
+      end
+    end
+  end
+end
+
 
 def class_navigation(out)
   out.element("div", {"class", "main_nav"}) do

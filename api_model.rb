@@ -121,6 +121,13 @@ class ASClass < ASType
       yield field
     end
   end
+
+  def get_field_called(name)
+    each_field do |field|
+      return field if field.name == name
+    end
+    nil
+  end
 end
 
 # ASInterface doesn't add anything to the superclass, it just affirms that
@@ -167,16 +174,72 @@ class ASMethod < ASMember
   def arguments
     @args
   end
+
+  def agument(index)
+    @args[index]
+  end
 end
 
 # A field member, which may appear in an ASClass, but not an ASInterface
 class ASField < ASMember
+end
+
+class ASExplicitField < ASField
   def initialize(access, name)
     super(access, name)
     @field_type = nil
   end
 
   attr_accessor :field_type
+
+  def readwrite?; true; end
+
+  def read?; true; end
+
+  def write?; true; end
+end
+
+# A field implied by the presence of "get" or "set" methods with this name
+class ASImplicitField < ASField
+  def initialize(name)
+    super(nil, name)
+    @getter_method = nil
+    @setter_method = nil
+  end
+
+  attr_accessor :getter_method, :setter_method
+
+  def readwrite?
+    !(@getter_method.nil? || @setter_method.nil?)
+  end
+
+  def read?
+    !@getter_method.nil?
+  end
+
+  def write?
+    !@setter_method.nil?
+  end
+
+  def access
+    (@getter_method || @setter_method).access
+  end
+
+  def comment
+    (@getter_method || @setter_method).comment
+  end
+
+  def field_type
+    if read?
+      return @getter_method.return_type
+    else
+      unless @setter_method.arguments.empty?
+	arg = @setter_method.arguments[0]
+	return arg.arg_type
+      end
+    end
+    return nil
+  end
 end
 
 # A formal function parameter, a list of which appear in an ASMethod

@@ -51,6 +51,12 @@ class TC_ActionScriptParser < Test::Unit::TestCase
     simple_parse("private static function foo() { }") do |parse|
       access = parse.parse_class_member
     end
+    simple_parse("function get foo() { }") do |parse|
+      access = parse.parse_class_member
+    end
+    simple_parse("function get() { }") do |parse|
+      access = parse.parse_class_member
+    end
   end
 
  private

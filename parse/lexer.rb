@@ -87,6 +87,10 @@ class StringToken < ASToken
   end
 end
 
+# "get" and "set" where initially included in this list, since they are used
+# as modifiers to function declarations.  The are also allowed to appear as
+# identifiers, unfortunately, so we treat them as such, and have the parser
+# make special checks on the identifier body.
 Keywords = [
   "as",
   "break",
@@ -105,7 +109,6 @@ Keywords = [
   "finally",
   "for",
   "function",
-  "get",         # explicitly excluded from ECMA
   "if",
   "implements",  # reserved, but unused in ECMA
   "import",
@@ -121,7 +124,6 @@ Keywords = [
   "private",
   "public",
   "return",
-  "set",         # explicitly excluded from ECMA
   "static",      # non-ECMA
   "super",
   "switch",

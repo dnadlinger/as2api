@@ -22,7 +22,15 @@ class Argument
 end
 
 class FunctionSignature
-  attr_accessor :arguments, :return_type
+  # Array of Argument objects
+  attr_accessor :arguments
+
+  # TypeProxy for return type, or nil if none specified
+  attr_accessor :return_type
+
+  # nil, for nornal methods; "get" or "set" for implicit-property access
+  # methods
+  attr_accessor :implicit_property_modifier
 end
 
 class ASParser
@@ -250,7 +258,18 @@ class ASParser
   def parse_member_function
     expect(FunctionToken)
     name = expect(IdentifierToken)
+    implicit_property_modifier = nil
+    if lookahead?(IdentifierToken)
+      if name.body == "set"
+	implicit_property_modifier = "set"
+	name = expect(IdentifierToken)
+      elsif name.body == "get"
+	implicit_property_modifier = "get"
+	name = expect(IdentifierToken)
+      end
+    end
     sig = parse_function_signature
+    sig.implicit_property_modifier = implicit_property_modifier
     @handler.member_function(name, sig)
     eat_block
   end
