@@ -1,7 +1,6 @@
 
 require 'parse/lexer'
 require 'parse/parser'
-require 'xmlwriter'
 require 'doc_comment'
 
 class ASType
@@ -15,9 +14,11 @@ class ASType
     @extends = nil
     @comment = nil
     @interfaces = []
+    @type_resolver = nil
+    @import_manager = nil
   end
 
-  attr_accessor :package, :name, :resolved, :dynamic, :extends, :comment, :source_utf8
+  attr_accessor :package, :name, :resolved, :dynamic, :extends, :comment, :source_utf8, :type_resolver, :import_manager
 
   def class?
     @is_class
@@ -45,6 +46,22 @@ class ASType
     @interfaces.each do |name|
       yield name
     end
+  end
+
+  def unqualified_name
+    @name.last.body
+  end
+
+  def name_s
+    @name.join(".")
+  end
+
+  def package_name
+    @name[0, @name.length-1]
+  end
+
+  def package_name_s
+    package_name.join(".")
   end
 
   def implements_interfaces?
@@ -93,15 +110,32 @@ class DocASLexer < ActionScript::Parse::SkipASLexer
 end
 
 class ASMethod
-  def initialize(access, name, signature)
+  def initialize(access, name)
     @access = access
     @name = name
-    @signature = signature
+    @return_type = nil
+    @args = []
   end
 
-  attr_accessor :access, :name, :signature, :comment
+  attr_accessor :access, :name, :comment, :return_type
+
+  def add_arg(arg)
+    @args << arg
+  end
+
+  def arguments
+    @args
+  end
 end
 
+class ASArg
+  def initialize(name)
+    @name = name
+    @arg_type = nil
+  end
+
+  attr_accessor :name, :arg_type
+end
 
 class ASPackage
   def initialize(name)
@@ -139,29 +173,56 @@ class ImportManager
     @types << name
   end
 
+  def each_type
+    @types.each do |type_name|
+      yield type_name
+    end
+  end
+
   def add_package_import(name)
     @packages << name
   end
+
+  def each_package
+    @packages.each do |package_name|
+      yield package_name
+    end
+  end
 end
 
-class UnresolvedType
+class TypeProxy
   def initialize(name)
     @name = name
+    @resolved_type = nil
   end
 
-  attr_accessor :name
+  attr_accessor :name, :resolved_type
+
+  def resolved?
+    !@resolved_type.nil?
+  end
+
+  def local_name
+    # TODO: come up with smarter representations for resolved vs. unresolved
+    #       types
+    @name.join(".")
+  end
+
+  def qualified?
+    @name.size > 1
+  end
 end
 
-class TypeResolver
+class LocalTypeResolver
   def initialize
     @named_types = {}
   end
 
   def resolve(name)
-    type = @named_types[name]
+    type = @named_types[name.join(".")]
     if type.nil?
-      type = UnresolvedType.new(name)
-      @named_types[name] = type
+      type = TypeProxy.new(name)
+      @named_types[name.join(".")] = type
     end
     type
   end
@@ -175,7 +236,7 @@ end
 
 class DocASHandler < ActionScript::Parse::ASHandler
   def compilation_unit_start
-    @type_resolver = TypeResolver.new
+    @type_resolver = LocalTypeResolver.new
     @import_manager = ImportManager.new
     @defined_type = nil
   end
@@ -204,6 +265,8 @@ class DocASHandler < ActionScript::Parse::ASHandler
         @defined_type.add_interface(interface)
       end
     end
+    @defined_type.type_resolver = @type_resolver
+    @defined_type.import_manager = @import_manager
   end
 
   def access_modifier(modifier)
@@ -234,7 +297,17 @@ class DocASHandler < ActionScript::Parse::ASHandler
   end
 
   def member_function(name, sig)
-    method = ASMethod.new(@last_modifier, name.body, sig)
+    method = ASMethod.new(@last_modifier, name.body)
+    if sig.return_type
+      method.return_type = @type_resolver.resolve(sig.return_type)
+    end
+    sig.arguments.each do |arg|
+      argument = ASArg.new(arg.name.body)
+      if arg.type
+        argument.arg_type = @type_resolver.resolve(arg.type)
+      end
+      method.add_arg(argument)
+    end
     if @doc_comment
       method.comment = @doc_comment
     end
@@ -251,146 +324,6 @@ def simple_parse(input)
   handler.defined_type
 end
 
-def method_synopsis(out, method)
-  out.element("code", {"class", "method_synopsis"}) do
-    if method.access.is_static
-      out.pcdata("static ")
-    end
-    unless method.access.visibility.nil?
-      out.pcdata("#{method.access.visibility.body} ")
-    end
-    out.pcdata("function ")
-    out.element("strong", {"class"=>"method_name"}) do
-      out.pcdata(method.name)
-    end
-    out.pcdata("(")
-    method.signature.arguments.each_with_index do |arg, index|
-      out.pcdata(", ") if index > 0
-      out.pcdata(arg.name.body)
-      if arg.type
-        out.pcdata(":#{arg.type.join('.')}")
-      end
-    end
-    out.pcdata(")")
-    if method.signature.return_type
-      out.pcdata(":#{method.signature.return_type.join('.')}")
-    end
-  end
-end
-
-def class_navigation(out)
-  out.element("div", {"class", "main_nav"}) do
-    out.simple_element("a", "Overview", {"href"=>"index.html"})
-    out.simple_element("span", "Package")
-    out.simple_element("span", "Class", {"class"=>"nav_current"})
-  end
-end
-
-def document_method(out, method)
-  out.empty_tag("a", {"name"=>"method_#{method.name}"})
-  out.simple_element("h3", method.name)
-  out.element("div", {"class"=>"method_details"}) do
-    method_synopsis(out, method)
-    if method.comment
-      out.element("blockquote") do
-	docs = DocComment.new
-	docs.parse(method.comment.body)
-        out.pcdata(docs.description)
-        out.element("dl", {"class"=>"method_detail_list"}) do
-	  # TODO: assumes that params named in docs match formal arguments
-	  #       should really filter out those that don't match before this
-	  #       test
-	  if docs.parameters?
-	    out.simple_element("dt", "Parameters")
-	    out.element("dd") do
-	      out.element("table", {"class"=>"arguments"}) do
-		method.signature.arguments.each do |arg|
-		  desc = docs.param(arg.name.body)
-		  if desc
-		    out.element("tr") do
-		      out.element("td") do
-			out.simple_element("code", arg.name.body)
-		      end
-		      out.simple_element("td", desc)
-		    end
-		  end
-		end
-	      end
-	    end
-	  end
-	  if docs.exceptions?
-            out.simple_element("dt", "throws")
-            out.element("dd") do
-	      out.element("table", {"class"=>"exceptions"}) do
-	        docs.each_exception do |type, desc|
-		  out.element("tr") do
-		    out.element("td") do
-		      out.simple_element("code", type)
-		    end
-		    out.simple_element("td", desc)
-		  end
-	        end
-	      end
-	    end
-	  end
-	end
-      end
-    end
-  end
-end
-
-def document_type(type)
-  File.open("apidoc/" + type.name.join(".") + ".html", "w") do |io|
-    out = XMLWriter.new(io)
-    out.element("html") do
-      out.element("head") do
-        out.simple_element("title", type.name.join("."))
-        out.empty_tag("link", {"rel"=>"stylesheet", "type"=>"text/css", "href"=>"style.css"})
-      end
-
-      out.element("body") do
-        class_navigation(out)
-        out.simple_element("h1", type.name.join("."))
-	if type.implements_interfaces?
-          out.element("div", {"class"=>"interfaces"}) do
-            out.simple_element("h2", "Implemented Interfaces")
-	    type.each_interface do |interface|
-	      # TODO: need to resolve interface name, make links
-              out.simple_element("code", interface.join('.'))
-	      out.pcdata(" ")
-	    end
-	    out.comment(" no more interfaces ")
-          end
-        end
-        out.element("div", {"class"=>"type_description"}) do
-	  if type.comment
-            out.simple_element("h2", "Description")
-            out.element("p") do
-	      out.pcdata(type.comment.body)
-	    end
-	  end
-	end
-        out.element("div", {"class"=>"method_index"}) do
-          out.simple_element("h2", "Method Index")
-	  type.each_method do |method|
-            out.element("a", {"href"=>"#method_#{method.name}"}) do
-	      out.pcdata(method.name+"()")
-	    end
-	    out.pcdata(" ")
-	  end
-	end
-
-        out.element("div", {"class"=>"method_detail_list"}) do
-          out.simple_element("h2", "Method Detail")
-	  type.each_method do |method|
-	    document_method(out, method)
-	  end
-	end
-        class_navigation(out)
-      end
-    end
-  end
-end
 
 BOM = "\357\273\277"
 
@@ -403,18 +336,90 @@ def detect_bom?(io)
   false
 end
 
-File.open(File.join("apidoc", "index.html"), "w") do |out|
-  ARGV.each do |name|
-    File.open(name) do |io|
-      begin
-        is_utf8 = detect_bom?(io)
-        type = simple_parse(io)
-	type.source_utf8 = is_utf8
-        document_type(type)
-	out.puts("<p><a href=\"#{type.name.join('.')}.html\">#{type.name.join('.')}</a></p>")
-      rescue =>e
-        $stderr.puts "#{name}: #{e.message}\n#{e.backtrace.join("\n")}"
+
+def parse_options
+  
+end
+
+# returns an array of the .as files in 'path', and it's subdirectories
+def each_source(path)
+  require 'find'
+  Find.find(path) do |f|
+    base = File.basename(f)
+    Find.prune if base =~ /^\./ || base == "CVS"
+    if base =~ /\.as$/
+      yield f #[path.length, f.length]
+    end
+  end
+end
+
+def collect_package_types(types, package_name)
+  types.each do |type|
+    if type.package_name_s == package_name
+      yield type
+    end
+  end
+end
+
+# Eeek!...
+def resolve_types(types)
+  qname_map = {}
+  types.each do |type|
+    qname_map[type.name_s] = type
+  end
+  types.each do |type|
+    importer = type.import_manager
+    local_names = qname_map.dup
+    importer.each_type do |type_name|
+      import_type = qname_map[type_name.join(".")]
+      if import_type
+        local_names[type_name.last.body] = import_type
+      else
+        $stderr.puts "Couldn't resolve import of #{type_name.inspect}"
+      end
+    end
+    importer.each_package do |package_name|
+      collect_package_types(types, package_name.join(".")) do |package_type|
+	if local_names.has_key?(package_type.unqualified_name)
+          $stderr.puts "#{package_type.unqualified_name} already refers to #{local_names[package_type.unqualified_name].name_s}"
+	end
+        local_names[package_type.unqualified_name] = package_type
+      end
+    end
+    resolver = type.type_resolver
+    resolver.each do |type_proxy|
+      real_type = local_names[type_proxy.name.join(".")]
+      if real_type
+	type_proxy.resolved_type = real_type
+      else
+	$stderr.puts "No match for local type #{type_proxy.name.join('.').inspect}"
       end
     end
   end
 end
+
+# Support for other kinds of output would be useful, in the future.
+# When the need arises, maybe the interface to 'output' subsystems will need
+# more formailisation than just 'document_types()'
+require 'html_output'
+
+types = []
+
+each_source(ARGV[0]) do |name|
+  File.open(name) do |io|
+    begin
+      is_utf8 = detect_bom?(io)
+      print "Parsing #{name.inspect}"
+      type = simple_parse(io)
+      puts " -> #{type.name_s}"
+      type.source_utf8 = is_utf8
+      types << type
+    rescue =>e
+      $stderr.puts "#{name}: #{e.message}\n#{e.backtrace.join("\n")}"
+    end
+  end
+end
+
+resolve_types(types)
+
+document_types(types)
