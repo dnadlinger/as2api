@@ -1,0 +1,457 @@
+<?xml version="1.0"?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+                         "docbook/dtd/4.3/docbookx.dtd">
+
+<?xml-stylesheet href="/home/dave/projects/docbook-css/driver.css"
+                 type="text/css"?>
+
+
+<article lang="en_GB">
+  <title>as2api Documentation</title>
+
+  <section>
+    <title>About</title>
+
+    <para>as2api parses ActionScript 2 source code and generates HTML
+    API documentation in the style of JavaDoc.  It is open source, and
+    runs on Windows, MacOSX and Linux.</para>
+  </section>
+
+  <section>
+    <title>Getting the software</title>
+
+    <para>There are three versions of the software available from the
+    project homepage,
+    <ulink url="http://www.badgers-in-foil.co.uk/projects/as2api/"/>:</para>
+
+    <itemizedlist>
+      <listitem>
+	<para>A pre-compiled GUI app for MacOSX</para>
+      </listitem>
+      <listitem>
+	<para>A pre-compiled GUI exe for Windows</para>
+      </listitem>
+      <listitem>
+	<para>The source ruby scripts, runnable from the command-line
+	under Linux (or anywhere else that Ruby is available)</para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+  <section>
+    <title>Installing and running the software</title>
+
+    <section>
+      <title>MacOSX</title>
+
+      <para><remark>TODO</remark></para>
+    </section>
+
+    <section>
+      <title>Windows</title>
+
+      <para><remark>TODO</remark></para>
+    </section>
+
+    <section>
+      <title>Command-line</title>
+
+      <para><remark>TODO</remark></para>
+    </section>
+  </section>
+
+  <section>
+    <title>How to Write Documentation Comments for as2api</title>
+
+    <section>
+      <title>Overview</title>
+
+      <section>
+	<title>ActionScript Comments</title>
+	<para>ActionScript 2 provides two kinds of
+	<wordasword>comment</wordasword> marker, for denoting text which
+	is not part of the executable program code.  There is the C++
+	style single-line comment,</para>
+	<programlisting><emphasis role="strong">//</emphasis> everything on the line after the two slashes is ignored</programlisting>
+	<para>and the C style multi-line comment,</para>
+	<programlisting><emphasis role="strong">/*</emphasis> text between start and end markers is
+ignored, and the comment may continue across multiple lines
+in the source code <emphasis role="strong">*/</emphasis></programlisting>
+      </section>
+
+      <section>
+	<title>as2api Documentation Comments</title>
+	<para>as2api ignores the single-line comments, but it will
+	read text from the multi-line comments if both the following
+	conditions are true,</para>
+	<itemizedlist>
+	  <listitem>
+	    <para>The start-of-comment marker has two asterisks, not
+	    just one: "<literal>/**</literal>"</para>
+	  </listitem>
+	  <listitem>
+	    <para>The comment immediately precedes the definition
+	    of part of the public API of an ActionScript 2 class
+	    (e.g. just before the class definition itself)</para>
+	  </listitem>
+	</itemizedlist>
+
+	<example>
+	  <title>A Simple class definition with as2api
+	  documentation</title>
+
+	  <programlisting>/*
+ * MyFirstClass.as
+ *
+ * Copyright (c) __MyEmployer__ 2005
+ *
+ * <lineannotation>The contents of this comment are ignored</lineannotation>
+ */
+
+import "otherpackage.MyOtherClass";
+
+<emphasis role="strong">/**
+ * Objects of this class are responsible for serving as an example
+ * to others.
+ */</emphasis>
+class thispackage.MyFirstClass {
+
+  <emphasis role="strong">/**
+   * When called, this method puts into motion a plan so cunning
+   * that words cannot describe it.
+   */</emphasis>
+  public function enactCunningPlan():Void {
+      // TODO: implement cunning plan
+  }
+}</programlisting>
+	</example>
+      </section>
+    </section>
+
+    <section>
+      <title>Writing Useful Documentation</title>
+
+      <para>Here are a few guidelines</para>
+
+      <section>
+	<title>Empathy!</title>
+	<para>Take a deep breath.</para>
+	<para>Take five (mental) paces back from your code.</para>
+	<para>Try to see the API from someone else's point of view.  It will
+	help if you imagine that this other person is lazy, but
+	<emphasis>not</emphasis> stupid.  They want to gain the maximum
+	understanding with the minimum amount of reading.</para>
+      </section>
+
+      <section>
+	<title>Describe the Interface, not the Implementation</title>
+
+	<para>Classes are useful because they can hide the complicated details
+	of how things are achieved behind a simple, black-box interface.</para>
+
+	<para>If part of a class's implementation can be changed, and no code
+	making use of the class would notice, then this is an implementation
+	detail, not part of the API which must be documented.</para>
+      </section>
+
+      <section>
+	<title>Avoid Repeating the Code in English</title>
+	<para>This kind of annotation is not useful:</para>
+	<programlisting>/**
+ * Set the name property
+ * @param name the name to set
+ */
+public function setName(name:String):Void {
+  // ...
+}</programlisting>
+	<para>Method and class names are an integral part of the API
+	documentation, and should already convey a useful overview of their
+	own purpose.</para>
+      </section>
+    </section>
+
+    <section>
+      <title>Syntax Reference</title>
+
+      <para><remark>TODO</remark></para>
+
+      <section>
+	<title>Supported JavaDoc Features</title>
+
+	<informaltable>
+	  <thead>
+	    <row>
+	      <entry>Feature</entry>
+	      <entry>Description</entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><link linkend="type_description">Type
+	      Description</link></entry>
+	      <entry>Describe a class or interface</entry>
+	    </row>
+	    <row>
+	      <entry><link linkend="method_description">Method
+	      Description</link></entry>
+	      <entry>Describe a method of a class or interface</entry>
+	    </row>
+	    <row>
+	      <entry><link linkend="param_tag"><literal>@param</literal></link></entry>
+	      <entry>Describe a method parameter</entry>
+	    </row>
+	    <row>
+	      <entry><link linkend="return_tag"><literal>@return</literal></link></entry>
+	      <entry>Describe the value returned by a method</entry>
+	    </row>
+	    <row>
+	      <entry><link linkend="see_tag"><literal>@see</literal></link></entry>
+	      <entry>Partially supported. Link to additional
+	      information.</entry>
+	    </row>
+	    <row>
+	      <entry><link linkend="throws_tag"><literal>@throws</literal></link></entry>
+	      <entry>Describe an exception thrown by a method</entry>
+	    </row>
+	  </tbody>
+	</informaltable>
+      </section>
+
+      <section>
+	<title>Unsupported JavaDoc Features</title>
+
+	<informaltable>
+	  <thead>
+	    <row>
+	      <entry>Feature</entry>
+	      <entry>Commentary</entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><literal>@author</literal></entry>
+	      <entry></entry>
+	    </row>
+	    <row>
+	      <entry><literal>{@code}</literal></entry>
+	      <entry></entry>
+	    </row>
+	    <row>
+	      <entry><literal>{@docRoot}</literal></entry>
+	      <entry></entry>
+	    </row>
+	    <row>
+	      <entry><literal>@depricated</literal></entry>
+	      <entry></entry>
+	    </row>
+	    <row>
+	      <entry><literal>@exception</literal></entry>
+	      <entry><literal>@throws</literal> is supported, but this synonym is not, yet</entry>
+	    </row>
+	    <row>
+	      <entry><literal>{@inheritDoc}</literal></entry>
+	      <entry></entry>
+	    </row>
+	    <row>
+	      <entry><literal>{@link}</literal></entry>
+	      <entry>To be implemented soon-ish</entry>
+	    </row>
+	    <row>
+	      <entry><literal>{@linkPlain}</literal></entry>
+	      <entry></entry>
+	    </row>
+	    <row>
+	      <entry><literal>{@literal}</literal></entry>
+	      <entry></entry>
+	    </row>
+	    <row>
+	      <entry><literal>@serial</literal></entry>
+	      <entry></entry>
+	    </row>
+	    <row>
+	      <entry><literal>@serialData</literal></entry>
+	      <entry></entry>
+	    </row>
+	    <row>
+	      <entry><literal>@serialField</literal></entry>
+	      <entry></entry>
+	    </row>
+	    <row>
+	      <entry><literal>@since</literal></entry>
+	      <entry></entry>
+	    </row>
+	    <row>
+	      <entry><literal>{@value}</literal></entry>
+	      <entry></entry>
+	    </row>
+	    <row>
+	      <entry><literal>@version</literal></entry>
+	      <entry></entry>
+	    </row>
+	  </tbody>
+	</informaltable>
+      </section>
+
+      <section>
+	<title>Unsupported ActionScript Features</title>
+
+	<informaltable>
+	  <thead>
+	    <row>
+	      <entry>Feature</entry>
+	      <entry>Commentary</entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry><literal>#include "<replaceable>filename</replaceable>"</literal></entry>
+	      <entry>includes are ignored</entry>
+	    </row>
+	    <row>
+	      <entry><literal>[<replaceable>attributes</replaceable>]</literal></entry>
+	      <entry>attributes on types/members are not documented</entry>
+	    </row>
+	  </tbody>
+	</informaltable>
+      </section>
+
+      <section id="type_description">
+	<title>Class/Interface Description</title>
+
+	<para>A doc-comment immediately before a class or interface is taken to
+	be a description of that class.  The text here will be placed at the
+	top of the page documenting the class's public fields and
+	methods.</para>
+
+	<para>The first sentence of the class description will also be
+	included in the package-level index of classes and interfaces.  It
+	should therefore try to give a brief overview of the class's
+	purpose</para>
+
+	<example>
+	  <title>Class Description</title>
+	  <programlisting><emphasis role="strong">/**
+ * An immutable, type-safe wrapper around the String value of the
+ * user identifier.
+ * The constructor will raise an exception if the given value is not
+ * of the correct format, asserting that the GUI validation code has
+ * done its job, and preventing invalid data being sent to the
+ * backend.
+ */</emphasis>
+class thispackage.UserId {
+    // ...
+}</programlisting>
+	</example>
+
+	<formalpara>
+	  <title>May contain</title>
+	  <para><link linkend="see_tag">@see</link></para>
+	</formalpara>
+      </section>
+
+      <section id="method_description">
+	<title>Method Description</title>
+
+	<para><remark>TODO</remark></para>
+
+	<example>
+	  <title>Method Description</title>
+	  <programlisting><emphasis role="strong">/**
+ * Clears all data that has previously been collected in this
+ * object, and returns it to its initial state.  Subclasses are
+ * expected to override this method to clear any state of their
+ * own, and use super() ensure that data defined by this class is
+ * cleared too.
+ */</emphasis>
+public function clear() {
+    // ...
+}</programlisting>
+	</example>
+
+	<formalpara>
+	  <title>May contain</title>
+	  <para><link linkend="param_tag">@param</link>, <link linkend="return_tag">@return</link>, <link linkend="see_tag">@see</link></para>
+	</formalpara>
+      </section>
+
+      <section id="param_tag">
+	<title>Method Parameters</title>
+
+	<para><remark>TODO</remark></para>
+
+	<example>
+	  <title>Method Parameters</title>
+	  <programlisting>/**
+ * For each value contained by this object, invoke the given
+ * callback function, passing the value as an argument.
+ *
+ * <emphasis role="strong">@param callback</emphasis> callback function to be invoked for each object.
+ *        The function must accept one parameter (or two, if index
+ *        is true).
+ * <emphasis role="strong">@param index</emphasis> if true, each invocation of the callback function
+ *        will be passed an additional second parameter giving the
+ *        index of the current value (starting with 0 for the first
+ *        value, 1 for the second, and so on).
+ */
+public function each(callback:Function, index:Boolean):Void {
+    // ...
+}</programlisting>
+	</example>
+      </section>
+
+      <section id="return_tag">
+	<title>Method Return Values</title>
+
+	<para><remark>TODO</remark></para>
+	<example>
+	  <title>Method Return Values</title>
+	  <programlisting>/**
+ * Get the value corresponding to the given key
+ *
+ * <emphasis role="strong">@return</emphasis> either the value for the given key, or null if 
+ *         there is no such mapping.
+ */
+public function get(key:String):String {
+    // ...
+}</programlisting>
+	</example>
+      </section>
+
+      <section id="see_tag">
+	<title>Links to Related Information</title>
+
+	<para><remark>TODO</remark></para>
+	<example>
+	  <title>Class Related information</title>
+	  <programlisting>/**
+ * See-also tags will be copied to the output HTML, but are not actually
+ * turned into links to other classes/methods as they should be.
+ *
+ * <emphasis role="strong">@see "some stuff"</emphasis>
+ */
+class somepackage.ThisClass {
+    // ...
+}</programlisting>
+	</example>
+      </section>
+
+      <section id="throws_tag">
+	<title>Exceptions Thrown by a Method</title>
+
+	<para><remark>TODO</remark></para>
+	<example>
+	  <title>Class Related information</title>
+	  <programlisting>/**
+ * Causes this message to be sent
+ *
+ * <emphasis role="strong">@throws MessagingException if there is a failure in
+ *         the underlying communications medium</emphasis>
+ */
+public function send():Void {
+    // ...
+}</programlisting>
+	</example>
+      </section>
+    </section>
+  </section>
+</article>
