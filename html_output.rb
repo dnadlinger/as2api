@@ -148,8 +148,15 @@ def html_file(name, title, encoding=nil)
       end
       out.element("body") do
         yield out
+	footer(out)
       end
     end
+  end
+end
+
+def footer(out)
+  out.element("div", {"class"=>"footer"}) do
+    out.simple_element("a", "as2api", {"href"=>"http://www.badgers-in-foil.co.uk/projects/as2api/", "title"=>"ActionScript 2 API Documentation Generator"})
   end
 end
 
