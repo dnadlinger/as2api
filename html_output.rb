@@ -113,7 +113,6 @@ def base_path(file)
 end
 
 def in_subdir(path)
-puts "in_subdir(#{path})"
   save_path = $path
   save_base_path = $base_path.dup
   path = path.split("/")
