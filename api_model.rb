@@ -19,7 +19,6 @@ class ASType
     @package_name = name[0, name.length-1].join(".")
     @name = name.last.body
     @source_utf8 = false
-    @resolved = false
     @methods = []
     @extends = nil
     @comment = nil
@@ -28,7 +27,7 @@ class ASType
     @input_filename = nil
   end
 
-  attr_accessor :package, :resolved, :extends, :comment, :source_utf8, :type_resolver, :import_manager, :input_filename, :intrinsic
+  attr_accessor :package, :extends, :comment, :source_utf8, :type_resolver, :import_manager, :input_filename, :intrinsic
 
   def add_method(method)
     @methods << method
