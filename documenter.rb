@@ -88,6 +88,16 @@ class ASClass < ASType
   def add_field(field)
     @fields << field
   end
+
+  def fields?
+    !@fields.empty?
+  end
+
+  def each_field
+    @fields.each do |field|
+      yield field
+    end
+  end
 end
 
 class ASInterface < ASType
@@ -96,6 +106,10 @@ class ASInterface < ASType
   end
 
   def implements_interfaces?
+    false
+  end
+
+  def fields?
     false
   end
 end

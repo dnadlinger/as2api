@@ -44,6 +44,24 @@ def method_synopsis(out, method)
   end
 end
 
+def field_synopsis(out, field)
+  out.element("code", {"class", "field_synopsis"}) do
+    if field.access.is_static
+      out.pcdata("static ")
+    end
+    unless field.access.visibility.nil?
+      out.pcdata("#{field.access.visibility.body} ")
+    end
+    out.element("strong", {"class"=>"method_name"}) do
+      out.pcdata(field.name)
+    end
+    if field.field_type
+      out.pcdata(":")
+      link_type(out, field.field_type)
+    end
+  end
+end
+
 def class_navigation(out)
   out.element("div", {"class", "main_nav"}) do
     out.simple_element("a", "Overview", {"href"=>base_path("overview-summary.html")})
@@ -62,7 +80,7 @@ def document_method(out, method)
 	docs = DocComment.new
 	docs.parse(method.comment.body)
         out.pcdata(docs.description)
-        out.element("dl", {"class"=>"method_detail_list"}) do
+        out.element("dl", {"class"=>"method_additional_info"}) do
 	  # TODO: assumes that params named in docs match formal arguments
 	  #       should really filter out those that don't match before this
 	  #       test
@@ -99,6 +117,25 @@ def document_method(out, method)
 	      end
 	    end
 	  end
+	  # TODO: see-also
+	end
+      end
+    end
+  end
+end
+
+def document_field(out, field)
+  out.empty_tag("a", {"name"=>"field_#{field.name}"})
+  out.simple_element("h3", field.name)
+  out.element("div", {"class"=>"field_details"}) do
+    field_synopsis(out, field)
+    if field.comment
+      out.element("blockquote") do
+	docs = DocComment.new
+	docs.parse(field.comment.body)
+        out.pcdata(docs.description)
+        out.element("dl", {"class"=>"field_additional_info"}) do
+	  # TODO: see-also
 	end
       end
     end
@@ -194,6 +231,49 @@ def type_hierachy_recursive(out, type_proxy)
   return count + 1
 end
 
+def field_index_list(out, type)
+  out.element("div", {"class"=>"field_index"}) do
+    out.simple_element("h2", "Field Index")
+    type.each_field do |field|
+      out.element("a", {"href"=>"#field_#{field.name}"}) do
+	out.pcdata(field.name)
+      end
+      out.pcdata(" ")
+    end
+  end
+end
+
+def field_detail_list(out, type)
+  out.element("div", {"class"=>"field_detail_list"}) do
+    out.simple_element("h2", "Field Detail")
+    type.each_field do |field|
+      document_field(out, field)
+    end
+  end
+end
+
+
+def method_index_list(out, type)
+  out.element("div", {"class"=>"method_index"}) do
+    out.simple_element("h2", "Method Index")
+    type.each_method do |method|
+      out.element("a", {"href"=>"#method_#{method.name}"}) do
+	out.pcdata(method.name+"()")
+      end
+      out.pcdata(" ")
+    end
+  end
+end
+
+def method_detail_list(out, type)
+  out.element("div", {"class"=>"method_detail_list"}) do
+    out.simple_element("h2", "Method Detail")
+    type.each_method do |method|
+      document_method(out, method)
+    end
+  end
+end
+
 def document_type(type)
   encoding = if type.source_utf8
     "utf-8"
@@ -221,7 +301,6 @@ def document_type(type)
 	    end
             out.pcdata(" ")
           end
-          out.comment(" no more interfaces ")
         end
       end
       out.element("div", {"class"=>"type_description"}) do
@@ -233,7 +312,7 @@ def document_type(type)
           out.element("p") do
             out.pcdata(docs.description)
           end
-          out.element("dl", {"class"=>"method_detail_list"}) do
+          out.element("dl", {"class"=>"type_details"}) do
 	    if docs.seealso?
               out.simple_element("dt", "See Also")
               out.element("dd") do
@@ -246,24 +325,12 @@ def document_type(type)
 	  end
         end
       end
-      if type.methods?
-	out.element("div", {"class"=>"method_index"}) do
-	  out.simple_element("h2", "Method Index")
-	  type.each_method do |method|
-	    out.element("a", {"href"=>"#method_#{method.name}"}) do
-	      out.pcdata(method.name+"()")
-	    end
-	    out.pcdata(" ")
-	  end
-	end
+      
+      field_index_list(out, type) if type.fields?
+      method_index_list(out, type) if type.methods?
+      field_detail_list(out, type) if type.fields?
+      method_detail_list(out, type) if type.methods?
 
-	out.element("div", {"class"=>"method_detail_list"}) do
-	  out.simple_element("h2", "Method Detail")
-	  type.each_method do |method|
-	    document_method(out, method)
-	  end
-	end
-      end
       class_navigation(out)
     end
   end
