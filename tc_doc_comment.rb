@@ -1,39 +1,38 @@
 require 'test/unit'
 require 'doc_comment'
-
+require 'api_loader'
 
 class TC_DocComment < Test::Unit::TestCase
   def test_strip_stars()
-    doc = DocComment.new
+    doc = DocComment.new(LocalTypeResolver.new)
     initial = "foo = a * b\nbar!"
     with_stars = "\t **#{initial}"
     assert_equal(initial, doc.strip_stars(with_stars))
   end
 
   def test_description()
-    doc = DocComment.new
+    doc = DocComment.new(LocalTypeResolver.new)
     text = "foo bar\n *blat\n * @param foo bar\n blat ping pong\n *"
     doc.parse(text)
     assert_equal("foo bar\nblat", doc.description)
   end
 
   def test_params()
-    doc = DocComment.new
+    doc = DocComment.new(LocalTypeResolver.new)
     text = "*\n * @param foo bar\n blat ping pong\n *"
     doc.parse(text)
-    assert_equal("bar", doc.param("foo"))
-    assert_equal("ping pong", doc.param("blat"))
+    assert_equal("bar\nblat ping pong", doc.param("foo"))
   end
 
   def test_return()
-    doc = DocComment.new
+    doc = DocComment.new(LocalTypeResolver.new)
     text = "*\n * @return foo bar\n blat\n *"
     doc.parse(text)
     assert_equal("foo bar\nblat", doc.desc_return)
   end
 
   def test_see()
-    doc = DocComment.new
+    doc = DocComment.new(LocalTypeResolver.new)
     text = "*\n * @see foo bar\n blat\n *"
     doc.parse(text)
     expected = "foo bar\nblat"
@@ -41,7 +40,7 @@ class TC_DocComment < Test::Unit::TestCase
   end
 
   def test_throws()
-    doc = DocComment.new
+    doc = DocComment.new(LocalTypeResolver.new)
     text = "*\n * @throws foo.Bbar blat\nping\n *"
     doc.parse(text)
     assert("blat\nping", doc.describe_exception("foo.Bar"))
