@@ -74,7 +74,7 @@ def explicit_field_synopsis(out, field)
   unless field.access.visibility.nil?
     out.pcdata("#{field.access.visibility.body} ")
   end
-  out.element("strong", {"class"=>"method_name"}) do
+  out.element("strong", {"class"=>"field_name"}) do
     out.pcdata(field.name)
   end
   if field.field_type
@@ -90,7 +90,7 @@ def implicit_field_synopsis(out, field)
   unless field.access.visibility.nil?
     out.pcdata("#{field.access.visibility.body} ")
   end
-  out.element("strong", {"class"=>"method_name"}) do
+  out.element("strong", {"class"=>"field_name"}) do
     out.pcdata(field.name)
   end
   field_type = field.field_type
@@ -314,7 +314,7 @@ def list_fields(out, type, href_prefix="")
   fields = type.fields.sort
   fields.each_with_index do |field, index|
     out.pcdata(", ") if index > 0
-    out.element("a", {"href"=>"#{href_prefix}#field#{field.name}"}) do
+    out.element("a", {"href"=>"#{href_prefix}#field_#{field.name}"}) do
       out.pcdata(field.name)
     end
   end
