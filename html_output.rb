@@ -130,6 +130,7 @@ def class_navigation(out)
     out.simple_element("a", "Overview", {"href"=>base_path("overview-summary.html")})
     out.simple_element("a", "Package", {"href"=>"package-summary.html"})
     out.simple_element("span", "Class", {"class"=>"nav_current"})
+    out.simple_element("a", "Index", {"href"=>base_path("index-files/index.html")})
   end
 end
 
@@ -521,6 +522,7 @@ def package_navigation(out)
     out.simple_element("a", "Overview", {"href"=>base_path("overview-summary.html")})
     out.simple_element("span", "Package", {"class"=>"nav_current"})
     out.simple_element("span", "Class")
+    out.simple_element("a", "Index", {"href"=>base_path("index-files/index.html")})
   end
 end
 
@@ -631,6 +633,7 @@ def overview_navigation(out)
     out.simple_element("span", "Overview", {"class"=>"nav_current"})
     out.simple_element("span", "Package")
     out.simple_element("span", "Class")
+    out.simple_element("a", "Index", {"href"=>"index-files/index.html"})
   end
 end
 
@@ -755,6 +758,104 @@ def frameset
   end
 end
 
+class IndexTerm
+  def <=>(other)
+    cmp = term.downcase <=> other.term.downcase
+    cmp = term <=> other.term if cmp == 0
+    cmp
+  end
+end
+
+class TypeIndexTerm < IndexTerm
+  def initialize(astype)
+    @astype = astype
+  end
+
+  def term
+    @astype.unqualified_name
+  end
+
+  def link(out)
+    link_type(out, @astype)
+    out.pcdata(" in package ")
+    out.pcdata(@astype.package_name)
+  end
+end
+
+class MemberIndexTerm < IndexTerm
+  def initialize(astype, asmember)
+    @astype = astype
+    @asmember = asmember
+  end
+
+  def term
+    @asmember.name
+  end
+end
+
+class MethodIndexTerm < MemberIndexTerm
+  def link(out)
+    href_prefix = link_for_type(@astype)
+    out.element("a", {"href"=>"#{href_prefix}#method_#{@asmember.name}"}) do
+      out.pcdata(@asmember.name + "()")
+    end
+    out.pcdata(" method in ")
+    link_type(out, @astype, true)
+  end
+end
+
+class FieldIndexTerm < MemberIndexTerm
+  def link(out)
+    href_prefix = link_for_type(@astype)
+    out.element("a", {"href"=>"#{href_prefix}#field_#{@asmember.name}"}) do
+      out.pcdata(@asmember.name)
+    end
+    out.pcdata(" field in ")
+    link_type(out, @astype, true)
+  end
+end
+
+def index_navigation(out)
+  out.element("div", {"class", "main_nav"}) do
+    out.simple_element("a", "Overview", {"href"=>base_path("overview-summary.html")})
+    out.simple_element("span", "Package")
+    out.simple_element("span", "Class")
+    out.simple_element("span", "Index", {"class"=>"nav_current"})
+  end
+end
+
+def index_files(type_agregator)
+  index = []
+  # TODO: include packages
+  type_agregator.each_type do |astype|
+    if astype.document?
+      index << TypeIndexTerm.new(astype)
+      astype.each_method do |asmethod|
+	index << MethodIndexTerm.new(astype, asmethod)
+      end
+      if astype.is_a?(ASClass)
+	astype.each_field do |asfield|
+	  index << FieldIndexTerm.new(astype, asfield)
+	end
+      end
+    end
+  end
+
+  index.sort!
+
+  in_subdir("index-files") do
+    html_file("index", "Alphabetical Index") do |out|
+      index_navigation(out)
+      index.each do |element|
+	out.element("p") do
+	  element.link(out)
+	end
+      end
+      index_navigation(out)
+    end
+  end
+end
+
 def document_types(output_path, type_agregator)
   in_subdir(output_path) do
     frameset()
@@ -776,5 +877,7 @@ def document_types(output_path, type_agregator)
 	end
       end
     end
+
+    index_files(type_agregator)
   end
 end
