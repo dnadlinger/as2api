@@ -13,9 +13,10 @@ class ASType
     @comment = nil
     @type_resolver = nil
     @import_manager = nil
+    @input_filename = nil
   end
 
-  attr_accessor :package, :name, :resolved, :extends, :comment, :source_utf8, :type_resolver, :import_manager
+  attr_accessor :package, :name, :resolved, :extends, :comment, :source_utf8, :type_resolver, :import_manager, :input_filename
 
   def add_method(method)
     @methods << method
@@ -435,7 +436,7 @@ def resolve_types(types)
       if import_type
         local_names[type_name.last.body] = import_type
       else
-        $stderr.puts "Couldn't resolve import of #{type_name.inspect}"
+        $stderr.puts "#{type.input_filename}:#{type_name.first.lineno}: Couldn't resolve import of #{type_name.join(".").inspect}"
       end
     end
     importer.each_package do |package_name|
@@ -452,7 +453,7 @@ def resolve_types(types)
       if real_type
 	type_proxy.resolved_type = real_type
       else
-	$stderr.puts "No match for local type #{type_proxy.name.join('.').inspect}"
+	$stderr.puts "#{type.input_filename}:#{type_proxy.name.first.lineno}: Found no defenition of type known locally as #{type_proxy.name.join('.').inspect}"
       end
     end
   end
@@ -471,6 +472,7 @@ each_source(ARGV[0]) do |name|
       is_utf8 = detect_bom?(io)
       print "Parsing #{name.inspect}"
       type = simple_parse(io)
+      type.input_filename = name
       puts " -> #{type.name_s}"
       type.source_utf8 = is_utf8
       types << type
