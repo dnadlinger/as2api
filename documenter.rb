@@ -1,12 +1,14 @@
 
 require 'parse/lexer'  # TODO: remove this requirement
+require 'parse/as_io'
 require 'api_loader'
 
 
 
 
 def simple_parse(input)
-  lex = DocASLexer.new(ActionScript::Parse::ASLexer.new(input))
+  as_io = ASIO.new(input)
+  lex = DocASLexer.new(ActionScript::Parse::ASLexer.new(as_io))
   parse = DocASParser.new(lex)
   handler = DocASHandler.new
   parse.handler = handler
