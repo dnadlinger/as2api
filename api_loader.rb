@@ -377,7 +377,7 @@ class GlobalTypeAggregator
 	if real_type
 	  type_proxy.resolved_type = real_type
 	else
-	  $stderr.puts "#{type.input_filename}:#{type_proxy.name.first.lineno}: Found no defenition of type known locally as #{type_proxy.name.join('.').inspect}"
+	  $stderr.puts "#{type.input_filename}:#{type_proxy.name.first.lineno}: Found no definition of type known locally as #{type_proxy.name.join('.').inspect}"
 	end
       end
     end
