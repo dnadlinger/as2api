@@ -91,6 +91,16 @@ class DocComment
     @see_also
   end
 
+  def seealso?
+    !@see_also.empty?
+  end
+
+  def each_see_also
+    @see_also.each do |also|
+      yield also
+    end
+  end
+
   def strip_stars(text)
     text.sub(/\A\s*\**/, "").sub(/\s*\Z/, "")
   end
