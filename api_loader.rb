@@ -263,9 +263,10 @@ class TypeProxy
   def initialize(name)
     @name = name
     @resolved_type = nil
+    @lineno = nil
   end
 
-  attr_accessor :name, :resolved_type
+  attr_accessor :name, :resolved_type, :lineno
 
   def resolved?
     !@resolved_type.nil?
@@ -274,11 +275,11 @@ class TypeProxy
   def local_name
     # TODO: come up with smarter representations for resolved vs. unresolved
     #       types
-    @name.join(".")
+    @name
   end
 
   def qualified?
-    @name.size > 1
+    @name =~ /\./
   end
 end
 
@@ -297,10 +298,17 @@ class LocalTypeResolver
   end
 
   def resolve(name)
-    type = @named_types[name.join(".")]
+    if name.is_a?(Array)
+      lineno = name.first.lineno
+      name = name.join(".")
+    else
+      lineno = nil
+    end
+    type = @named_types[name]
     if type.nil?
       type = TypeProxy.new(name)
-      @named_types[name.join(".")] = type
+      type.lineno = lineno
+      @named_types[name] = type
     end
     type
   end
@@ -373,11 +381,11 @@ class GlobalTypeAggregator
       import_packages_into_namespace(type, local_namespace)
       resolver = type.type_resolver
       resolver.each do |type_proxy|
-	real_type = local_namespace[type_proxy.name.join(".")]
+	real_type = local_namespace[type_proxy.local_name]
 	if real_type
 	  type_proxy.resolved_type = real_type
 	else
-	  $stderr.puts "#{type.input_filename}:#{type_proxy.name.first.lineno}: Found no definition of type known locally as #{type_proxy.name.join('.').inspect}"
+	  $stderr.puts "#{type.input_filename}:#{type_proxy.lineno}: Found no definition of type known locally as #{type_proxy.local_name.inspect}"
 	end
       end
     end
@@ -411,7 +419,7 @@ class GlobalTypeAggregator
     importer.each_package do |package_name|
       collect_package_types(package_name.join(".")) do |package_type|
 	if local_namespace.has_key?(package_type.unqualified_name)
-	  $stderr.puts "#{package_type.unqualified_name} already refers to #{local_namespace[package_type.unqualified_name].qualified_name}"
+	  $stderr.puts "#{type.input_filename}: #{package_type.unqualified_name} already refers to #{local_namespace[package_type.unqualified_name].qualified_name}"
 	end
 	local_namespace[package_type.unqualified_name] = package_type
       end

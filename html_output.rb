@@ -133,7 +133,7 @@ def class_navigation(out)
   end
 end
 
-def document_method(out, method, alt_row=false)
+def document_method(out, type, method, alt_row=false)
   css_class = "method_details"
   css_class << " alt_row" if alt_row
   out.element("div", {"class"=>css_class}) do
@@ -142,7 +142,7 @@ def document_method(out, method, alt_row=false)
     method_synopsis(out, method)
     if method.comment
       out.element("blockquote") do
-	docs = DocComment.new
+	docs = DocComment.new(type.type_resolver)
 	docs.parse(method.comment.body)
         out.pcdata(docs.description)
         out.element("dl", {"class"=>"method_additional_info"}) do
@@ -167,6 +167,12 @@ def document_method(out, method, alt_row=false)
 	      end
 	    end
 	  end
+	  unless docs.desc_return.nil?
+	    out.simple_element("dt", "Return")
+	    out.element("dd") do
+	      out.pcdata(docs.desc_return)
+	    end
+	  end
 	  if docs.exceptions?
             out.simple_element("dt", "throws")
             out.element("dd") do
@@ -174,7 +180,7 @@ def document_method(out, method, alt_row=false)
 	        docs.each_exception do |type, desc|
 		  out.element("tr") do
 		    out.element("td") do
-		      out.simple_element("code", type)
+		      link_type_proxy(out, type)
 		    end
 		    out.simple_element("td", desc)
 		  end
@@ -182,25 +188,35 @@ def document_method(out, method, alt_row=false)
 	      end
 	    end
 	  end
-	  # TODO: see-also
+	  if docs.seealso?
+	    out.simple_element("dt", "See Also")
+	    out.element("dd") do
+	      list_see_also(out, docs)
+	    end
+	  end
 	end
       end
     end
   end
 end
 
-def document_field(out, field)
+def document_field(out, type, field)
   out.empty_tag("a", {"name"=>"field_#{field.name}"})
   out.simple_element("h3", field.name)
   out.element("div", {"class"=>"field_details"}) do
     field_synopsis(out, field)
     if field.comment
       out.element("blockquote") do
-	docs = DocComment.new
+	docs = DocComment.new(type.type_resolver)
 	docs.parse(field.comment.body)
         out.pcdata(docs.description)
         out.element("dl", {"class"=>"field_additional_info"}) do
-	  # TODO: see-also
+	  if docs.seealso?
+	    out.simple_element("dt", "See Also")
+	    out.element("dd") do
+	      list_see_also(out, docs)
+	    end
+	  end
 	end
       end
     end
@@ -350,7 +366,7 @@ def field_detail_list(out, type)
   out.element("div", {"class"=>"field_detail_list"}) do
     out.simple_element("h2", "Field Detail")
     type.each_field do |field|
-      document_field(out, field)
+      document_field(out, type, field)
     end
   end
 end
@@ -408,7 +424,7 @@ def method_detail_list(out, type)
     out.simple_element("h2", "Method Detail")
     count = 0
     type.each_method do |method|
-      document_method(out, method, count%2==0)
+      document_method(out, type, method, count%2==0)
       count += 1
     end
   end
@@ -417,7 +433,7 @@ end
 def constructor_detail(out, type)
   out.element("div", {"class"=>"constructor_detail_list"}) do
     out.simple_element("h2", "Constructor Detail")
-    document_method(out, type.constructor)
+    document_method(out, type, type.constructor)
   end
 end
 
@@ -453,7 +469,7 @@ def document_type(type)
     end
     out.element("div", {"class"=>"type_description"}) do
       if type.comment
-	docs = DocComment.new
+	docs = DocComment.new(type.type_resolver)
 	docs.parse(type.comment.body)
 
 	out.simple_element("h2", "Description")
@@ -464,10 +480,7 @@ def document_type(type)
 	  if docs.seealso?
 	    out.simple_element("dt", "See Also")
 	    out.element("dd") do
-	      docs.each_see_also do |see|
-		out.comment(" parsing for see-also not done yet ")
-		out.simple_element("p", see)
-	      end
+	      list_see_also(out, docs)
 	    end
 	  end
 	end
@@ -481,6 +494,13 @@ def document_type(type)
     method_detail_list(out, type) if type.methods?
 
     class_navigation(out)
+  end
+end
+
+def list_see_also(out, docs)
+  docs.each_see_also do |see|
+    out.comment(" parsing for see-also not done yet ")
+    out.simple_element("p", see)
   end
 end
 

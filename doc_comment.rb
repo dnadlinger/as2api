@@ -12,12 +12,13 @@ class DocComment
     doc
   end
 
-  def initialize
+  def initialize(type_resolver)
     @description = nil
     @params = {}
     @desc_return = nil
     @see_also = []
     @exceptions = {}
+    @type_resolver = type_resolver
   end
 
   def extract_method_doc(text)
@@ -45,18 +46,18 @@ class DocComment
       text = strip_stars(text)
       unless text =~ /^\s*$/
         case text
-          when /^\s*@param ([^ ]+)/
+          when /^\s*@param\s+([^\s]+)/
 	    state = :PARAM
 	    desc_param = $'
 	    add_param($1, desc_param)
-	  when /^\s*@return /
+	  when /^\s*@return\s+/
 	    state = :RETURN
 	    desc_return = $'
-	  when /^\s*@see /
+	  when /^\s*@see\s+/
 	    state = :SEE
 	    seealso = $'
 	    add_seealso(seealso)
-	  when /^\s*@throws ([^ ]+)/
+	  when /^\s*@throws\s+([^\s]+)/
 	    state = :THROWS
 	    desc_throws = $'
 	    add_exception($1, desc_throws)
@@ -116,8 +117,8 @@ class DocComment
   end
 
   def add_exception(type, desc)
-    # NB: desc may get modified by the called after this method is invoked
-    @exceptions[type] = desc
+    # NB: desc may get modified by the caller after this method is invoked
+    @exceptions[@type_resolver.resolve(type)] = desc
   end
 
   def each_exception
