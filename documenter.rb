@@ -76,4 +76,4 @@ end
 
 type_agregator.resolve_types
 
-document_types(type_agregator)
+document_types("apidoc", type_agregator)

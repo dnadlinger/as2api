@@ -143,7 +143,7 @@ def document_field(out, field)
 end
 
 $base_path = ""
-$path = "."
+$path = ""
 
 def base_path(file)
   "#{$base_path}#{file}"
@@ -152,10 +152,14 @@ end
 def in_subdir(path)
   save_path = $path
   save_base_path = $base_path.dup
-  path = path.split("/")
+  path = path.split(File::SEPARATOR)
   path.each do |part|
-    $base_path << ".."+File::SEPARATOR if $path!="."
-    $path = File.join($path, part)
+    if $path == ""
+      $path = part
+    else
+      $base_path << ".."+File::SEPARATOR
+      $path = File.join($path, part)
+    end
     unless FileTest.exist?($path)
       Dir.mkdir($path)
     end
@@ -430,8 +434,8 @@ def package_list(type_agregator)
   end
 end
 
-def document_types(type_agregator)
-  in_subdir("apidoc") do
+def document_types(output_path, type_agregator)
+  in_subdir(output_path) do
     overview(type_agregator)
     package_list(type_agregator)
 
