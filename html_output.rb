@@ -3,7 +3,7 @@ require 'xmlwriter'
 
 def link_type(out, type, qualified=false)
   if type.resolved?
-    href = base_path(type.resolved_type.name_s+".html")
+    href = base_path(type.resolved_type.name.join("/")+".html")
     if qualified
       out.simple_element("a", type.resolved_type.name_s, {"href"=>href})
     else
@@ -46,7 +46,7 @@ end
 
 def class_navigation(out)
   out.element("div", {"class", "main_nav"}) do
-    out.simple_element("a", "Overview", {"href"=>"index.html"})
+    out.simple_element("a", "Overview", {"href"=>base_path("index.html")})
     out.simple_element("span", "Package")
     out.simple_element("span", "Class", {"class"=>"nav_current"})
   end
@@ -112,17 +112,17 @@ def base_path(file)
   "#{$base_path}#{file}"
 end
 
-def in_subdir(*path)
+def in_subdir(path)
   save_path = $path
-  save_base_path = $base_path
+  save_base_path = $base_path.dup
+  path = path.split("/")
   path.each do |part|
-    $base_path << ".." << File::SEPARATOR if $path!="."
+    $base_path << ".."+File::SEPARATOR if $path!="."
     $path = File.join($path, part)
     unless FileTest.exist?($path)
       Dir.mkdir($path)
     end
   end
-puts $base_path
   yield
   $path = save_path
   $base_path = save_base_path
@@ -187,7 +187,7 @@ def document_type(type)
   else
     "iso-8859-1"
   end
-  html_file(type.name.join("."), type.name.join("."), encoding) do |out|
+  html_file(type.unqualified_name, type.name.join("."), encoding) do |out|
     out.element("body") do
       class_navigation(out)
       out.simple_element("h1", type.name.join("."))
@@ -254,10 +254,12 @@ def document_types(types)
   in_subdir("apidoc") do
     html_file("index", "API Documentation") do |out|
       types.each do |type|
-        document_type(type)
-        out.element("p") do
-	  out.element("a", {"href"=>"#{type.name.join('.')}.html"}) do
-	    out.pcdata(type.name.join('.'))
+        in_subdir(File.join(type.package_name)) do
+          document_type(type)
+          out.element("p") do
+	    out.element("a", {"href"=>"#{type.name.join('/')}.html"}) do
+	      out.pcdata(type.name.join('.'))
+	    end
 	  end
 	end
       end
