@@ -183,7 +183,12 @@ class DocASHandler < ActionScript::Parse::ASHandler
   end
 
   def real_member_function(name, sig)
-    @defined_type.add_method(create_method(name, sig))
+    method = create_method(name, sig)
+    if name.body == @defined_type.unqualified_name
+      @defined_type.constructor = method
+    else
+      @defined_type.add_method(method)
+    end
   end
 
   def implicit_property_function(name, sig)

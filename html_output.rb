@@ -314,8 +314,10 @@ def list_fields(out, type, href_prefix="")
   fields = type.fields.sort
   fields.each_with_index do |field, index|
     out.pcdata(", ") if index > 0
-    out.element("a", {"href"=>"#{href_prefix}#field_#{field.name}"}) do
-      out.pcdata(field.name)
+    out.element("code") do
+      out.element("a", {"href"=>"#{href_prefix}#field_#{field.name}"}) do
+	out.pcdata(field.name)
+      end
     end
   end
 end
@@ -333,6 +335,16 @@ end
 def method_index_list(out, type)
   out.element("div", {"class"=>"method_index"}) do
     out.simple_element("h2", "Method Index")
+    if type.constructor?
+      out.element("p") do
+        out.element("code") do
+          out.pcdata("new ")
+	    out.element("a", {"href"=>"#method_#{type.constructor.name}"}) do
+	      out.pcdata(type.constructor.name+"()")
+	    end
+        end
+      end
+    end
     list_methods(out, type)
     out.element("dl") do
       type.each_ancestor do |type|
@@ -354,8 +366,10 @@ def list_methods(out, type, href_prefix="")
   methods = type.methods.sort
   methods.each_with_index do |method, index|
     out.pcdata(", ") if index > 0
-    out.element("a", {"href"=>"#{href_prefix}#method_#{method.name}"}) do
-      out.pcdata(method.name+"()")
+    out.element("code") do
+      out.element("a", {"href"=>"#{href_prefix}#method_#{method.name}"}) do
+	out.pcdata(method.name+"()")
+      end
     end
   end
 end
@@ -366,6 +380,13 @@ def method_detail_list(out, type)
     type.each_method do |method|
       document_method(out, method)
     end
+  end
+end
+
+def constructor_detail(out, type)
+  out.element("div", {"class"=>"constructor_detail_list"}) do
+    out.simple_element("h2", "Constructor Detail")
+    document_method(out, type.constructor)
   end
 end
 
@@ -422,6 +443,7 @@ def document_type(type)
     
     field_index_list(out, type) if type.fields?
     method_index_list(out, type) if type.methods?
+    constructor_detail(out, type) if type.constructor?
     field_detail_list(out, type) if type.fields?
     method_detail_list(out, type) if type.methods?
 

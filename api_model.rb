@@ -20,6 +20,7 @@ class ASType
     @name = name.last.body
     @source_utf8 = false
     @methods = []
+    @constructor = nil
     @extends = nil
     @comment = nil
     @type_resolver = nil
@@ -27,7 +28,7 @@ class ASType
     @input_filename = nil
   end
 
-  attr_accessor :package, :extends, :comment, :source_utf8, :type_resolver, :import_manager, :input_filename, :intrinsic
+  attr_accessor :package, :extends, :comment, :source_utf8, :type_resolver, :import_manager, :input_filename, :intrinsic, :constructor
 
   def add_method(method)
     @methods << method
@@ -45,6 +46,10 @@ class ASType
 
   def methods?
     !@methods.empty?
+  end
+
+  def constructor?
+    !@constructor.nil?
   end
 
   # The type's name, excluding its package-prefix
