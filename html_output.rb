@@ -384,7 +384,7 @@ end
 def method_index_list(out, type)
   out.element_div("class"=>"method_index") do
     out.element_h2("Method Index")
-    if type.constructor?
+    if type.constructor? && document_member?(type.constructor)
       out.element_p do
         out.element_code do
           out.pcdata("new ")
@@ -497,7 +497,7 @@ def document_type(type)
     
     field_index_list(out, type) if type.fields?
     method_index_list(out, type) if type.methods?
-    constructor_detail(out, type) if type.constructor?
+    constructor_detail(out, type) if type.constructor? && document_member?(type.constructor)
     field_detail_list(out, type) if type.fields?
     method_detail_list(out, type) if type.methods?
 
