@@ -52,6 +52,17 @@ class ASType
     @name
   end
 
+  # ascends the hierarchy of resolved supertypes of this type, passing
+  # each ASType to the given block.  Stops when a type does not extend
+  # anything, or when the class it extends wasn't resolved.
+  def each_ancestor
+    parent = @extends
+    while !parent.nil? && parent.resolved?
+      yield parent.resolved_type
+      parent = parent.resolved_type.extends
+    end
+  end
+
   # The whole type name, including package-prefix
   def qualified_name
     if @package_name == ""

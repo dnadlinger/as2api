@@ -1,21 +1,29 @@
 
 require 'xmlwriter'
 
-def link_type(out, type, qualified=false)
-  if type.resolved? && type.resolved_type.document?
-    href = base_path(type.resolved_type.qualified_name.gsub(/\./, "/")+".html")
-    if qualified
-      out.simple_element("a", type.resolved_type.qualified_name, {"href"=>href})
-    else
-      out.simple_element("a", type.local_name, {"href"=>href,
-                                                "title"=>type.resolved_type.qualified_name})
-    end
+def link_type_proxy(out, type_proxy, qualified=false)
+  if type_proxy.resolved? && type_proxy.resolved_type.document?
+    link_type(out, type_proxy.resolved_type, qualified)
   else
-    if type.resolved?
-      out.pcdata(type.local_name)
+    if type_proxy.resolved?
+      out.pcdata(type_proxy.local_name)
     else
-      out.simple_element("span", type.local_name, {"class"=>"unresolved_type"})
+      out.simple_element("span", type_proxy.local_name, {"class"=>"unresolved_type"})
     end
+  end
+end
+
+def link_for_type(type)
+  base_path(type.qualified_name.gsub(/\./, "/")+".html")
+end
+
+def link_type(out, type, qualified=false)
+  href = link_for_type(type)
+  if qualified
+    out.simple_element("a", type.qualified_name, {"href"=>href})
+  else
+    out.simple_element("a", type.unqualified_name, {"href"=>href,
+                                                  "title"=>type.qualified_name})
   end
 end
 
@@ -37,13 +45,13 @@ def method_synopsis(out, method)
       out.pcdata(arg.name)
       if arg.arg_type
         out.pcdata(":")
-	link_type(out, arg.arg_type)
+	link_type_proxy(out, arg.arg_type)
       end
     end
     out.pcdata(")")
     if method.return_type
       out.pcdata(":")
-      link_type(out, method.return_type)
+      link_type_proxy(out, method.return_type)
     end
   end
 end
@@ -70,7 +78,7 @@ def explicit_field_synopsis(out, field)
   end
   if field.field_type
     out.pcdata(":")
-    link_type(out, field.field_type)
+    link_type_proxy(out, field.field_type)
   end
 end
 
@@ -87,7 +95,7 @@ def implicit_field_synopsis(out, field)
   field_type = field.field_type
   unless field_type.nil?
     out.pcdata(":")
-    link_type(out, field_type)
+    link_type_proxy(out, field_type)
   end
   unless field.readwrite?
     out.pcdata(" ")
@@ -276,7 +284,7 @@ def type_hierachy_recursive(out, type_proxy)
     out.pcdata("   " * count)
     out.pcdata("+--")
   end
-  link_type(out, type_proxy, true)
+  link_type_proxy(out, type_proxy, true)
   out.pcdata("\n")
   return count + 1
 end
@@ -284,12 +292,29 @@ end
 def field_index_list(out, type)
   out.element("div", {"class"=>"field_index"}) do
     out.simple_element("h2", "Field Index")
-    fields = type.fields.sort
-    fields.each do |field|
-      out.element("a", {"href"=>"#field_#{field.name}"}) do
-	out.pcdata(field.name)
+    list_fields(out, type)
+    out.element("dl") do
+      type.each_ancestor do |type|
+	if type.fields?
+	  out.element("dt") do
+	    out.pcdata("Inherited from ")
+	    link_type(out, type)
+	  end
+	  out.element("dd") do
+	    list_fields(out, type, link_for_type(type))
+	  end
+	end
       end
-      out.pcdata(" ")
+    end
+  end
+end
+
+def list_fields(out, type, href_prefix="")
+  fields = type.fields.sort
+  fields.each_with_index do |field, index|
+    out.pcdata(", ") if index > 0
+    out.element("a", {"href"=>"#{href_prefix}#field#{field.name}"}) do
+      out.pcdata(field.name)
     end
   end
 end
@@ -307,12 +332,29 @@ end
 def method_index_list(out, type)
   out.element("div", {"class"=>"method_index"}) do
     out.simple_element("h2", "Method Index")
-    methods = type.methods.sort
-    methods.each do |method|
-      out.element("a", {"href"=>"#method_#{method.name}"}) do
-	out.pcdata(method.name+"()")
+    list_methods(out, type)
+    out.element("dl") do
+      type.each_ancestor do |type|
+	if type.methods?
+	  out.element("dt") do
+	    out.pcdata("Inherited from ")
+	    link_type(out, type)
+	  end
+	  out.element("dd") do
+	    list_methods(out, type, link_for_type(type))
+	  end
+	end
       end
-      out.pcdata(" ")
+    end
+  end
+end
+
+def list_methods(out, type, href_prefix="")
+  methods = type.methods.sort
+  methods.each_with_index do |method, index|
+    out.pcdata(", ") if index > 0
+    out.element("a", {"href"=>"#{href_prefix}#method_#{method.name}"}) do
+      out.pcdata(method.name+"()")
     end
   end
 end
@@ -348,7 +390,7 @@ def document_type(type)
 	type.each_interface do |interface|
 	  # TODO: need to resolve interface name, make links
 	  out.element("code") do
-	    link_type(out, interface)
+	    link_type_proxy(out, interface)
 	  end
 	  out.pcdata(" ")
 	end
