@@ -411,10 +411,8 @@ def list_methods(out, type, known_method_names, href_prefix="")
   methods.each_with_index do |method, index|
     known_method_names << method.name
     out.pcdata(", ") if index > 0
-    out.element("code") do
-      out.element("a", {"href"=>"#{href_prefix}#method_#{method.name}"}) do
-	out.pcdata(method.name+"()")
-      end
+    out.element("a", {"href"=>"#{href_prefix}#method_#{method.name}"}) do
+      out.pcdata(method.name+"()")
     end
   end
 end
