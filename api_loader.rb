@@ -368,6 +368,7 @@ class GlobalTypeAggregator
     end
     @types.each do |type|
       local_namespace = qname_map.dup
+      local_namespace[type.unqualified_name] = type
       import_types_into_namespace(type, local_namespace)
       import_packages_into_namespace(type, local_namespace)
       resolver = type.type_resolver
