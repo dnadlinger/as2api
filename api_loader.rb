@@ -1,4 +1,7 @@
 
+require 'parse/lexer'
+require 'parse/parser'
+require 'api_model'
 
 # We used to just define the class again to add this attribute, but I want
 # to be compatable with Ruby1.6, which doesn' allow 'class ModName::ClassName'

@@ -1,8 +1,5 @@
 
-require 'parse/lexer'
-require 'parse/parser'
-require 'doc_comment'
-require 'api_model'
+require 'parse/lexer'  # TODO: remove this requirement
 require 'api_loader'
 
 

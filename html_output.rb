@@ -1,5 +1,6 @@
 
 require 'xmlwriter'
+require 'doc_comment'
 
 def link_type_proxy(out, type_proxy, qualified=false)
   if type_proxy.resolved? && type_proxy.resolved_type.document?
