@@ -119,10 +119,12 @@ def class_navigation(out)
   end
 end
 
-def document_method(out, method)
-  out.empty_tag("a", {"name"=>"method_#{method.name}"})
-  out.simple_element("h3", method.name)
-  out.element("div", {"class"=>"method_details"}) do
+def document_method(out, method, alt_row=false)
+  css_class = "method_details"
+  css_class << " alt_row" if alt_row
+  out.element("div", {"class"=>css_class}) do
+    out.empty_tag("a", {"name"=>"method_#{method.name}"})
+    out.simple_element("h3", method.name)
     method_synopsis(out, method)
     if method.comment
       out.element("blockquote") do
@@ -386,8 +388,10 @@ end
 def method_detail_list(out, type)
   out.element("div", {"class"=>"method_detail_list"}) do
     out.simple_element("h2", "Method Detail")
+    count = 0
     type.each_method do |method|
-      document_method(out, method)
+      document_method(out, method, count%2==0)
+      count += 1
     end
   end
 end
