@@ -187,15 +187,19 @@ end
 class ASPackage
   def initialize(name)
     @name = name
+    @types = []
   end
 
-  def to_s
-    result = ''
-    name.each_with_index do |part, index|
-      result << "." if index > 0
-      result << part
+  attr_accessor :name
+  
+  def add_type(type)
+    @types << type
+  end
+
+  def each_type
+    @types.each do |type|
+      yield type
     end
-    result
   end
 end
 
@@ -277,6 +281,97 @@ class LocalTypeResolver
   def each
     @named_types.each_value do |type|
       yield type
+    end
+  end
+end
+
+
+class GlobalTypeAgregator
+  def initialize
+    @types = []
+    @packages = {}
+  end
+
+  def add_type(type)
+    @types << type
+    package_name = type.package_name_s
+    package = @packages[package_name]
+    if package.nil?
+      package = ASPackage.new(package_name)
+      @packages[package_name] = package
+    end
+    package.add_type(type)
+  end
+
+  def each_type
+    @types.each do |type|
+      yield type
+    end
+  end
+
+  def each_package
+    @packages.each_value do |package|
+      yield package
+    end
+  end
+
+  def packages
+    @packages.values
+  end
+
+  # Eeek!...
+  def resolve_types
+    qname_map = {}
+    @types.each do |type|
+      qname_map[type.name_s] = type
+    end
+    @types.each do |type|
+      local_namespace = qname_map.dup
+      import_types_into_namespace(type, local_namespace)
+      import_packages_into_namespace(type, local_namespace)
+      resolver = type.type_resolver
+      resolver.each do |type_proxy|
+	real_type = local_namespace[type_proxy.name.join(".")]
+	if real_type
+	  type_proxy.resolved_type = real_type
+	else
+	  $stderr.puts "#{type.input_filename}:#{type_proxy.name.first.lineno}: Found no defenition of type known locally as #{type_proxy.name.join('.').inspect}"
+	end
+      end
+    end
+  end
+
+  private
+
+  def collect_package_types(package_name)
+    @types.each do |type|
+      if type.package_name_s == package_name
+	yield type
+      end
+    end
+  end
+
+  def import_types_into_namespace(type, local_namespace)
+    importer = type.import_manager
+    importer.each_type do |type_name|
+      import_type = local_namespace[type_name.join(".")]
+      if import_type
+	local_namespace[type_name.last.body] = import_type
+      else
+	$stderr.puts "#{type.input_filename}:#{type_name.first.lineno}: Couldn't resolve import of #{type_name.join(".").inspect}"
+      end
+    end
+  end
+
+  def import_packages_into_namespace(type, local_namespace)
+    importer = type.import_manager
+    importer.each_package do |package_name|
+      collect_package_types(package_name.join(".")) do |package_type|
+	if local_namespace.has_key?(package_type.unqualified_name)
+	  $stderr.puts "#{package_type.unqualified_name} already refers to #{local_namespace[package_type.unqualified_name].name_s}"
+	end
+	local_namespace[package_type.unqualified_name] = package_type
+      end
     end
   end
 end
@@ -402,11 +497,12 @@ def parse_options
   
 end
 
-# returns an array of the .as files in 'path', and it's subdirectories
+# lists the .as files in 'path', and it's subdirectories
 def each_source(path)
   require 'find'
   Find.find(path) do |f|
     base = File.basename(f)
+    # Ignore anything named 'CVS', or starting with a dot
     Find.prune if base =~ /^\./ || base == "CVS"
     if base =~ /\.as$/
       yield f #[path.length, f.length]
@@ -414,57 +510,12 @@ def each_source(path)
   end
 end
 
-def collect_package_types(types, package_name)
-  types.each do |type|
-    if type.package_name_s == package_name
-      yield type
-    end
-  end
-end
-
-# Eeek!...
-def resolve_types(types)
-  qname_map = {}
-  types.each do |type|
-    qname_map[type.name_s] = type
-  end
-  types.each do |type|
-    importer = type.import_manager
-    local_names = qname_map.dup
-    importer.each_type do |type_name|
-      import_type = qname_map[type_name.join(".")]
-      if import_type
-        local_names[type_name.last.body] = import_type
-      else
-        $stderr.puts "#{type.input_filename}:#{type_name.first.lineno}: Couldn't resolve import of #{type_name.join(".").inspect}"
-      end
-    end
-    importer.each_package do |package_name|
-      collect_package_types(types, package_name.join(".")) do |package_type|
-	if local_names.has_key?(package_type.unqualified_name)
-          $stderr.puts "#{package_type.unqualified_name} already refers to #{local_names[package_type.unqualified_name].name_s}"
-	end
-        local_names[package_type.unqualified_name] = package_type
-      end
-    end
-    resolver = type.type_resolver
-    resolver.each do |type_proxy|
-      real_type = local_names[type_proxy.name.join(".")]
-      if real_type
-	type_proxy.resolved_type = real_type
-      else
-	$stderr.puts "#{type.input_filename}:#{type_proxy.name.first.lineno}: Found no defenition of type known locally as #{type_proxy.name.join('.').inspect}"
-      end
-    end
-  end
-end
-
-# Support for other kinds of output would be useful, in the future.
+# Support for other kinds of output would be useful in the future.
 # When the need arises, maybe the interface to 'output' subsystems will need
 # more formailisation than just 'document_types()'
 require 'html_output'
 
-types = []
+type_agregator = GlobalTypeAgregator.new
 
 each_source(ARGV[0]) do |name|
   File.open(name) do |io|
@@ -475,13 +526,13 @@ each_source(ARGV[0]) do |name|
       type.input_filename = name
       puts " -> #{type.name_s}"
       type.source_utf8 = is_utf8
-      types << type
+      type_agregator.add_type(type)
     rescue =>e
       $stderr.puts "#{name}: #{e.message}\n#{e.backtrace.join("\n")}"
     end
   end
 end
 
-resolve_types(types)
+type_agregator.resolve_types
 
-document_types(types)
+document_types(type_agregator)
