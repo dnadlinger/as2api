@@ -17,7 +17,7 @@ class ASType
     @input_filename = nil
   end
 
-  attr_accessor :package, :resolved, :extends, :comment, :source_utf8, :type_resolver, :import_manager, :input_filename
+  attr_accessor :package, :resolved, :extends, :comment, :source_utf8, :type_resolver, :import_manager, :input_filename, :intrinsic
 
   def add_method(method)
     @methods << method
@@ -107,7 +107,7 @@ ActionScript::Parse::ASToken.module_eval("attr_accessor :last_comment")
 
 
 class DocASParser < ActionScript::Parse::ASParser
-  def parse_class_definition
+  def parse_class_or_intrinsic_definition
     @handler.doc_comment @lex.peek_next.last_comment
     super()
   end
@@ -425,6 +425,11 @@ class DocASHandler < ActionScript::Parse::ASHandler
     @defined_type.import_manager = @import_manager
   end
 
+  def start_intrinsic_class(dynamic, name, super_name, interfaces)
+    start_class(dynamic, name, super_name, interfaces)
+    @defined_type.intrinsic = true
+  end
+
   def start_interface(name, super_name)
     @defined_type = ASInterface.new(name)
     if @doc_comment
@@ -463,6 +468,10 @@ class DocASHandler < ActionScript::Parse::ASHandler
   end
 
   def interface_function(name, sig)
+    member_function(name, sig)
+  end
+
+  def intrinsic_member_function(name, sig)
     member_function(name, sig)
   end
 

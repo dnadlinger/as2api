@@ -74,20 +74,39 @@ class ASParser
   end
 
   def parse_type_definition
-    if lookahead?(ClassToken) || lookahead?(DynamicToken)
-      type = parse_class_definition
+    if lookahead?(ClassToken) || lookahead?(DynamicToken) || lookahead?(IntrinsicToken)
+      type = parse_class_or_intrinsic_definition
     elsif lookahead?(InterfaceToken)
       type = parse_interface_definition
     else
-      err("Expected <class> or <interface>, but found #{@lex.peek_next.inspect}")
+      err("Expected <class>, <interface> or <intrinsic>, but found #{@lex.peek_next.inspect}")
     end
   end
 
-  def parse_class_definition
+  def parse_class_or_intrinsic_definition
     dynamic = false
-    speculate(DynamicToken) do
-      dynamic = true
+    intrinsic = false
+    while true
+      if lookahead?(DynamicToken)
+	expect(DynamicToken)
+        dynamic = true
+      elsif lookahead?(IntrinsicToken)
+	expect(IntrinsicToken)
+        intrinsic = true
+      elsif lookahead?(ClassToken)
+	break
+      else
+	raise "Expected <dynamic>, <intrinsic> or <class>, found #{@lex.peek_next.inspect}"
+      end
     end
+    if intrinsic
+      parse_intrinsic_class_definition(dynamic)
+    else
+      parse_class_definition(dynamic)
+    end
+  end
+
+  def parse_class_definition(dynamic)
     expect(ClassToken)
     name = parse_type_name
     super_name = nil
@@ -123,6 +142,28 @@ class ASParser
     @handler.end_interface
   end
 
+  def parse_intrinsic_class_definition(dynamic)
+    expect(ClassToken)
+    name = parse_type_name
+    super_name = nil
+    speculate(ExtendsToken) do
+      super_name = parse_type_name
+    end
+    interfaces = []
+    speculate(ImplementsToken) do
+      interfaces << parse_type_name
+      while lookahead?(CommaToken)
+        expect(CommaToken)
+        interfaces << parse_type_name
+      end
+    end
+    expect(LBraceToken)
+    @handler.start_intrinsic_class(dynamic, name, super_name, interfaces)
+    parse_intrinsic_member_list
+    expect(RBraceToken)
+    @handler.end_intrinsic_class
+  end
+
   def parse_type_name
     name = []
     name << expect(IdentifierToken)
@@ -145,7 +186,17 @@ class ASParser
     end
   end
 
+  def parse_intrinsic_member_list
+    until lookahead?(RBraceToken)
+      parse_intrinsic_member
+    end
+  end
+
   def parse_class_member
+    speculate(SemicolonToken) do
+      # skip spurious semicolons in class bodies
+      return
+    end
     @handler.access_modifier(parse_access_modifier)
     if lookahead?(VarToken)
       parse_member_field
@@ -158,13 +209,17 @@ class ASParser
 
   def parse_access_modifier
     access = AccessModifier.new
-    if lookahead?(PublicToken)
-      access.visibility = expect(PublicToken)
-    elsif lookahead?(PrivateToken)
-      access.visibility = expect(PrivateToken)
-    end
-    speculate(StaticToken) do
-      access.is_static = true
+    while true
+      if lookahead?(PublicToken)
+        access.visibility = expect(PublicToken)
+      elsif lookahead?(PrivateToken)
+        access.visibility = expect(PrivateToken)
+      elsif lookahead?(StaticToken)
+	expect(StaticToken)
+        access.is_static = true
+      else
+	break
+      end
     end
     return access
   end
@@ -204,6 +259,30 @@ class ASParser
     name = expect(IdentifierToken)
     sig = parse_function_signature
     @handler.interface_function(name, sig)
+    expect(SemicolonToken)
+  end
+
+  def parse_intrinsic_member
+    speculate(SemicolonToken) do
+      # skip spurious semicolons in class bodies
+      return
+    end
+    @handler.access_modifier(parse_access_modifier)
+    if lookahead?(VarToken)
+      parse_member_field
+    elsif lookahead?(FunctionToken)
+      parse_intrinsic_member_function
+    else
+      err("Expected <var> or <function> but found #{@lex.peek_next.inspect}")
+    end
+  end
+
+  def parse_intrinsic_member_function
+    @handler.access_modifier(parse_access_modifier)
+    expect(FunctionToken)
+    name = expect(IdentifierToken)
+    sig = parse_function_signature
+    @handler.intrinsic_member_function(name, sig)
     expect(SemicolonToken)
   end
 
@@ -295,12 +374,16 @@ class ASHandler
   def start_class(dynamic, name, super_name, interfaces); end
   def end_class; end
 
+  def start_intrinsic_class(dynamic, name, super_name, interfaces); end
+  def end_intrinsic_class; end
+
   def start_interface(name, super_name); end
   def end_interface; end
 
   def access_modifier(modifier); end
 
   def member_function(name, sig); end
+  def intrinsic_member_function(name, sig); end
   def interface_function(name, sig); end
 
   def start_member_field(name, type); end
