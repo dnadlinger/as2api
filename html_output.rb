@@ -840,11 +840,15 @@ def index_files(type_agregator)
     if astype.document?
       index << TypeIndexTerm.new(astype)
       astype.each_method do |asmethod|
-	index << MethodIndexTerm.new(astype, asmethod)
+      	if document_member?(asmethod)
+	  index << MethodIndexTerm.new(astype, asmethod)
+	end
       end
       if astype.is_a?(ASClass)
 	astype.each_field do |asfield|
-	  index << FieldIndexTerm.new(astype, asfield)
+      	  if document_member?(asfield)
+	    index << FieldIndexTerm.new(astype, asfield)
+	  end
 	end
       end
     end
