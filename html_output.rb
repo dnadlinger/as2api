@@ -3,15 +3,15 @@ require 'xmlwriter'
 
 def link_type(out, type, qualified=false)
   if type.resolved?
-    href = base_path(type.resolved_type.name.join("/")+".html")
+    href = base_path(type.resolved_type.qualified_name.gsub(".", "/")+".html")
     if qualified
-      out.simple_element("a", type.resolved_type.name_s, {"href"=>href})
+      out.simple_element("a", type.resolved_type.qualified_name, {"href"=>href})
     else
       out.simple_element("a", type.local_name, {"href"=>href,
-                                                "title"=>type.resolved_type.name_s})
+                                                "title"=>type.resolved_type.qualified_name})
     end
   else
-    out.simple_element("em", type.local_name, {"class"=>"unresolved_type"})
+    out.simple_element("span", type.local_name, {"class"=>"unresolved_type"})
   end
 end
 
@@ -163,7 +163,7 @@ def type_hierachy(out, type)
       out.pcdata("   " * count)
       out.pcdata("+--")
     end
-    out.simple_element("strong", type.name.join("."))
+    out.simple_element("strong", type.qualified_name)
   end
 end
 
@@ -193,10 +193,14 @@ def document_type(type)
   else
     "iso-8859-1"
   end
-  html_file(type.unqualified_name, type.name.join("."), encoding) do |out|
+  html_file(type.unqualified_name, type.qualified_name, encoding) do |out|
     out.element("body") do
       class_navigation(out)
-      out.simple_element("h1", type.name.join("."))
+      if type.instance_of?(ASClass)
+	out.simple_element("h1", "Class "+type.qualified_name)
+      elsif type.instance_of?(ASInterface)
+	out.simple_element("h1", "Interface "+type.qualified_name)
+      end
 
       type_hierachy(out, type)
 
@@ -205,7 +209,9 @@ def document_type(type)
           out.simple_element("h2", "Implemented Interfaces")
           type.each_interface do |interface|
             # TODO: need to resolve interface name, make links
-            out.simple_element("code", interface.join('.'))
+            out.element("code") do
+	      link_type(out, interface)
+	    end
             out.pcdata(" ")
           end
           out.comment(" no more interfaces ")
@@ -304,8 +310,17 @@ def package_index(package)
   end
 end
 
+def overview_navigation(out)
+  out.element("div", {"class", "main_nav"}) do
+    out.simple_element("span", "Overview", {"class"=>"nav_current"})
+    out.simple_element("span", "Package")
+    out.simple_element("span", "Class")
+  end
+end
+
 def overview(type_agregator)
   html_file("overview-summary", "API Overview") do |out|
+    overview_navigation(out)
     out.simple_element("h1", "API Overview")
     out.element("table", {"class"=>"summary_list"}) do
       out.element("tr") do
@@ -324,6 +339,7 @@ def overview(type_agregator)
 	end
       end
     end
+    overview_navigation(out)
   end
 end
 
@@ -352,7 +368,7 @@ def document_types(type_agregator)
 
     # types..
     type_agregator.each_type do |type|
-      in_subdir(File.join(type.package_name)) do
+      in_subdir(type.package_name.gsub(".", "/")) do
 	document_type(type)
       end
     end

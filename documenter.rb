@@ -5,7 +5,8 @@ require 'doc_comment'
 
 class ASType
   def initialize(name)
-    @name = name
+    @package_name = name[0, name.length-1].join(".")
+    @name = name.last.body
     @source_utf8 = false
     @resolved = false
     @methods = []
@@ -16,7 +17,7 @@ class ASType
     @input_filename = nil
   end
 
-  attr_accessor :package, :name, :resolved, :extends, :comment, :source_utf8, :type_resolver, :import_manager, :input_filename
+  attr_accessor :package, :resolved, :extends, :comment, :source_utf8, :type_resolver, :import_manager, :input_filename
 
   def add_method(method)
     @methods << method
@@ -33,19 +34,30 @@ class ASType
   end
 
   def unqualified_name
-    @name.last.body
+    @name
   end
 
-  def name_s
-    @name.join(".")
+  def qualified_name
+    if @package_name == ""
+      @name
+    else
+      "#{@package_name}.#{@name}"
+    end
   end
 
   def package_name
-    @name[0, @name.length-1]
+    @package_name
   end
 
-  def package_name_s
-    package_name.join(".")
+  def sourcepath_location(path)
+    path = "" if path == "."
+    if @package_name == "" and path != ""
+      @package_name = path.gsub("/", ".")
+    else
+      if @package_name != path.sub("/", ".")
+	$stderr.puts("package #{@package_name.inspect} doesn't match location #{path.inspect}")
+      end
+    end
   end
 end
 
@@ -294,7 +306,7 @@ class GlobalTypeAgregator
 
   def add_type(type)
     @types << type
-    package_name = type.package_name_s
+    package_name = type.package_name
     package = @packages[package_name]
     if package.nil?
       package = ASPackage.new(package_name)
@@ -323,7 +335,7 @@ class GlobalTypeAgregator
   def resolve_types
     qname_map = {}
     @types.each do |type|
-      qname_map[type.name_s] = type
+      qname_map[type.qualified_name] = type
     end
     @types.each do |type|
       local_namespace = qname_map.dup
@@ -345,7 +357,7 @@ class GlobalTypeAgregator
 
   def collect_package_types(package_name)
     @types.each do |type|
-      if type.package_name_s == package_name
+      if type.package_name == package_name
 	yield type
       end
     end
@@ -368,7 +380,7 @@ class GlobalTypeAgregator
     importer.each_package do |package_name|
       collect_package_types(package_name.join(".")) do |package_type|
 	if local_namespace.has_key?(package_type.unqualified_name)
-	  $stderr.puts "#{package_type.unqualified_name} already refers to #{local_namespace[package_type.unqualified_name].name_s}"
+	  $stderr.puts "#{package_type.unqualified_name} already refers to #{local_namespace[package_type.unqualified_name].qualified_name}"
 	end
 	local_namespace[package_type.unqualified_name] = package_type
       end
@@ -404,7 +416,7 @@ class DocASHandler < ActionScript::Parse::ASHandler
     end
     if interfaces
       interfaces.each do |interface|
-        @defined_type.add_interface(interface)
+        @defined_type.add_interface(@type_resolver.resolve(interface))
       end
     end
     @defined_type.type_resolver = @type_resolver
@@ -500,12 +512,13 @@ end
 # lists the .as files in 'path', and it's subdirectories
 def each_source(path)
   require 'find'
+  path = path.sub(/\/+$/, "")
   Find.find(path) do |f|
     base = File.basename(f)
     # Ignore anything named 'CVS', or starting with a dot
     Find.prune if base =~ /^\./ || base == "CVS"
     if base =~ /\.as$/
-      yield f #[path.length, f.length]
+      yield f[path.length+1, f.length]
     end
   end
 end
@@ -517,14 +530,17 @@ require 'html_output'
 
 type_agregator = GlobalTypeAgregator.new
 
-each_source(ARGV[0]) do |name|
-  File.open(name) do |io|
+path = ARGV[0]
+
+each_source(path) do |name|
+  File.open(File.join(path, name)) do |io|
     begin
       is_utf8 = detect_bom?(io)
-      print "Parsing #{name.inspect}"
+      print "Parsing #{path}:#{name.inspect}"
       type = simple_parse(io)
       type.input_filename = name
-      puts " -> #{type.name_s}"
+      type.sourcepath_location(File.dirname(name))
+      puts " -> #{type.qualified_name}"
       type.source_utf8 = is_utf8
       type_agregator.add_type(type)
     rescue =>e
