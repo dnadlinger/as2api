@@ -20,6 +20,7 @@ class XMLWriter
   end
 
   def start_tag(text, attrs=nil)
+    chk_name(text)
     @io.print('<')
     @io.print(text)
     unless attrs.nil?
@@ -35,6 +36,7 @@ class XMLWriter
   end
 
   def empty_tag(text, attrs=nil)
+    chk_name(text)
     @io.print('<')
     @io.print(text)
     unless attrs.nil?
@@ -50,6 +52,7 @@ class XMLWriter
   end
 
   def end_tag(text)
+    chk_name(text)
     @io.print('</')
     @io.print(text)
     @io.print('>')
@@ -78,5 +81,10 @@ class XMLWriter
     @io.print("<?")
     @io.print(text)
     @io.print("?>")
+  end
+
+  private
+  def chk_name(name)
+    raise "bad character '#{$&}' in tag name #{name}" if name =~ /[<>& "']/
   end
 end
