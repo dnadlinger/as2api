@@ -103,7 +103,6 @@ class ASType
 
   # compare two types based on their qualified names
   def <=>(other)
-    qualified_name <=> other.qualified_name
     cmp = qualified_name.downcase <=> other.qualified_name.downcase
     return cmp unless cmp==0
     qualified_name <=> other.qualified_name
