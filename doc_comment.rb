@@ -46,7 +46,7 @@ class DocComment
       text = strip_stars(text)
       unless text =~ /^\s*$/
         case text
-          when /^\s*@param\s+([^\s]+)/
+          when /^\s*@param\s+([^\s]+)\s+/
 	    state = :PARAM
 	    desc_param = $'
 	    add_param($1, desc_param)
