@@ -52,6 +52,11 @@ class TC_ActionScriptLexer < Test::Unit::TestCase
       assert_instance_of(SingleLineCommentToken, tok)
       assert_equal(" foo ", tok.body)
     end
+    # 'single line' comments shouldn't eat the whole body of a Mac-format file
+    simple_lex("//foo\r") do |tok|
+      assert_instance_of(SingleLineCommentToken, tok)
+      assert_equal("foo", tok.body)
+    end
   end
 
   def test_multiline_comment

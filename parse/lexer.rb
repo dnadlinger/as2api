@@ -253,7 +253,7 @@ class ASLexer
   escape =	"(?:#{unicode}|\\\\[ -~\\200-\\377])"
   nmstart =	"(?:[a-zA-Z_]|#{nonascii}|#{escape})"
   nmchar =	"(?:[a-zA-Z0-9_]|#{nonascii}|#{escape})"
-  SINGLE_LINE_COMMENT = "//(.*)"
+  SINGLE_LINE_COMMENT = "//([^\n\r]*)(?:\r\n|\r|\n)?"
   OMULTI_LINE_COMMENT = "/\\*"
   CMULTI_LINE_COMMENT = "\\*/"
   STRING_START1 = "'"
