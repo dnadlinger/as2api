@@ -345,7 +345,8 @@ def method_index_list(out, type)
         end
       end
     end
-    list_methods(out, type)
+    known_method_names = []
+    list_methods(out, type, known_method_names)
     out.element("dl") do
       type.each_ancestor do |type|
 	if type.methods?
@@ -354,7 +355,7 @@ def method_index_list(out, type)
 	    link_type(out, type)
 	  end
 	  out.element("dd") do
-	    list_methods(out, type, link_for_type(type))
+	    list_methods(out, type, known_method_names, link_for_type(type))
 	  end
 	end
       end
@@ -362,9 +363,13 @@ def method_index_list(out, type)
   end
 end
 
-def list_methods(out, type, href_prefix="")
-  methods = type.methods.sort
+def list_methods(out, type, known_method_names, href_prefix="")
+  methods = type.methods.select do |method|
+    !known_method_names.include?(method.name)
+  end
+  methods.sort!
   methods.each_with_index do |method, index|
+    known_method_names << method.name
     out.pcdata(", ") if index > 0
     out.element("code") do
       out.element("a", {"href"=>"#{href_prefix}#method_#{method.name}"}) do
