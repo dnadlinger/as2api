@@ -331,6 +331,10 @@ class GlobalTypeAggregator
     end
   end
 
+  def types
+    @types.dup
+  end
+
   def each_package
     @packages.each_value do |package|
       yield package
