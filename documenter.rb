@@ -100,9 +100,11 @@ class ASInterface < ASType
   end
 end
 
-class ActionScript::Parse::ASToken
-  attr_accessor :last_comment
-end
+
+# We used to just define the class again to add this attribute, but I want
+# to be compatable with Ruby1.6, which doesn' allow 'class ModName::ClassName'
+ActionScript::Parse::ASToken.module_eval("attr_accessor :last_comment")
+
 
 class DocASParser < ActionScript::Parse::ASParser
   def parse_class_definition

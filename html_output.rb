@@ -3,7 +3,7 @@ require 'xmlwriter'
 
 def link_type(out, type, qualified=false)
   if type.resolved?
-    href = base_path(type.resolved_type.qualified_name.gsub(".", "/")+".html")
+    href = base_path(type.resolved_type.qualified_name.gsub(/\./, "/")+".html")
     if qualified
       out.simple_element("a", type.resolved_type.qualified_name, {"href"=>href})
     else
@@ -113,6 +113,7 @@ def base_path(file)
 end
 
 def in_subdir(path)
+puts "in_subdir(#{path})"
   save_path = $path
   save_base_path = $base_path.dup
   path = path.split("/")
@@ -270,7 +271,7 @@ def document_type(type)
 end
 
 def package_dir_for(package)
-  package.name.gsub(".", "/")
+  package.name.gsub(/\./, "/")
 end
 
 def package_display_name_for(package)
@@ -375,7 +376,7 @@ def document_types(type_agregator)
 
     # types..
     type_agregator.each_type do |type|
-      in_subdir(type.package_name.gsub(".", "/")) do
+      in_subdir(type.package_name.gsub(/\./, "/")) do
 	document_type(type)
       end
     end
