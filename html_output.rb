@@ -7,9 +7,13 @@ def link_type_proxy(out, type_proxy, qualified=false)
     link_type(out, type_proxy.resolved_type, qualified)
   else
     if type_proxy.resolved?
-      out.pcdata(type_proxy.local_name)
+      if type_proxy.resolved_type.instance_of?(ASInterface)
+        out.simple_element("span", type_proxy.local_name, {"class"=>"interface_name"})
+      else
+        out.simple_element("span", type_proxy.local_name, {"class"=>"class_name"})
+      end
     else
-      out.simple_element("span", type_proxy.local_name, {"class"=>"unresolved_type"})
+      out.simple_element("span", type_proxy.local_name, {"class"=>"unresolved_type_name"})
     end
   end
 end
@@ -20,11 +24,21 @@ end
 
 def link_type(out, type, qualified=false)
   href = link_for_type(type)
+  if type.instance_of?(ASInterface)
+    attr_class = "interface_name"
+    attr_title = "Interface #{type.qualified_name}"
+  else
+    attr_class = "class_name"
+    attr_title = "Class #{type.qualified_name}"
+  end
   if qualified
-    out.simple_element("a", type.qualified_name, {"href"=>href})
+    out.simple_element("a", type.qualified_name, {"href"=>href,
+                                                  "class"=>attr_class,
+                                                  "title"=>attr_title})
   else
     out.simple_element("a", type.unqualified_name, {"href"=>href,
-                                                  "title"=>type.qualified_name})
+                                                    "class"=>attr_class,
+                                                    "title"=>attr_title})
   end
 end
 
@@ -138,7 +152,7 @@ def document_method(out, method, alt_row=false)
 	  if docs.parameters?
 	    out.simple_element("dt", "Parameters")
 	    out.element("dd") do
-	      out.element("table", {"class"=>"arguments"}) do
+	      out.element("table", {"class"=>"arguments", "summary"=>""}) do
 		method.arguments.each do |arg|
 		  desc = docs.param(arg.name)
 		  if desc
@@ -156,7 +170,7 @@ def document_method(out, method, alt_row=false)
 	  if docs.exceptions?
             out.simple_element("dt", "throws")
             out.element("dd") do
-	      out.element("table", {"class"=>"exceptions"}) do
+	      out.element("table", {"class"=>"exceptions", "summary"=>""}) do
 	        docs.each_exception do |type, desc|
 		  out.element("tr") do
 		    out.element("td") do
@@ -241,6 +255,7 @@ def html_file(name, title, encoding=nil)
         out.empty_tag("link", {"rel"=>"stylesheet",
 	                       "type"=>"text/css",
 			       "href"=>base_path("style.css")})
+        out.empty_tag("meta", {"name"=>"generator", "content"=>"http://www.badgers-in-foil.co.uk/projects/as2api/"})
 	yield out
       end
     end
@@ -263,6 +278,9 @@ def footer(out)
 end
 
 def type_hierachy(out, type)
+  # TODO: ASCII art is an accessability problem.  Replace with images that have
+  #       alt-text, or use CSS to generate content, e.g.
+  #          <span class="inherit_relation" title="inherited by"></span>
   out.element("pre", {"class"=>"type_hierachy"}) do
     count = 0
     unless type.extends.nil?
@@ -410,7 +428,9 @@ def document_type(type)
     "iso-8859-1"
   end
   html_body(type.unqualified_name, type.qualified_name, encoding) do |out|
+    out.simple_element("a", "", {"href"=>"#skip_nav", "title"=>"Skip navigation"})  # accessability
     class_navigation(out)
+    out.simple_element("a", "", {"name"=>"skip_nav"})
     if type.instance_of?(ASClass)
       out.simple_element("h1", "Class "+type.qualified_name)
     elsif type.instance_of?(ASInterface)
@@ -495,12 +515,14 @@ end
 
 def package_index(package)
   html_body("package-summary", "Package #{package_display_name_for(package)} API Documentation") do |out|
+    out.simple_element("a", "", {"href"=>"#skip_nav", "title"=>"Skip navigation"})  # accessability
     package_navigation(out)
+    out.simple_element("a", "", {"name"=>"skip_nav"})
     out.simple_element("h1", "Package "+package_display_name_for(package))
     interfaces = package.interfaces
     unless interfaces.empty?
       interfaces.sort!
-      out.element("table", {"class"=>"summary_list"}) do
+      out.element("table", {"class"=>"summary_list", "summary"=>""}) do
 	out.element("tr") do
 	  out.simple_element("th", "Interface Summary", {"colspan"=>"2"})
 	end
@@ -520,7 +542,7 @@ def package_index(package)
     classes = package.classes
     unless classes.empty?
       classes.sort!
-      out.element("table", {"class"=>"summary_list"}) do
+      out.element("table", {"class"=>"summary_list", "summary"=>""}) do
 	out.element("tr") do
 	  out.simple_element("th", "Class Summary", {"colspan"=>"2"})
 	end
@@ -596,9 +618,11 @@ end
 
 def overview(type_agregator)
   html_body("overview-summary", "API Overview") do |out|
+    out.simple_element("a", "", {"href"=>"#skip_nav", "title"=>"Skip navigation"})  # accessability
     overview_navigation(out)
+    out.simple_element("a", "", {"name"=>"skip_nav"})
     out.simple_element("h1", "API Overview")
-    out.element("table", {"class"=>"summary_list"}) do
+    out.element("table", {"class"=>"summary_list", "summary"=>""}) do
       out.element("tr") do
 	out.simple_element("th", "Packages", {"colspan"=>"2"})
       end
@@ -696,10 +720,16 @@ def frameset
   html_file("frameset", "as2api") do |out|
     out.element("frameset", {"cols"=>"20%,80%"}) do
       out.element("frameset", {"rows"=>"30%,70%"}) do
-	out.empty_tag("frame", {"src"=>"overview-frame.html", "name"=>"all_packages_frame"})
-	out.empty_tag("frame", {"src"=>"all-types-frame.html", "name"=>"current_package_frame"})
+	out.empty_tag("frame", {"src"=>"overview-frame.html",
+	                        "name"=>"all_packages_frame",
+				"title"=>"All Packages"})
+	out.empty_tag("frame", {"src"=>"all-types-frame.html",
+	                        "name"=>"current_package_frame",
+                                "title"=>"All types"})
       end
-      out.empty_tag("frame", {"src"=>"overview-summary.html", "name"=>"type_frame"})
+      out.empty_tag("frame", {"src"=>"overview-summary.html",
+                              "name"=>"type_frame",
+                              "title"=>"Package and type descriptions"})
     end
     out.element("noframes") do
       out.simple_element("a", "Non-frameset overview page", {"href"=>"overview-summary.html"})
