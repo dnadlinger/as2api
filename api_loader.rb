@@ -41,23 +41,29 @@ end
 # they might contain API docs
 class DocASParser < ActionScript::Parse::ASParser
   def parse_class_or_intrinsic_definition
-    @handler.doc_comment @lex.peek_next.last_comment
+    snarf_comment
     super()
   end
 
   def parse_interface_definition
-    @handler.doc_comment @lex.peek_next.last_comment
+    snarf_comment
     super()
   end
 
   def parse_class_member
-    @handler.doc_comment @lex.peek_next.last_comment
+    snarf_comment
     super()
   end
 
   def parse_interface_function
-    @handler.doc_comment @lex.peek_next.last_comment
+    snarf_comment
     super()
+  end
+
+  private
+
+  def snarf_comment
+    @handler.doc_comment @lex.peek_next.last_comment
   end
 end
 
