@@ -211,12 +211,14 @@ class ASParser
   end
 
   def eat_block
-    expect(LBraceToken)
+    open = expect(LBraceToken)
     until lookahead?(RBraceToken)
       if lookahead?(LBraceToken)
         eat_block
       else
-        @lex.get_next
+        if @lex.get_next.nil?
+          raise "end of file looking for closing brace to match line #{open.lineno}"
+	end
       end
     end
     expect(RBraceToken)
