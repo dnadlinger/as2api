@@ -243,15 +243,27 @@ class ASParser
     end
     @handler.start_member_field(name, type)
     speculate(AssignToken) do
-      eat_expression
+      eat_field_initializer_expression
     end
     expect(SemicolonToken)
     @handler.end_member_field
   end
 
-  def eat_expression
-    until lookahead?(SemicolonToken)
-      @lex.get_next
+  def eat_field_initializer_expression
+    # appearence of 'function' will break out of the loop below, but we need
+    # to handle fields initialized with function-literals too, so eat any
+    # initial 'function' here,
+    @lex.get_next if lookahead?(FunctionToken)
+
+    # Don't just halt on ';', as actionscript allows the semicolon to be
+    # missing.  We halt on any token that could indicate start of next
+    # class member.
+    until lookaheads?(SemicolonToken, VarToken, FunctionToken, PublicToken, PrivateToken, StaticToken)
+      if lookahead?(LBraceToken)
+	eat_block
+      else
+	@lex.get_next
+      end
     end
   end
 
@@ -386,6 +398,14 @@ class ASParser
 
  private
   def expect(kind)
+    if kind == SemicolonToken && !lookahead?(kind)
+      # Allow expect() to return without raising an error when the token
+      # expected-but-missing is a ';'.  ActionScript allows semicolons to
+      # be missing in certain circumstances; I've not worked out which these
+      # are, but they're probably those where the grammar knows unambiguously
+      # that a semicolon is required (thus, this 'hack' makes sense).
+      return nil
+    end
     tok = @lex.get_next
     unless tok.is_a?(kind)
       err("Expected '#{kind}' but found '#{tok.inspect}'");
@@ -395,6 +415,14 @@ class ASParser
 
   def lookahead?(kind)
     @lex.peek_next.is_a?(kind)
+  end
+
+  def lookaheads?(*kinds)
+    tnext = @lex.peek_next
+    kinds.each do |kind|
+      return true if tnext.is_a?(kind)
+    end
+    false
   end
 
   def speculate(kind)
