@@ -202,6 +202,10 @@ def in_subdir(path)
   save_path = $path
   save_base_path = $base_path.dup
   path = path.split(File::SEPARATOR)
+  if path.first == ""
+    path.shift
+    $path = "/"
+  end
   path.each do |part|
     if $path == ""
       $path = part
