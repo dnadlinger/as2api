@@ -2,6 +2,7 @@
 require 'parse/lexer'
 require 'parse/parser'
 require 'xmlwriter'
+require 'doc_comment'
 
 class ASType
   def initialize(name)
@@ -75,7 +76,8 @@ class DocASLexer < ActionScript::Parse::SkipASLexer
   attr_accessor :last_comment
   protected
   def skip?(tok)
-    if tok.instance_of?(ActionScript::Parse::MultiLineCommentToken)
+    if tok.instance_of?(ActionScript::Parse::MultiLineCommentToken) &&
+       tok.body =~ /^\*/
       @last_comment = tok
     end
     result = super(tok)
@@ -283,6 +285,59 @@ def class_navigation(out)
   end
 end
 
+def document_method(out, method)
+  out.empty_tag("a", {"name"=>"method_#{method.name}"})
+  out.simple_element("h3", method.name)
+  out.element("div", {"class"=>"method_details"}) do
+    method_synopsis(out, method)
+    if method.comment
+      out.element("blockquote") do
+	docs = DocComment.new
+	docs.parse(method.comment.body)
+        out.pcdata(docs.description)
+        out.element("dl", {"class"=>"method_detail_list"}) do
+	  # TODO: assumes that params named in docs match formal arguments
+	  #       should really filter out those that don't match before this
+	  #       test
+	  if docs.parameters?
+	    out.simple_element("dt", "Parameters")
+	    out.element("dd") do
+	      out.element("table", {"class"=>"arguments"}) do
+		method.signature.arguments.each do |arg|
+		  desc = docs.param(arg.name.body)
+		  if desc
+		    out.element("tr") do
+		      out.element("td") do
+			out.simple_element("code", arg.name.body)
+		      end
+		      out.simple_element("td", desc)
+		    end
+		  end
+		end
+	      end
+	    end
+	  end
+	  if docs.exceptions?
+            out.simple_element("dt", "throws")
+            out.element("dd") do
+	      out.element("table", {"class"=>"exceptions"}) do
+	        docs.each_exception do |type, desc|
+		  out.element("tr") do
+		    out.element("td") do
+		      out.simple_element("code", type)
+		    end
+		    out.simple_element("td", desc)
+		  end
+	        end
+	      end
+	    end
+	  end
+	end
+      end
+    end
+  end
+end
+
 def document_type(type)
   File.open("apidoc/" + type.name.join(".") + ".html", "w") do |io|
     out = XMLWriter.new(io)
@@ -327,16 +382,7 @@ def document_type(type)
         out.element("div", {"class"=>"method_detail_list"}) do
           out.simple_element("h2", "Method Detail")
 	  type.each_method do |method|
-            out.empty_tag("a", {"name"=>"method_#{method.name}"})
-            out.simple_element("h3", method.name)
-	    out.element("div", {"class"=>"method_details"}) do
-	      method_synopsis(out, method)
-	      if method.comment
-	        out.element("blockquote") do
-	          out.pcdata(method.comment.body)
-	        end
-	      end
-	    end
+	    document_method(out, method)
 	  end
 	end
         class_navigation(out)
