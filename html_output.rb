@@ -352,15 +352,22 @@ def field_index_list(out, type)
   end
 end
 
+def document_member?(member)
+  !member.access.private?
+end
+
 def list_fields(out, type, href_prefix="")
   fields = type.fields.sort
-  fields.each_with_index do |field, index|
+  index = 0
+  fields.each do |field|
+    next unless document_member?(field)
     out.pcdata(", ") if index > 0
     out.element_code do
       out.element_a("href"=>"#{href_prefix}#field_#{field.name}") do
 	out.pcdata(field.name)
       end
     end
+    index += 1
   end
 end
 
@@ -368,7 +375,7 @@ def field_detail_list(out, type)
   out.element_div("class"=>"field_detail_list") do
     out.element_h2("Field Detail")
     type.each_field do |field|
-      document_field(out, type, field)
+      document_field(out, type, field) if document_member?(field)
     end
   end
 end
@@ -407,7 +414,7 @@ end
 
 def list_methods(out, type, known_method_names, href_prefix="")
   methods = type.methods.select do |method|
-    !known_method_names.include?(method.name)
+    !known_method_names.include?(method.name) && document_member?(method)
   end
   methods.sort!
   methods.each_with_index do |method, index|
@@ -424,6 +431,7 @@ def method_detail_list(out, type)
     out.element_h2("Method Detail")
     count = 0
     type.each_method do |method|
+      next unless document_member?(method)
       document_method(out, type, method, count%2==0)
       count += 1
     end
