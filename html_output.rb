@@ -1,10 +1,15 @@
 
 require 'xmlwriter'
 
-def link_type(out, type)
+def link_type(out, type, qualified=false)
   if type.resolved?
     href = base_path(type.resolved_type.name_s+".html")
-    out.simple_element("a", type.local_name, {"href"=>href})
+    if qualified
+      out.simple_element("a", type.resolved_type.name_s, {"href"=>href})
+    else
+      out.simple_element("a", type.local_name, {"href"=>href,
+                                                "title"=>type.resolved_type.name_s})
+    end
   else
     out.simple_element("em", type.local_name, {"class"=>"unresolved_type"})
   end
@@ -142,6 +147,40 @@ def html_file(name, title, encoding=nil)
   end
 end
 
+def type_hierachy(out, type)
+  out.element("pre", {"class"=>"type_hierachy"}) do
+    count = 0
+    unless type.extends.nil?
+      count = type_hierachy_recursive(out, type.extends)
+    end
+    if count > 0
+      out.pcdata("   " * count)
+      out.pcdata("+--")
+    end
+    out.simple_element("strong", type.name.join("."))
+  end
+end
+
+def type_hierachy_recursive(out, type_proxy)
+  count = 0
+  if type_proxy.resolved?
+    type = type_proxy.resolved_type
+    unless type.extends.nil?
+      count = type_hierachy_recursive(out, type.extends)
+    end
+  else
+    out.pcdata("????\n")
+    count = 1
+  end
+  if count > 0
+    out.pcdata("   " * count)
+    out.pcdata("+--")
+  end
+  link_type(out, type_proxy, true)
+  out.pcdata("\n")
+  return count + 1
+end
+
 def document_type(type)
   encoding = if type.source_utf8
     "utf-8"
@@ -152,6 +191,9 @@ def document_type(type)
     out.element("body") do
       class_navigation(out)
       out.simple_element("h1", type.name.join("."))
+
+      type_hierachy(out, type)
+
       if type.implements_interfaces?
         out.element("div", {"class"=>"interfaces"}) do
           out.simple_element("h2", "Implemented Interfaces")
@@ -185,21 +227,23 @@ def document_type(type)
 	  end
         end
       end
-      out.element("div", {"class"=>"method_index"}) do
-        out.simple_element("h2", "Method Index")
-        type.each_method do |method|
-          out.element("a", {"href"=>"#method_#{method.name}"}) do
-            out.pcdata(method.name+"()")
-          end
-          out.pcdata(" ")
-        end
-      end
+      if type.methods?
+	out.element("div", {"class"=>"method_index"}) do
+	  out.simple_element("h2", "Method Index")
+	  type.each_method do |method|
+	    out.element("a", {"href"=>"#method_#{method.name}"}) do
+	      out.pcdata(method.name+"()")
+	    end
+	    out.pcdata(" ")
+	  end
+	end
 
-      out.element("div", {"class"=>"method_detail_list"}) do
-        out.simple_element("h2", "Method Detail")
-        type.each_method do |method|
-          document_method(out, method)
-        end
+	out.element("div", {"class"=>"method_detail_list"}) do
+	  out.simple_element("h2", "Method Detail")
+	  type.each_method do |method|
+	    document_method(out, method)
+	  end
+	end
       end
       class_navigation(out)
     end
