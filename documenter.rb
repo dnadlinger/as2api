@@ -54,7 +54,7 @@ class ASType
     if @package_name == "" and path != ""
       @package_name = path.gsub("/", ".")
     else
-      if @package_name != path.sub("/", ".")
+      if @package_name != path.gsub("/", ".")
 	$stderr.puts("package #{@package_name.inspect} doesn't match location #{path.inspect}")
       end
     end
