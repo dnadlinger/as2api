@@ -126,6 +126,8 @@ class XHTMLWriter
   def comment(text)
     @io.comment(text)
   end
+
+  def xml; @io end
 end
 
 # vim:sw=2
