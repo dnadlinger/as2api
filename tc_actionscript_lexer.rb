@@ -38,6 +38,23 @@ class TC_ActionScriptLexer < Test::Unit::TestCase
       assert_instance_of(IdentifierToken, tok)
       assert_equal("BAR", tok.body)
     end
+    # 'dollar' and underscore are allowed
+    simple_lex("$foo") do |tok|
+      assert_instance_of(IdentifierToken, tok)
+      assert_equal("$foo", tok.body)
+    end
+    simple_lex("bar$") do |tok|
+      assert_instance_of(IdentifierToken, tok)
+      assert_equal("bar$", tok.body)
+    end
+    simple_lex("_x") do |tok|
+      assert_instance_of(IdentifierToken, tok)
+      assert_equal("_x", tok.body)
+    end
+    simple_lex("z_") do |tok|
+      assert_instance_of(IdentifierToken, tok)
+      assert_equal("z_", tok.body)
+    end
   end
 
   def test_number
