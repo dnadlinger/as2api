@@ -74,10 +74,10 @@ class ASParser
   end
 
   def parse_type_definition
-    if lookahead?(ClassToken)
-      parse_class_definition
+    if lookahead?(ClassToken) || lookahead?(DynamicToken)
+      type = parse_class_definition
     elsif lookahead?(InterfaceToken)
-      parse_interface_definition
+      type = parse_interface_definition
     else
       err("Expected <class> or <interface>, but found #{@lex.peek_next.inspect}")
     end
@@ -110,7 +110,17 @@ class ASParser
   end
 
   def parse_interface_definition
-    raise "not implemented"
+    expect(InterfaceToken)
+    name = parse_type_name
+    super_name = nil
+    speculate(ExtendsToken) do
+      super_name = parse_type_name
+    end
+    expect(LBraceToken)
+    @handler.start_interface(name, super_name)
+    parse_interface_member_list
+    expect(RBraceToken)
+    @handler.end_interface
   end
 
   def parse_type_name
@@ -126,6 +136,12 @@ class ASParser
   def parse_class_member_list
     until lookahead?(RBraceToken)
       parse_class_member
+    end
+  end
+
+  def parse_interface_member_list
+    until lookahead?(RBraceToken)
+      parse_interface_function
     end
   end
 
@@ -180,6 +196,15 @@ class ASParser
     sig = parse_function_signature
     @handler.member_function(name, sig)
     eat_block
+  end
+
+  def parse_interface_function
+    @handler.access_modifier(parse_access_modifier)
+    expect(FunctionToken)
+    name = expect(IdentifierToken)
+    sig = parse_function_signature
+    @handler.interface_function(name, sig)
+    expect(SemicolonToken)
   end
 
   def parse_function_signature
@@ -270,9 +295,13 @@ class ASHandler
   def start_class(dynamic, name, super_name, interfaces); end
   def end_class; end
 
+  def start_interface(name, super_name); end
+  def end_interface; end
+
   def access_modifier(modifier); end
 
   def member_function(name, sig); end
+  def interface_function(name, sig); end
 
   def start_member_field(name, type); end
   def end_member_field; end
