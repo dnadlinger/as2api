@@ -1,5 +1,6 @@
 
 require 'xmlwriter'
+require 'xhtmlwriter'
 require 'doc_comment'
 
 def link_type_proxy(out, type_proxy, qualified=false)
@@ -8,12 +9,12 @@ def link_type_proxy(out, type_proxy, qualified=false)
   else
     if type_proxy.resolved?
       if type_proxy.resolved_type.instance_of?(ASInterface)
-        out.simple_element("span", type_proxy.local_name, {"class"=>"interface_name"})
+        out.element_span(type_proxy.local_name, {"class"=>"interface_name"})
       else
-        out.simple_element("span", type_proxy.local_name, {"class"=>"class_name"})
+        out.element_span(type_proxy.local_name, {"class"=>"class_name"})
       end
     else
-      out.simple_element("span", type_proxy.local_name, {"class"=>"unresolved_type_name"})
+      out.element_span(type_proxy.local_name, {"class"=>"unresolved_type_name"})
     end
   end
 end
@@ -32,18 +33,18 @@ def link_type(out, type, qualified=false)
     attr_title = "Class #{type.qualified_name}"
   end
   if qualified
-    out.simple_element("a", type.qualified_name, {"href"=>href,
-                                                  "class"=>attr_class,
-                                                  "title"=>attr_title})
+    out.element_a(type.qualified_name, {"href"=>href,
+                                        "class"=>attr_class,
+                                        "title"=>attr_title})
   else
-    out.simple_element("a", type.unqualified_name, {"href"=>href,
-                                                    "class"=>attr_class,
-                                                    "title"=>attr_title})
+    out.element_a(type.unqualified_name, {"href"=>href,
+                                          "class"=>attr_class,
+                                          "title"=>attr_title})
   end
 end
 
 def method_synopsis(out, method)
-  out.element("code", {"class", "method_synopsis"}) do
+  out.element_code("class"=>"method_synopsis") do
     if method.access.is_static
       out.pcdata("static ")
     end
@@ -51,7 +52,7 @@ def method_synopsis(out, method)
       out.pcdata("#{method.access.visibility.body} ")
     end
     out.pcdata("function ")
-    out.element("strong", {"class"=>"method_name"}) do
+    out.element_strong("class"=>"method_name") do
       out.pcdata(method.name)
     end
     out.pcdata("(")
@@ -72,7 +73,7 @@ def method_synopsis(out, method)
 end
 
 def field_synopsis(out, field)
-  out.element("code", {"class", "field_synopsis"}) do
+  out.element_code("class"=>"field_synopsis") do
     if field.instance_of?(ASImplicitField)
       implicit_field_synopsis(out, field)
     else
@@ -88,7 +89,7 @@ def explicit_field_synopsis(out, field)
   unless field.access.visibility.nil?
     out.pcdata("#{field.access.visibility.body} ")
   end
-  out.element("strong", {"class"=>"field_name"}) do
+  out.element_strong("class"=>"field_name") do
     out.pcdata(field.name)
   end
   if field.field_type
@@ -104,7 +105,7 @@ def implicit_field_synopsis(out, field)
   unless field.access.visibility.nil?
     out.pcdata("#{field.access.visibility.body} ")
   end
-  out.element("strong", {"class"=>"field_name"}) do
+  out.element_strong("class"=>"field_name") do
     out.pcdata(field.name)
   end
   field_type = field.field_type
@@ -114,7 +115,7 @@ def implicit_field_synopsis(out, field)
   end
   unless field.readwrite?
     out.pcdata(" ")
-    out.element("em", {"class"=>"read_write_only"}) do
+    out.element_em("class"=>"read_write_only") do
       if field.read?
 	out.pcdata("[Read Only]")
       else
@@ -126,42 +127,42 @@ end
 
 
 def class_navigation(out)
-  out.element("div", {"class", "main_nav"}) do
-    out.simple_element("a", "Overview", {"href"=>base_path("overview-summary.html")})
-    out.simple_element("a", "Package", {"href"=>"package-summary.html"})
-    out.simple_element("span", "Class", {"class"=>"nav_current"})
-    out.simple_element("a", "Index", {"href"=>base_path("index-files/index.html")})
+  out.element_div("class"=>"main_nav") do
+    out.element_a("Overview", {"href"=>base_path("overview-summary.html")})
+    out.element_a("Package", {"href"=>"package-summary.html"})
+    out.element_span("Class", {"class"=>"nav_current"})
+    out.element_a("Index", {"href"=>base_path("index-files/index.html")})
   end
 end
 
 def document_method(out, type, method, alt_row=false)
   css_class = "method_details"
   css_class << " alt_row" if alt_row
-  out.element("div", {"class"=>css_class}) do
-    out.empty_tag("a", {"name"=>"method_#{method.name}"})
-    out.simple_element("h3", method.name)
+  out.element_div("class"=>css_class) do
+    out.element_a("name"=>"method_#{method.name}")
+    out.element_h3(method.name)
     method_synopsis(out, method)
     if method.comment
-      out.element("blockquote") do
+      out.element_blockquote do
 	docs = DocComment.new(type.type_resolver)
 	docs.parse(method.comment.body)
         out.pcdata(docs.description)
-        out.element("dl", {"class"=>"method_additional_info"}) do
+        out.element_dl("class"=>"method_additional_info") do
 	  # TODO: assumes that params named in docs match formal arguments
 	  #       should really filter out those that don't match before this
 	  #       test
 	  if docs.parameters?
-	    out.simple_element("dt", "Parameters")
-	    out.element("dd") do
-	      out.element("table", {"class"=>"arguments", "summary"=>""}) do
+	    out.element_dt("Parameters")
+	    out.element_dd do
+	      out.element_table("class"=>"arguments", "summary"=>"") do
 		method.arguments.each do |arg|
 		  desc = docs.param(arg.name)
 		  if desc
-		    out.element("tr") do
-		      out.element("td") do
-			out.simple_element("code", arg.name)
+		    out.element_tr do
+		      out.element_td do
+			out.element_code(arg.name)
 		      end
-		      out.simple_element("td", desc)
+		      out.element_td(desc)
 		    end
 		  end
 		end
@@ -169,29 +170,29 @@ def document_method(out, type, method, alt_row=false)
 	    end
 	  end
 	  unless docs.desc_return.nil?
-	    out.simple_element("dt", "Return")
-	    out.element("dd") do
+	    out.element_dt("Return")
+	    out.element_dd do
 	      out.pcdata(docs.desc_return)
 	    end
 	  end
 	  if docs.exceptions?
-            out.simple_element("dt", "throws")
-            out.element("dd") do
-	      out.element("table", {"class"=>"exceptions", "summary"=>""}) do
+            out.element_dt("throws")
+            out.element_dd do
+	      out.element_table("class"=>"exceptions", "summary"=>"") do
 	        docs.each_exception do |type, desc|
-		  out.element("tr") do
-		    out.element("td") do
+		  out.element_tr do
+		    out.element_td do
 		      link_type_proxy(out, type)
 		    end
-		    out.simple_element("td", desc)
+		    out.element_td(desc)
 		  end
 	        end
 	      end
 	    end
 	  end
 	  if docs.seealso?
-	    out.simple_element("dt", "See Also")
-	    out.element("dd") do
+	    out.element_dt("See Also")
+	    out.element_dd do
 	      list_see_also(out, docs)
 	    end
 	  end
@@ -202,19 +203,19 @@ def document_method(out, type, method, alt_row=false)
 end
 
 def document_field(out, type, field)
-  out.empty_tag("a", {"name"=>"field_#{field.name}"})
-  out.simple_element("h3", field.name)
-  out.element("div", {"class"=>"field_details"}) do
+  out.element_a("name"=>"field_#{field.name}")
+  out.element_h3(field.name)
+  out.element_div("class"=>"field_details") do
     field_synopsis(out, field)
     if field.comment
-      out.element("blockquote") do
+      out.element_blockquote do
 	docs = DocComment.new(type.type_resolver)
 	docs.parse(field.comment.body)
         out.pcdata(docs.description)
-        out.element("dl", {"class"=>"field_additional_info"}) do
+        out.element_dl("class"=>"field_additional_info") do
 	  if docs.seealso?
-	    out.simple_element("dt", "See Also")
-	    out.element("dd") do
+	    out.element_dt("See Also")
+	    out.element_dd do
 	      list_see_also(out, docs)
 	    end
 	  end
@@ -263,16 +264,16 @@ end
 
 def html_file(name, title, encoding=nil)
   write_file("#{name}.html") do |io|
-    out = XMLWriter.new(io)
+    out = XHTMLWriter.new(XMLWriter.new(io))
     encoding = "iso-8859-1" if encoding.nil?
     out.pi("xml version=\"1.0\" encoding=\"#{encoding}\"")
-    out.element("html") do
-      out.element("head") do
-        out.simple_element("title", title)
-        out.empty_tag("link", {"rel"=>"stylesheet",
-	                       "type"=>"text/css",
-			       "href"=>base_path("style.css")})
-        out.empty_tag("meta", {"name"=>"generator", "content"=>"http://www.badgers-in-foil.co.uk/projects/as2api/"})
+    out.element_html do
+      out.element_head do
+        out.element_title(title)
+        out.element_link("rel"=>"stylesheet",
+	                 "type"=>"text/css",
+	                 "href"=>base_path("style.css"))
+        out.element_meta("name"=>"generator", "content"=>"http://www.badgers-in-foil.co.uk/projects/as2api/")
 	yield out
       end
     end
@@ -281,7 +282,7 @@ end
 
 def html_body(name, title, encoding=nil)
   html_file(name, title, encoding) do |out|
-    out.element("body") do
+    out.element_body do
       yield out
       footer(out)
     end
@@ -289,8 +290,8 @@ def html_body(name, title, encoding=nil)
 end
 
 def footer(out)
-  out.element("div", {"class"=>"footer"}) do
-    out.simple_element("a", "as2api", {"href"=>"http://www.badgers-in-foil.co.uk/projects/as2api/", "title"=>"ActionScript 2 API Documentation Generator"})
+  out.element_div("class"=>"footer") do
+    out.element_a("as2api", {"href"=>"http://www.badgers-in-foil.co.uk/projects/as2api/", "title"=>"ActionScript 2 API Documentation Generator"})
   end
 end
 
@@ -298,7 +299,7 @@ def type_hierachy(out, type)
   # TODO: ASCII art is an accessability problem.  Replace with images that have
   #       alt-text, or use CSS to generate content, e.g.
   #          <span class="inherit_relation" title="inherited by"></span>
-  out.element("pre", {"class"=>"type_hierachy"}) do
+  out.element_pre("class"=>"type_hierachy") do
     count = 0
     unless type.extends.nil?
       count = type_hierachy_recursive(out, type.extends)
@@ -307,7 +308,7 @@ def type_hierachy(out, type)
       out.pcdata("   " * count)
       out.pcdata("+--")
     end
-    out.simple_element("strong", type.qualified_name)
+    out.element_strong(type.qualified_name)
   end
 end
 
@@ -332,17 +333,17 @@ def type_hierachy_recursive(out, type_proxy)
 end
 
 def field_index_list(out, type)
-  out.element("div", {"class"=>"field_index"}) do
-    out.simple_element("h2", "Field Index")
+  out.element_div("class"=>"field_index") do
+    out.element_h2("Field Index")
     list_fields(out, type)
-    out.element("dl") do
+    out.element_dl do
       type.each_ancestor do |type|
 	if type.fields?
-	  out.element("dt") do
+	  out.element_dt do
 	    out.pcdata("Inherited from ")
 	    link_type(out, type)
 	  end
-	  out.element("dd") do
+	  out.element_dd do
 	    list_fields(out, type, link_for_type(type))
 	  end
 	end
@@ -355,8 +356,8 @@ def list_fields(out, type, href_prefix="")
   fields = type.fields.sort
   fields.each_with_index do |field, index|
     out.pcdata(", ") if index > 0
-    out.element("code") do
-      out.element("a", {"href"=>"#{href_prefix}#field_#{field.name}"}) do
+    out.element_code do
+      out.element_a("href"=>"#{href_prefix}#field_#{field.name}") do
 	out.pcdata(field.name)
       end
     end
@@ -364,8 +365,8 @@ def list_fields(out, type, href_prefix="")
 end
 
 def field_detail_list(out, type)
-  out.element("div", {"class"=>"field_detail_list"}) do
-    out.simple_element("h2", "Field Detail")
+  out.element_div("class"=>"field_detail_list") do
+    out.element_h2("Field Detail")
     type.each_field do |field|
       document_field(out, type, field)
     end
@@ -374,13 +375,13 @@ end
 
 
 def method_index_list(out, type)
-  out.element("div", {"class"=>"method_index"}) do
-    out.simple_element("h2", "Method Index")
+  out.element_div("class"=>"method_index") do
+    out.element_h2("Method Index")
     if type.constructor?
-      out.element("p") do
-        out.element("code") do
+      out.element_p do
+        out.element_code do
           out.pcdata("new ")
-	    out.element("a", {"href"=>"#method_#{type.constructor.name}"}) do
+	    out.element_a("href"=>"#method_#{type.constructor.name}") do
 	      out.pcdata(type.constructor.name+"()")
 	    end
         end
@@ -388,14 +389,14 @@ def method_index_list(out, type)
     end
     known_method_names = []
     list_methods(out, type, known_method_names)
-    out.element("dl") do
+    out.element_dl do
       type.each_ancestor do |type|
 	if type.methods?
-	  out.element("dt") do
+	  out.element_dt do
 	    out.pcdata("Inherited from ")
 	    link_type(out, type)
 	  end
-	  out.element("dd") do
+	  out.element_dd do
 	    list_methods(out, type, known_method_names, link_for_type(type))
 	  end
 	end
@@ -412,15 +413,15 @@ def list_methods(out, type, known_method_names, href_prefix="")
   methods.each_with_index do |method, index|
     known_method_names << method.name
     out.pcdata(", ") if index > 0
-    out.element("a", {"href"=>"#{href_prefix}#method_#{method.name}"}) do
+    out.element_a("href"=>"#{href_prefix}#method_#{method.name}") do
       out.pcdata(method.name+"()")
     end
   end
 end
 
 def method_detail_list(out, type)
-  out.element("div", {"class"=>"method_detail_list"}) do
-    out.simple_element("h2", "Method Detail")
+  out.element_div("class"=>"method_detail_list") do
+    out.element_h2("Method Detail")
     count = 0
     type.each_method do |method|
       document_method(out, type, method, count%2==0)
@@ -430,8 +431,8 @@ def method_detail_list(out, type)
 end
 
 def constructor_detail(out, type)
-  out.element("div", {"class"=>"constructor_detail_list"}) do
-    out.simple_element("h2", "Constructor Detail")
+  out.element_div("class"=>"constructor_detail_list") do
+    out.element_h2("Constructor Detail")
     document_method(out, type, type.constructor)
   end
 end
@@ -443,42 +444,42 @@ def document_type(type)
     "iso-8859-1"
   end
   html_body(type.unqualified_name, type.qualified_name, encoding) do |out|
-    out.simple_element("a", "", {"href"=>"#skip_nav", "title"=>"Skip navigation"})  # accessability
+    out.element_a("", {"href"=>"#skip_nav", "title"=>"Skip navigation"})  # accessability
     class_navigation(out)
-    out.simple_element("a", "", {"name"=>"skip_nav"})
+    out.element_a("", {"name"=>"skip_nav"})
     if type.instance_of?(ASClass)
-      out.simple_element("h1", "Class "+type.qualified_name)
+      out.element_h1("Class "+type.qualified_name)
     elsif type.instance_of?(ASInterface)
-      out.simple_element("h1", "Interface "+type.qualified_name)
+      out.element_h1("Interface "+type.qualified_name)
     end
 
     type_hierachy(out, type)
 
     if type.implements_interfaces?
-      out.element("div", {"class"=>"interfaces"}) do
-	out.simple_element("h2", "Implemented Interfaces")
+      out.element_div("class"=>"interfaces") do
+	out.element_h2("Implemented Interfaces")
 	type.each_interface do |interface|
 	  # TODO: need to resolve interface name, make links
-	  out.element("code") do
+	  out.element_code do
 	    link_type_proxy(out, interface)
 	  end
 	  out.pcdata(" ")
 	end
       end
     end
-    out.element("div", {"class"=>"type_description"}) do
+    out.element_div("class"=>"type_description") do
       if type.comment
 	docs = DocComment.new(type.type_resolver)
 	docs.parse(type.comment.body)
 
-	out.simple_element("h2", "Description")
-	out.element("p") do
+	out.element_h2("Description")
+	out.element_p do
 	  out.pcdata(docs.description)
 	end
-	out.element("dl", {"class"=>"type_details"}) do
+	out.element_dl("class"=>"type_details") do
 	  if docs.seealso?
-	    out.simple_element("dt", "See Also")
-	    out.element("dd") do
+	    out.element_dt("See Also")
+	    out.element_dd do
 	      list_see_also(out, docs)
 	    end
 	  end
@@ -499,7 +500,7 @@ end
 def list_see_also(out, docs)
   docs.each_see_also do |see|
     out.comment(" parsing for see-also not done yet ")
-    out.simple_element("p", see)
+    out.element_p(see)
   end
 end
 
@@ -518,11 +519,11 @@ def package_link_for(package, page)
 end
 
 def package_navigation(out)
-  out.element("div", {"class", "main_nav"}) do
-    out.simple_element("a", "Overview", {"href"=>base_path("overview-summary.html")})
-    out.simple_element("span", "Package", {"class"=>"nav_current"})
-    out.simple_element("span", "Class")
-    out.simple_element("a", "Index", {"href"=>base_path("index-files/index.html")})
+  out.element_div("class"=>"main_nav") do
+    out.element_a("Overview", {"href"=>base_path("overview-summary.html")})
+    out.element_span("Package", {"class"=>"nav_current"})
+    out.element_span("Class")
+    out.element_a("Index", {"href"=>base_path("index-files/index.html")})
   end
 end
 
@@ -535,24 +536,24 @@ end
 
 def package_index(package)
   html_body("package-summary", "Package #{package_display_name_for(package)} API Documentation") do |out|
-    out.simple_element("a", "", {"href"=>"#skip_nav", "title"=>"Skip navigation"})  # accessability
+    out.element_a("", {"href"=>"#skip_nav", "title"=>"Skip navigation"})  # accessability
     package_navigation(out)
-    out.simple_element("a", "", {"name"=>"skip_nav"})
-    out.simple_element("h1", "Package "+package_display_name_for(package))
+    out.element_a("", {"name"=>"skip_nav"})
+    out.element_h1("Package "+package_display_name_for(package))
     interfaces = package.interfaces
     unless interfaces.empty?
       interfaces.sort!
-      out.element("table", {"class"=>"summary_list", "summary"=>""}) do
-	out.element("tr") do
-	  out.simple_element("th", "Interface Summary", {"colspan"=>"2"})
+      out.element_table("class"=>"summary_list", "summary"=>"") do
+	out.element_tr do
+	  out.element_th("Interface Summary", {"colspan"=>"2"})
 	end
 	interfaces.each do |type|
-	  out.element("tr") do
+	  out.element_tr do
       
-	    out.element("td") do
-	      out.simple_element("a", type.unqualified_name, {"href"=>type.unqualified_name+".html"})
+	    out.element_td do
+	      out.element_a(type.unqualified_name, {"href"=>type.unqualified_name+".html"})
 	    end
-	    out.element("td") do
+	    out.element_td do
 	      # TODO: package description
 	    end
 	  end
@@ -562,17 +563,17 @@ def package_index(package)
     classes = package.classes
     unless classes.empty?
       classes.sort!
-      out.element("table", {"class"=>"summary_list", "summary"=>""}) do
-	out.element("tr") do
-	  out.simple_element("th", "Class Summary", {"colspan"=>"2"})
+      out.element_table("class"=>"summary_list", "summary"=>"") do
+	out.element_tr do
+	  out.element_th("Class Summary", {"colspan"=>"2"})
 	end
 	classes.each do |type|
-	  out.element("tr") do
+	  out.element_tr do
       
-	    out.element("td") do
-	      out.simple_element("a", type.unqualified_name, {"href"=>type.unqualified_name+".html"})
+	    out.element_td do
+	      out.element_a(type.unqualified_name, {"href"=>type.unqualified_name+".html"})
 	    end
-	    out.element("td") do
+	    out.element_td do
 	      # TODO: package description
 	    end
 	  end
@@ -585,23 +586,23 @@ end
 
 def package_frame(package)
   html_file("package-frame", "Package #{package_display_name_for(package)} API Naviation") do |out|
-    out.element("body") do
+    out.element_body do
       # TODO: don't use <strong>
-      out.element("strong") do
-	out.simple_element("a", package_display_name_for(package), {"href"=>"package-summary.html", "target"=>"type_frame"})
+      out.element_strong do
+	out.element_a(package_display_name_for(package), {"href"=>"package-summary.html", "target"=>"type_frame"})
       end
       interfaces = package.interfaces
       unless interfaces.empty?
 	interfaces.sort!
-	out.element("table", {"class"=>"navigation_list"}) do
-	  out.element("tr") do
-	    out.simple_element("th", "Interfaces")
+	out.element_table("class"=>"navigation_list") do
+	  out.element_tr do
+	    out.element_th("Interfaces")
 	  end
 	  interfaces.each do |type|
-	    out.element("tr") do
+	    out.element_tr do
 	
-	      out.element("td") do
-		out.simple_element("a", type.unqualified_name, {"href"=>type.unqualified_name+".html", "target"=>"type_frame", "title"=>type.qualified_name})
+	      out.element_td do
+		out.element_a(type.unqualified_name, {"href"=>type.unqualified_name+".html", "target"=>"type_frame", "title"=>type.qualified_name})
 	      end
 	    end
 	  end
@@ -610,15 +611,15 @@ def package_frame(package)
       classes = package.classes
       unless classes.empty?
 	classes.sort!
-	out.element("table", {"class"=>"navigation_list"}) do
-	  out.element("tr") do
-	    out.simple_element("th", "Classes")
+	out.element_table("class"=>"navigation_list") do
+	  out.element_tr do
+	    out.element_th("Classes")
 	  end
 	  classes.each do |type|
-	    out.element("tr") do
+	    out.element_tr do
 	
-	      out.element("td") do
-		out.simple_element("a", type.unqualified_name, {"href"=>type.unqualified_name+".html", "target"=>"type_frame", "title"=>type.qualified_name})
+	      out.element_td do
+		out.element_a(type.unqualified_name, {"href"=>type.unqualified_name+".html", "target"=>"type_frame", "title"=>type.qualified_name})
 	      end
 	    end
 	  end
@@ -629,33 +630,33 @@ def package_frame(package)
 end
 
 def overview_navigation(out)
-  out.element("div", {"class", "main_nav"}) do
-    out.simple_element("span", "Overview", {"class"=>"nav_current"})
-    out.simple_element("span", "Package")
-    out.simple_element("span", "Class")
-    out.simple_element("a", "Index", {"href"=>"index-files/index.html"})
+  out.element_div("class"=>"main_nav") do
+    out.element_span("Overview", {"class"=>"nav_current"})
+    out.element_span("Package")
+    out.element_span("Class")
+    out.element_a("Index", {"href"=>"index-files/index.html"})
   end
 end
 
 def overview(type_agregator)
   html_body("overview-summary", "API Overview") do |out|
-    out.simple_element("a", "", {"href"=>"#skip_nav", "title"=>"Skip navigation"})  # accessability
+    out.element_a("", {"href"=>"#skip_nav", "title"=>"Skip navigation"})  # accessability
     overview_navigation(out)
-    out.simple_element("a", "", {"name"=>"skip_nav"})
-    out.simple_element("h1", "API Overview")
-    out.element("table", {"class"=>"summary_list", "summary"=>""}) do
-      out.element("tr") do
-	out.simple_element("th", "Packages", {"colspan"=>"2"})
+    out.element_a("", {"name"=>"skip_nav"})
+    out.element_h1("API Overview")
+    out.element_table("class"=>"summary_list", "summary"=>"") do
+      out.element_tr do
+	out.element_th("Packages", {"colspan"=>"2"})
       end
       packages = type_agregator.packages.sort
       packages.each do |package|
-	out.element("tr") do
+	out.element_tr do
     
-	  out.element("td") do
+	  out.element_td do
 	    name = package_display_name_for(package)
-	    out.simple_element("a", name, {"href"=>package_link_for(package, "package-summary.html")})
+	    out.element_a(name, {"href"=>package_link_for(package, "package-summary.html")})
 	  end
-	  out.element("td") do
+	  out.element_td do
 	    # TODO: package description
 	  end
 	end
@@ -667,25 +668,25 @@ end
 
 def overview_frame(type_agregator)
   html_file("overview-frame", "API Overview") do |out|
-    out.element("body") do
-      out.element("table", {"class"=>"navigation_list"}) do
-	out.element("tr") do
-	  out.simple_element("th", "Packages")
+    out.element_body do
+      out.element_table("class"=>"navigation_list") do
+	out.element_tr do
+	  out.element_th("Packages")
 	end
-	  out.element("tr") do
+	  out.element_tr do
       
-	    out.element("td") do
-	      out.simple_element("a", "(All Types)", {"href"=>"all-types-frame.html", "target"=>"current_package_frame"})
+	    out.element_td do
+	      out.element_a("(All Types)", {"href"=>"all-types-frame.html", "target"=>"current_package_frame"})
 	    end
 	  end
 	packages = type_agregator.packages.sort
 	packages.each do |package|
-	  out.element("tr") do
+	  out.element_tr do
       
-	    out.element("td") do
+	    out.element_td do
 	      name = package_display_name_for(package)
 	      
-	      out.simple_element("a", name, {"href"=>package_link_for(package, "package-frame.html"), "target"=>"current_package_frame", "title"=>name})
+	      out.element_a(name, {"href"=>package_link_for(package, "package-frame.html"), "target"=>"current_package_frame", "title"=>name})
 	    end
 	  end
 	end
@@ -709,10 +710,10 @@ end
 
 def all_types_frame(type_agregator)
   html_file("all-types-frame", "as2api") do |out|
-    out.element("body") do
-      out.element("table", {"class"=>"navigation_list"}) do
-        out.element("tr") do
-	  out.simple_element("th", "All Types")
+    out.element_body do
+      out.element_table("class"=>"navigation_list") do
+        out.element_tr do
+	  out.element_th("All Types")
 	end
 	types = type_agregator.types.sort do |a,b|
 	  cmp = a.unqualified_name.downcase <=> b.unqualified_name.downcase
@@ -725,9 +726,9 @@ def all_types_frame(type_agregator)
 	types.each do |type|
 	  if type.document?
 	    href = type.qualified_name.gsub(/\./, "/") + ".html"
-            out.element("tr") do
-              out.element("td") do
-	        out.simple_element("a", type.unqualified_name, {"href"=>href, "title"=>type.qualified_name, "target"=>"type_frame"})
+            out.element_tr do
+              out.element_td do
+	        out.element_a(type.unqualified_name, {"href"=>href, "title"=>type.qualified_name, "target"=>"type_frame"})
 	      end
 	    end
 	  end
@@ -739,21 +740,21 @@ end
 
 def frameset
   html_file("frameset", "as2api") do |out|
-    out.element("frameset", {"cols"=>"20%,80%"}) do
-      out.element("frameset", {"rows"=>"30%,70%"}) do
-	out.empty_tag("frame", {"src"=>"overview-frame.html",
-	                        "name"=>"all_packages_frame",
-				"title"=>"All Packages"})
-	out.empty_tag("frame", {"src"=>"all-types-frame.html",
-	                        "name"=>"current_package_frame",
-                                "title"=>"All types"})
+    out.element_frameset("cols"=>"20%,80%") do
+      out.element_frameset("rows"=>"30%,70%") do
+	out.element_frame("src"=>"overview-frame.html",
+	                  "name"=>"all_packages_frame",
+	                  "title"=>"All Packages")
+	out.element_frame("src"=>"all-types-frame.html",
+	                  "name"=>"current_package_frame",
+                          "title"=>"All types")
       end
-      out.empty_tag("frame", {"src"=>"overview-summary.html",
-                              "name"=>"type_frame",
-                              "title"=>"Package and type descriptions"})
+      out.element_frame("src"=>"overview-summary.html",
+                        "name"=>"type_frame",
+                        "title"=>"Package and type descriptions")
     end
-    out.element("noframes") do
-      out.simple_element("a", "Non-frameset overview page", {"href"=>"overview-summary.html"})
+    out.element_noframes do
+      out.element_a("Non-frameset overview page", {"href"=>"overview-summary.html"})
     end
   end
 end
@@ -796,7 +797,7 @@ end
 class MethodIndexTerm < MemberIndexTerm
   def link(out)
     href_prefix = link_for_type(@astype)
-    out.element("a", {"href"=>"#{href_prefix}#method_#{@asmember.name}"}) do
+    out.element_a("href"=>"#{href_prefix}#method_#{@asmember.name}") do
       out.pcdata(@asmember.name + "()")
     end
     out.pcdata(" method in ")
@@ -807,7 +808,7 @@ end
 class FieldIndexTerm < MemberIndexTerm
   def link(out)
     href_prefix = link_for_type(@astype)
-    out.element("a", {"href"=>"#{href_prefix}#field_#{@asmember.name}"}) do
+    out.element_a("href"=>"#{href_prefix}#field_#{@asmember.name}") do
       out.pcdata(@asmember.name)
     end
     out.pcdata(" field in ")
@@ -816,11 +817,11 @@ class FieldIndexTerm < MemberIndexTerm
 end
 
 def index_navigation(out)
-  out.element("div", {"class", "main_nav"}) do
-    out.simple_element("a", "Overview", {"href"=>base_path("overview-summary.html")})
-    out.simple_element("span", "Package")
-    out.simple_element("span", "Class")
-    out.simple_element("span", "Index", {"class"=>"nav_current"})
+  out.element_div("class"=>"main_nav") do
+    out.element_a("Overview", {"href"=>base_path("overview-summary.html")})
+    out.element_span("Package")
+    out.element_span("Class")
+    out.element_span("Index", {"class"=>"nav_current"})
   end
 end
 
@@ -847,7 +848,7 @@ def index_files(type_agregator)
     html_file("index", "Alphabetical Index") do |out|
       index_navigation(out)
       index.each do |element|
-	out.element("p") do
+	out.element_p do
 	  element.link(out)
 	end
       end
