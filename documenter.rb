@@ -8,25 +8,14 @@ class ASType
     @name = name
     @source_utf8 = false
     @resolved = false
-    @is_class = nil
     @methods = []
-    @dynamic = false
     @extends = nil
     @comment = nil
-    @interfaces = []
     @type_resolver = nil
     @import_manager = nil
   end
 
-  attr_accessor :package, :name, :resolved, :dynamic, :extends, :comment, :source_utf8, :type_resolver, :import_manager
-
-  def class?
-    @is_class
-  end
-
-  def interface?
-    !@is_class
-  end
+  attr_accessor :package, :name, :resolved, :extends, :comment, :source_utf8, :type_resolver, :import_manager
 
   def add_method(method)
     @methods << method
@@ -38,14 +27,8 @@ class ASType
     end
   end
 
-  def add_interface(name)
-    @interfaces << name
-  end
-
-  def each_interface
-    @interfaces.each do |name|
-      yield name
-    end
+  def methods?
+    !@methods.empty?
   end
 
   def unqualified_name
@@ -63,9 +46,44 @@ class ASType
   def package_name_s
     package_name.join(".")
   end
+end
+
+class ASClass < ASType
+  def initialize(name)
+    @dynamic = false
+    @interfaces = []
+    @fields = []
+    super(name)
+  end
+
+  attr_accessor :dynamic
 
   def implements_interfaces?
     !@interfaces.empty?
+  end
+
+  def add_interface(name)
+    @interfaces << name
+  end
+
+  def each_interface
+    @interfaces.each do |name|
+      yield name
+    end
+  end
+
+  def add_field(field)
+    @fields << field
+  end
+end
+
+class ASInterface < ASType
+  def initialize(name)
+    super(name)
+  end
+
+  def implements_interfaces?
+    false
   end
 end
 
@@ -79,7 +97,17 @@ class DocASParser < ActionScript::Parse::ASParser
     super()
   end
 
+  def parse_interface_definition
+    @handler.doc_comment @lex.peek_next.last_comment
+    super()
+  end
+
   def parse_class_member
+    @handler.doc_comment @lex.peek_next.last_comment
+    super()
+  end
+
+  def parse_interface_function
     @handler.doc_comment @lex.peek_next.last_comment
     super()
   end
@@ -109,15 +137,24 @@ class DocASLexer < ActionScript::Parse::SkipASLexer
   end
 end
 
-class ASMethod
+class ASMember
   def initialize(access, name)
     @access = access
     @name = name
+    @comment = nil
+  end
+
+  attr_accessor :access, :name, :comment
+end
+
+class ASMethod < ASMember
+  def initialize(access, name)
+    super(access, name)
     @return_type = nil
     @args = []
   end
 
-  attr_accessor :access, :name, :comment, :return_type
+  attr_accessor :return_type
 
   def add_arg(arg)
     @args << arg
@@ -126,6 +163,15 @@ class ASMethod
   def arguments
     @args
   end
+end
+
+class ASField < ASMember
+  def initialize(access, name)
+    super(access, name)
+    @field_type = nil
+  end
+
+  attr_accessor :field_type
 end
 
 class ASArg
@@ -252,13 +298,13 @@ class DocASHandler < ActionScript::Parse::ASHandler
   end
 
   def start_class(dynamic, name, super_name, interfaces)
-    @defined_type = ASType.new(name)
+    @defined_type = ASClass.new(name)
     if @doc_comment
       @defined_type.comment = @doc_comment
     end
     @defined_type.dynamic = dynamic
     if super_name
-      @defined_type.extends = super_name
+      @defined_type.extends = @type_resolver.resolve(super_name)
     end
     if interfaces
       interfaces.each do |interface|
@@ -268,6 +314,19 @@ class DocASHandler < ActionScript::Parse::ASHandler
     @defined_type.type_resolver = @type_resolver
     @defined_type.import_manager = @import_manager
   end
+
+  def start_interface(name, super_name)
+    @defined_type = ASInterface.new(name)
+    if @doc_comment
+      @defined_type.comment = @doc_comment
+    end
+    if super_name
+      @defined_type.extends = @type_resolver.resolve(super_name)
+    end
+    @defined_type.type_resolver = @type_resolver
+    @defined_type.import_manager = @import_manager
+  end
+
 
   def access_modifier(modifier)
     @last_modifier = modifier
@@ -286,14 +345,15 @@ class DocASHandler < ActionScript::Parse::ASHandler
   end
 
   def start_member_field(name, type)
-    show_modifier
-    print "var "
-    print name.body
+    field = ASField.new(@last_modifier, name.body)
     unless type.nil?
-      print ":"
-      print type
+      field.field_type = @type_resolver.resolve(type)
     end
-    puts ";"
+    @defined_type.add_field(field)
+  end
+
+  def interface_function(name, sig)
+    member_function(name, sig)
   end
 
   def member_function(name, sig)
