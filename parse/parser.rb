@@ -10,6 +10,10 @@ class AccessModifier
   end
 
   attr_accessor :visibility, :is_static
+
+  def private?
+    @visibility.to_s == "private"
+  end
 end
 
 class Argument
