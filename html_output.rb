@@ -2,7 +2,7 @@
 require 'xmlwriter'
 
 def link_type(out, type, qualified=false)
-  if type.resolved?
+  if type.resolved? && type.resolved_type.document?
     href = base_path(type.resolved_type.qualified_name.gsub(/\./, "/")+".html")
     if qualified
       out.simple_element("a", type.resolved_type.qualified_name, {"href"=>href})
@@ -11,7 +11,11 @@ def link_type(out, type, qualified=false)
                                                 "title"=>type.resolved_type.qualified_name})
     end
   else
-    out.simple_element("span", type.local_name, {"class"=>"unresolved_type"})
+    if type.resolved?
+      out.pcdata(type.local_name)
+    else
+      out.simple_element("span", type.local_name, {"class"=>"unresolved_type"})
+    end
   end
 end
 
@@ -274,7 +278,8 @@ end
 def field_index_list(out, type)
   out.element("div", {"class"=>"field_index"}) do
     out.simple_element("h2", "Field Index")
-    type.each_field do |field|
+    fields = type.fields.sort
+    fields.each do |field|
       out.element("a", {"href"=>"#field_#{field.name}"}) do
 	out.pcdata(field.name)
       end
@@ -296,7 +301,8 @@ end
 def method_index_list(out, type)
   out.element("div", {"class"=>"method_index"}) do
     out.simple_element("h2", "Method Index")
-    type.each_method do |method|
+    methods = type.methods.sort
+    methods.each do |method|
       out.element("a", {"href"=>"#method_#{method.name}"}) do
 	out.pcdata(method.name+"()")
       end
@@ -403,18 +409,42 @@ def package_index(package)
     html_file("package-summary", "Package #{package_display_name_for(package)} API Documentation") do |out|
       package_navigation(out)
       out.simple_element("h1", "Package "+package_display_name_for(package))
-      out.element("table", {"class"=>"summary_list"}) do
-	out.element("tr") do
-	  out.simple_element("th", "Type Summary", {"colspan"=>"2"})
-	end
-	package.each_type do |type|
+      interfaces = package.interfaces
+      unless interfaces.empty?
+	interfaces.sort!
+	out.element("table", {"class"=>"summary_list"}) do
 	  out.element("tr") do
-      
-	    out.element("td") do
-	      out.simple_element("a", type.unqualified_name, {"href"=>type.unqualified_name+".html"})
+	    out.simple_element("th", "Interface Summary", {"colspan"=>"2"})
+	  end
+	  interfaces.each do |type|
+	    out.element("tr") do
+	
+	      out.element("td") do
+		out.simple_element("a", type.unqualified_name, {"href"=>type.unqualified_name+".html"})
+	      end
+	      out.element("td") do
+		# TODO: package description
+	      end
 	    end
-	    out.element("td") do
-	      # TODO: package description
+	  end
+	end
+      end
+      classes = package.classes
+      unless classes.empty?
+	classes.sort!
+	out.element("table", {"class"=>"summary_list"}) do
+	  out.element("tr") do
+	    out.simple_element("th", "Class Summary", {"colspan"=>"2"})
+	  end
+	  classes.each do |type|
+	    out.element("tr") do
+	
+	      out.element("td") do
+		out.simple_element("a", type.unqualified_name, {"href"=>type.unqualified_name+".html"})
+	      end
+	      out.element("td") do
+		# TODO: package description
+	      end
 	    end
 	  end
 	end
@@ -440,7 +470,8 @@ def overview(type_agregator)
       out.element("tr") do
 	out.simple_element("th", "Packages", {"colspan"=>"2"})
       end
-      type_agregator.each_package do |package|
+      packages = type_agregator.packages.sort
+      packages.each do |package|
 	out.element("tr") do
     
 	  out.element("td") do

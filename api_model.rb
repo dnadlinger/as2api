@@ -39,6 +39,10 @@ class ASType
     end
   end
 
+  def methods
+    @methods.dup
+  end
+
   def methods?
     !@methods.empty?
   end
@@ -79,6 +83,14 @@ class ASType
 	$stderr.puts("package #{@package_name.inspect} doesn't match location #{path.inspect}")
       end
     end
+  end
+
+  # compare two types based on their qualified names
+  def <=>(other)
+    qualified_name <=> other.qualified_name
+    cmp = qualified_name.downcase <=> other.qualified_name.downcase
+    return cmp unless cmp==0
+    qualified_name <=> other.qualified_name
   end
 
   def document?
@@ -139,6 +151,10 @@ class ASClass < ASType
     end
   end
 
+  def fields
+    @fields.dup
+  end
+
   def get_field_called(name)
     each_field do |field|
       return field if field.name == name
@@ -172,6 +188,13 @@ class ASMember
   end
 
   attr_accessor :access, :name, :comment
+
+  # compares two members based on their names
+  def <=>(other)
+    cmp = name.downcase <=> other.name.downcase
+    return cmp unless cmp==0
+    name <=> other.name
+  end
 end
 
 # A method member, which may appear in an ASClass or ASInterface
@@ -286,5 +309,27 @@ class ASPackage
     @types.each do |type|
       yield type
     end
+  end
+
+  def classes
+    result = []
+    each_type do |type|
+      result << type if type.instance_of?(ASClass)
+    end
+    result
+  end
+
+  def interfaces
+    result = []
+    each_type do |type|
+      result << type if type.instance_of?(ASInterface)
+    end
+    result
+  end
+
+  def <=>(other)
+    cmp = name.downcase <=> other.name.downcase
+    return cmp unless cmp==0
+    name <=> other.name
   end
 end

@@ -367,6 +367,7 @@ class GlobalTypeAggregator
   private
 
   def collect_package_types(package_name)
+    # TODO: dump this and use ASPackage instead, now it's available
     @types.each do |type|
       if type.package_name == package_name
 	yield type
