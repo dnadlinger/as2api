@@ -1,0 +1,17 @@
+
+ - Proper command-line options
+
+ - Have some way of pre-populating namespace with standard types (String,
+   Object) so that type resolution doesn't complain when they're not
+   found
+
+ - Hide private class members
+
+ - Automatically pull any package.html contents into package-summary page.
+
+ - Be package/class centric, rather than sourcepath centric (i.e. we should
+   be given a list of packages to document, and just load what's required to
+   document the API of those types)
+ 
+ - Automatically include the default CSS with the generated files (if there's
+   no file there already)
