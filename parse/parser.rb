@@ -74,6 +74,7 @@ class ASParser
   end
 
   def parse_type_definition
+    parse_attribute_list
     if lookahead?(ClassToken) || lookahead?(DynamicToken) || lookahead?(IntrinsicToken)
       type = parse_class_or_intrinsic_definition
     elsif lookahead?(InterfaceToken)
@@ -197,6 +198,7 @@ class ASParser
       # skip spurious semicolons in class bodies
       return
     end
+    parse_attribute_list
     @handler.access_modifier(parse_access_modifier)
     if lookahead?(VarToken)
       parse_member_field
@@ -337,6 +339,32 @@ class ASParser
     arg
   end
 
+  def parse_attribute_list
+    if lookahead?(LBracketToken)
+      @handler.start_attribute_list
+      while lookahead?(LBracketToken)
+	eat_attribute
+      end
+      @handler.end_attribute_list
+    end
+  end
+
+  def eat_attribute
+    open = expect(LBracketToken)
+    until lookahead?(RBracketToken)
+      if lookahead?(LBracketToken)
+	# REVISIT: not sure of attribute syntax, but if attributes may contain
+	#          brackets, we will need to match them up correctly,
+        eat_attribute
+      else
+	if @lex.get_next.nil?
+	  raise "end of file looking for closing bracket to match line #{open.lineno}"
+	end
+      end
+    end
+    expect(RBracketToken)
+  end
+
  private
   def expect(kind)
     tok = @lex.get_next
@@ -388,6 +416,9 @@ class ASHandler
 
   def start_member_field(name, type); end
   def end_member_field; end
+
+  def start_attribute_list; end
+  def end_attribute_list; end
 end
 
 end # module Parse
