@@ -46,8 +46,8 @@ end
 
 def class_navigation(out)
   out.element("div", {"class", "main_nav"}) do
-    out.simple_element("a", "Overview", {"href"=>base_path("index.html")})
-    out.simple_element("span", "Package")
+    out.simple_element("a", "Overview", {"href"=>base_path("overview-summary.html")})
+    out.simple_element("a", "Package", {"href"=>"package-summary.html"})
     out.simple_element("span", "Class", {"class"=>"nav_current"})
   end
 end
@@ -128,8 +128,14 @@ def in_subdir(path)
   $base_path = save_base_path
 end
 
+def write_file(name)
+  File.open(File.join($path, name), "w") do |io|
+    yield io
+  end
+end
+
 def html_file(name, title, encoding=nil)
-  File.open(File.join($path, "#{name}.html"), "w") do |io|
+  write_file("#{name}.html") do |io|
     out = XMLWriter.new(io)
     encoding = "iso-8859-1" if encoding.nil?
     out.pi("xml version=\"1.0\" encoding=\"#{encoding}\"")
@@ -250,18 +256,104 @@ def document_type(type)
   end
 end
 
-def document_types(types)
-  in_subdir("apidoc") do
-    html_file("index", "API Documentation") do |out|
-      types.each do |type|
-        in_subdir(File.join(type.package_name)) do
-          document_type(type)
-          out.element("p") do
-	    out.element("a", {"href"=>"#{type.name.join('/')}.html"}) do
-	      out.pcdata(type.name.join('.'))
+def package_dir_for(package)
+  package.name.gsub(".", "/")
+end
+
+def package_display_name_for(package)
+  return "(Default)" if package.name == ""
+  package.name
+end
+
+def package_summary_for(package)
+  return "package-summary.html" if package.name == ""
+  package_dir_for(package) + "/package-summary.html"
+end
+
+def package_navigation(out)
+  out.element("div", {"class", "main_nav"}) do
+    out.simple_element("a", "Overview", {"href"=>base_path("overview-summary.html")})
+    out.simple_element("span", "Package", {"class"=>"nav_current"})
+    out.simple_element("span", "Class")
+  end
+end
+
+def package_index(package)
+  in_subdir(package_dir_for(package)) do
+    html_file("package-summary", "Package #{package_display_name_for(package)} API Documentation") do |out|
+      package_navigation(out)
+      out.simple_element("h1", "Package "+package_display_name_for(package))
+      out.element("table", {"class"=>"summary_list"}) do
+	out.element("tr") do
+	  out.simple_element("th", "Type Summary", {"colspan"=>"2"})
+	end
+	package.each_type do |type|
+	  out.element("tr") do
+      
+	    out.element("td") do
+	      out.simple_element("a", type.unqualified_name, {"href"=>type.unqualified_name+".html"})
+	    end
+	    out.element("td") do
+	      # TODO: package description
 	    end
 	  end
 	end
+      end
+      package_navigation(out)
+    end
+  end
+end
+
+def overview(type_agregator)
+  html_file("overview-summary", "API Overview") do |out|
+    out.simple_element("h1", "API Overview")
+    out.element("table", {"class"=>"summary_list"}) do
+      out.element("tr") do
+	out.simple_element("th", "Packages", {"colspan"=>"2"})
+      end
+      type_agregator.each_package do |package|
+	out.element("tr") do
+    
+	  out.element("td") do
+	    name = package_display_name_for(package)
+	    out.simple_element("a", name, {"href"=>package_summary_for(package)})
+	  end
+	  out.element("td") do
+	    # TODO: package description
+	  end
+	end
+      end
+    end
+  end
+end
+
+def package_list(type_agregator)
+  # REVISIT: Will a package list actually be useful for ActionScript, or can
+  #          we always assume that any code that makes reference to a type
+  #          must have access to that type's source in order to compile?
+  #          (In theory, this file will allow javadoc to link to ActionScript
+  #          classes, so maybe keep it just for that.)
+  write_file("package-list") do |out|
+    type_agregator.each_package do |package|
+      out.puts(package.name) unless package.name == ""
+    end
+  end
+end
+
+def document_types(type_agregator)
+  in_subdir("apidoc") do
+    overview(type_agregator)
+    package_list(type_agregator)
+
+    # packages..
+    type_agregator.each_package do |package|
+      package_index(package)
+    end
+
+    # types..
+    type_agregator.each_type do |type|
+      in_subdir(File.join(type.package_name)) do
+	document_type(type)
       end
     end
   end
