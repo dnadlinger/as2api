@@ -482,8 +482,10 @@ def document_types(output_path, type_agregator)
 
     # types..
     type_agregator.each_type do |type|
-      in_subdir(type.package_name.gsub(/\./, "/")) do
-	document_type(type)
+      if type.document?
+	in_subdir(type.package_name.gsub(/\./, "/")) do
+	  document_type(type)
+	end
       end
     end
   end

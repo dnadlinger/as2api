@@ -344,6 +344,7 @@ class GlobalTypeAggregator
   def resolve_types
     # Eeek!...
     qname_map = {}
+    qname_map[AS_VOID.qualified_name] = AS_VOID
     @types.each do |type|
       qname_map[type.qualified_name] = type
     end

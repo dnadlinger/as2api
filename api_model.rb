@@ -80,7 +80,24 @@ class ASType
       end
     end
   end
+
+  def document?
+    true
+  end
 end
+
+class ASVoidType < ASType
+  def initialize
+    @name = "Void"
+    @package_name = ""
+  end
+
+  def document?
+    false
+  end
+end
+
+AS_VOID = ASVoidType.new
 
 # Classes are types that (just for the perposes of API docs) have fields, and
 # implement interfaces
