@@ -7,6 +7,7 @@ require 'doc_comment'
 class ASType
   def initialize(name)
     @name = name
+    @source_utf8 = false
     @resolved = false
     @is_class = nil
     @methods = []
@@ -16,7 +17,7 @@ class ASType
     @interfaces = []
   end
 
-  attr_accessor :package, :name, :resolved, :dynamic, :extends, :comment
+  attr_accessor :package, :name, :resolved, :dynamic, :extends, :comment, :source_utf8
 
   def class?
     @is_class
@@ -391,11 +392,24 @@ def document_type(type)
   end
 end
 
-File.open("apidoc/index.html", "w") do |out|
+BOM = "\357\273\277"
+
+# Look for a byte-order-marker in the first 3 bytes of io.
+# Eats the BOM and returns true on finding one; rewinds the stream to its
+# start and returns false if none is found.
+def detect_bom?(io)
+  return true if io.read(3) == BOM
+  io.seek(0)
+  false
+end
+
+File.open(File.join("apidoc", "index.html"), "w") do |out|
   ARGV.each do |name|
     File.open(name) do |io|
       begin
+        is_utf8 = detect_bom?(io)
         type = simple_parse(io)
+	type.source_utf8 = is_utf8
         document_type(type)
 	out.puts("<p><a href=\"#{type.name.join('.')}.html\">#{type.name.join('.')}</a></p>")
       rescue =>e
