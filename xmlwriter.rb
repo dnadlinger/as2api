@@ -1,0 +1,82 @@
+class XMLWriter
+  def initialize(io)
+    @io = io
+  end
+
+  def doctype(name, syspub, public_id, system_id)
+    @io.puts("<!DOCTYPE #{name} #{syspub} \"#{public_id}\" \"#{system_id}\">")
+  end
+
+  def element(text, attrs=nil)
+    start_tag(text, attrs)
+    yield
+    end_tag(text)
+  end
+
+  def simple_element(text, body, attrs=nil)
+    start_tag(text, attrs)
+    pcdata(body)
+    end_tag(text)
+  end
+
+  def start_tag(text, attrs=nil)
+    @io.print('<')
+    @io.print(text)
+    unless attrs.nil?
+      attrs.each do |key, val|
+	@io.print(' ')
+	@io.print(key)
+	@io.print('="')
+	@io.print(val.gsub(/"/, "&quot;"))
+	@io.print('"')
+      end
+    end
+    @io.print('>')
+  end
+
+  def empty_tag(text, attrs=nil)
+    @io.print('<')
+    @io.print(text)
+    unless attrs.nil?
+      attrs.each do |key, val|
+	@io.print(' ')
+	@io.print(key)
+	@io.print('="')
+	@io.print(val.gsub(/"/, "&quot;"))
+	@io.print('"')
+      end
+    end
+    @io.print('/>')
+  end
+
+  def end_tag(text)
+    @io.print('</')
+    @io.print(text)
+    @io.print('>')
+  end
+
+  def pcdata(text)
+    @io.print(text.gsub(/&/, '&amp;').gsub(/</, '&lt;').gsub(/>/, '&gt;'))
+  end
+
+  def cdata(text)
+    raise "CDATA text must not contain ']]>'" if text =~ /\]\]>/
+    @io.print("<![CDATA[")
+    @io.print(text)
+    @io.print("]]>")
+  end
+
+  def comment(text)
+    raise "comment must not contain '--'" if text =~ /--/
+    @io.print("<!--")
+    @io.print(text)
+    @io.print("-->")
+  end
+
+  def pi(text)
+    raise "processing instruction must not contain '?>'" if text =~ /\?>/
+    @io.print("<?")
+    @io.print(text)
+    @io.print("?>")
+  end
+end
