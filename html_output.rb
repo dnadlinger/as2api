@@ -135,6 +135,53 @@ def class_navigation(out)
   end
 end
 
+def comment_has_blocktype?(comment_data, type)
+  comment_data.each_block do |block|
+    return true if block.is_a?(type)
+  end
+  return false
+end
+
+def comment_has_params?(comment_data)
+  return comment_has_blocktype?(comment_data, ParamBlockTag)
+end
+
+def comment_has_exceptions?(comment_data)
+  return comment_has_blocktype?(comment_data, ThrowsBlockTag)
+end
+
+def comment_has_seealso?(comment_data)
+  return comment_has_blocktype?(comment_data, SeeBlockTag)
+end
+
+def comment_each_exception(comment_data)
+  comment_data.each_block do |block|
+    yield block if block.is_a?(ThrowsBlockTag)
+  end
+end
+
+def comment_each_seealso(comment_data)
+  comment_data.each_block do |block|
+    yield block if block.is_a?(SeeBlockTag)
+  end
+end
+
+def comment_find_param(comment_data, param_name)
+  comment_data.each_block do |block|
+    if block.is_a?(ParamBlockTag) && block.param_name == param_name
+      return block;
+    end
+  end
+  return nil
+end
+
+def comment_find_return(comment_data)
+  comment_data.each_block do |block|
+    return block if block.is_a?(ReturnBlockTag)
+  end
+  return nil
+end
+
 def document_method(out, type, method, alt_row=false)
   css_class = "method_details"
   css_class << " alt_row" if alt_row
@@ -144,61 +191,85 @@ def document_method(out, type, method, alt_row=false)
     method_synopsis(out, method)
     if method.comment
       out.element_blockquote do
-	docs = DocComment.new(type.type_resolver)
-	docs.parse(method.comment.body)
-        out.pcdata(docs.description)
+        comment_data = method.comment
+        output_doccomment_blocktag(out, comment_data[0])
         out.element_dl("class"=>"method_additional_info") do
 	  # TODO: assumes that params named in docs match formal arguments
 	  #       should really filter out those that don't match before this
 	  #       test
-	  if docs.parameters?
+	  if comment_has_params?(comment_data)
 	    out.element_dt("Parameters")
 	    out.element_dd do
 	      out.element_table("class"=>"arguments", "summary"=>"") do
 		method.arguments.each do |arg|
-		  desc = docs.param(arg.name)
+		  desc = comment_find_param(comment_data, arg.name)
 		  if desc
 		    out.element_tr do
 		      out.element_td do
 			out.element_code(arg.name)
 		      end
-		      out.element_td(desc)
+		      out.element_td do
+                        output_doccomment_blocktag(out, desc)
+		      end
 		    end
 		  end
 		end
 	      end
 	    end
 	  end
-	  unless docs.desc_return.nil?
+	  return_comment = comment_find_return(comment_data)
+	  unless return_comment.nil?
 	    out.element_dt("Return")
 	    out.element_dd do
-	      out.pcdata(docs.desc_return)
+              output_doccomment_blocktag(out, return_comment)
 	    end
 	  end
-	  if docs.exceptions?
+	  if comment_has_exceptions?(comment_data)
             out.element_dt("throws")
             out.element_dd do
 	      out.element_table("class"=>"exceptions", "summary"=>"") do
-	        docs.each_exception do |type, desc|
+	        comment_each_exception(comment_data) do |exception_comment|
 		  out.element_tr do
 		    out.element_td do
-		      link_type_proxy(out, type)
+		      link_type_proxy(out, exception_comment.exception_type)
 		    end
-		    out.element_td(desc)
+		    out.element_td do
+                      output_doccomment_blocktag(out, exception_comment)
+		    end
 		  end
 	        end
 	      end
 	    end
 	  end
-	  if docs.seealso?
+	  if comment_has_seealso?(comment_data)
 	    out.element_dt("See Also")
 	    out.element_dd do
-	      list_see_also(out, docs)
+	      comment_each_seealso(comment_data) do |see_comment|
+	        out.element_p do
+                  output_doccomment_blocktag(out, see_comment)
+		end
+	      end
 	    end
 	  end
 	end
       end
     end
+  end
+end
+
+def output_doccomment_blocktag(out, block)
+  block.each_inline do |inline|
+    output_doccomment_inlinetag(out, inline)
+  end
+end
+
+def output_doccomment_inlinetag(out, inline)
+  if inline.is_a?(String)
+    out.pcdata(inline)
+  elsif inline.is_a?(LinkTag)
+    link_type_proxy(out, inline.target)
+  else
+    out.element_em(inline.inspect)
   end
 end
 
@@ -209,14 +280,17 @@ def document_field(out, type, field)
     field_synopsis(out, field)
     if field.comment
       out.element_blockquote do
-	docs = DocComment.new(type.type_resolver)
-	docs.parse(field.comment.body)
-        out.pcdata(docs.description)
+	comment_data = field.comment
+	output_doccomment_blocktag(out, comment_data[0])
         out.element_dl("class"=>"field_additional_info") do
-	  if docs.seealso?
+	  if comment_has_seealso?(comment_data)
 	    out.element_dt("See Also")
 	    out.element_dd do
-	      list_see_also(out, docs)
+	      comment_each_seealso(comment_data) do |see_comment|
+	        out.element_p do
+                  output_doccomment_blocktag(out, see_comment)
+		end
+	      end
 	    end
 	  end
 	end
@@ -477,18 +551,21 @@ def document_type(type)
     end
     out.element_div("class"=>"type_description") do
       if type.comment
-	docs = DocComment.new(type.type_resolver)
-	docs.parse(type.comment.body)
+        comment_data = type.comment
 
 	out.element_h2("Description")
 	out.element_p do
-	  out.pcdata(docs.description)
+          output_doccomment_blocktag(out, comment_data[0])
 	end
 	out.element_dl("class"=>"type_details") do
-	  if docs.seealso?
+	  if comment_has_seealso?(comment_data)
 	    out.element_dt("See Also")
 	    out.element_dd do
-	      list_see_also(out, docs)
+	      comment_each_seealso(comment_data) do |see_comment|
+	        out.element_p do
+                  output_doccomment_blocktag(out, see_comment)
+		end
+	      end
 	    end
 	  end
 	end
@@ -894,3 +971,5 @@ def document_types(output_path, type_agregator)
     index_files(type_agregator)
   end
 end
+
+# vim:softtabstop=2:shiftwidth=2

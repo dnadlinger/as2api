@@ -71,6 +71,13 @@ end
 # Builds a model of the API being processed as ActionScript::Parse::Parser
 # recognises pieces of the ActionScript grammar
 class DocASHandler < ActionScript::Parse::ASHandler
+  def initialize
+    parse_conf_build = ConfigBuilder.new
+    @method_comment_parser = DocCommentParser.new(parse_conf_build.build_method_config)
+    @field_comment_parser = DocCommentParser.new(parse_conf_build.build_field_config)
+    @type_comment_parser = DocCommentParser.new(parse_conf_build.build_type_config)
+  end
+
   def compilation_unit_start
     @type_resolver = LocalTypeResolver.new
     @import_manager = ImportManager.new
@@ -90,7 +97,8 @@ class DocASHandler < ActionScript::Parse::ASHandler
   def start_class(dynamic, name, super_name, interfaces)
     @defined_type = ASClass.new(name)
     if @doc_comment
-      @defined_type.comment = @doc_comment
+      input = create_comment_parser_input(@doc_comment)
+      @defined_type.comment = @type_comment_parser.parse(input)
     end
     @defined_type.dynamic = dynamic
     if super_name
@@ -113,7 +121,8 @@ class DocASHandler < ActionScript::Parse::ASHandler
   def start_interface(name, super_name)
     @defined_type = ASInterface.new(name)
     if @doc_comment
-      @defined_type.comment = @doc_comment
+      input = create_comment_parser_input(@doc_comment)
+      @defined_type.comment = @type_comment_parser.parse(input)
     end
     if super_name
       @defined_type.extends = @type_resolver.resolve(super_name)
@@ -142,6 +151,10 @@ class DocASHandler < ActionScript::Parse::ASHandler
     field = ASExplicitField.new(@last_modifier, name.body)
     unless type.nil?
       field.field_type = @type_resolver.resolve(type)
+    end
+    if @doc_comment
+      input = create_comment_parser_input(@doc_comment)
+      field.comment = @field_comment_parser.parse(input)
     end
     @defined_type.add_field(field)
   end
@@ -177,7 +190,8 @@ class DocASHandler < ActionScript::Parse::ASHandler
       method.add_arg(argument)
     end
     if @doc_comment
-      method.comment = @doc_comment
+      input = create_comment_parser_input(@doc_comment)
+      method.comment = @method_comment_parser.parse(input)
     end
     method
   end
@@ -205,6 +219,10 @@ class DocASHandler < ActionScript::Parse::ASHandler
     else
       raise "unknown property-modifier #{sig.implicit_property_modifier.inspect}"
     end
+  end
+
+  def create_comment_parser_input(comment_token)
+    CommentInput.new(comment_token.body, comment_token.lineno, @type_resolver)
   end
 end
 
@@ -297,12 +315,10 @@ class LocalTypeResolver
     @named_types = {}
   end
 
-  def resolve(name)
+  def resolve(name, lineno=nil)
     if name.is_a?(Array)
       lineno = name.first.lineno
       name = name.join(".")
-    else
-      lineno = nil
     end
     type = @named_types[name]
     if type.nil?
@@ -426,3 +442,5 @@ class GlobalTypeAggregator
     end
   end
 end
+
+# vim:softtabstop=2:shiftwidth=2
