@@ -230,7 +230,7 @@ class ASMethod < ASMember
     @args
   end
 
-  def agument(index)
+  def argument(index)
     @args[index]
   end
 end
