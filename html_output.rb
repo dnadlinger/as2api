@@ -722,7 +722,7 @@ def overview(type_agregator)
     out.element_h1("API Overview")
     out.element_table("class"=>"summary_list", "summary"=>"") do
       out.element_tr do
-	out.element_th("Packages", {"colspan"=>"2"})
+	out.element_th("Packages")
       end
       packages = type_agregator.packages.sort
       packages.each do |package|
@@ -732,9 +732,9 @@ def overview(type_agregator)
 	    name = package_display_name_for(package)
 	    out.element_a(name, {"href"=>package_link_for(package, "package-summary.html")})
 	  end
-	  out.element_td do
+	  #out.element_td do
 	    # TODO: package description
-	  end
+	  #end
 	end
       end
     end
