@@ -672,23 +672,18 @@ end
 def package_frame(package)
   html_file("package-frame", "Package #{package_display_name_for(package)} API Naviation") do |out|
     out.element_body do
-      # TODO: don't use <strong>
-      out.element_strong do
+      out.element_p do
 	out.element_a(package_display_name_for(package), {"href"=>"package-summary.html", "target"=>"type_frame"})
       end
       interfaces = package.interfaces
       unless interfaces.empty?
 	interfaces.sort!
-	out.element_table("class"=>"navigation_list") do
-	  out.element_tr do
-	    out.element_th("Interfaces")
-	  end
+	out.element_h3("Interfaces")
+	out.element_ul("class"=>"navigation_list") do
 	  interfaces.each do |type|
-	    out.element_tr do
 	
-	      out.element_td do
-		out.element_a(type.unqualified_name, {"href"=>type.unqualified_name+".html", "target"=>"type_frame", "title"=>type.qualified_name})
-	      end
+	    out.element_li do
+	      out.element_a(type.unqualified_name, {"href"=>type.unqualified_name+".html", "target"=>"type_frame", "title"=>type.qualified_name})
 	    end
 	  end
 	end
@@ -696,16 +691,12 @@ def package_frame(package)
       classes = package.classes
       unless classes.empty?
 	classes.sort!
-	out.element_table("class"=>"navigation_list") do
-	  out.element_tr do
-	    out.element_th("Classes")
-	  end
+	out.element_h3("Classes")
+	out.element_ul("class"=>"navigation_list") do
 	  classes.each do |type|
-	    out.element_tr do
 	
-	      out.element_td do
-		out.element_a(type.unqualified_name, {"href"=>type.unqualified_name+".html", "target"=>"type_frame", "title"=>type.qualified_name})
-	      end
+	    out.element_li do
+	      out.element_a(type.unqualified_name, {"href"=>type.unqualified_name+".html", "target"=>"type_frame", "title"=>type.qualified_name})
 	    end
 	  end
 	end
@@ -754,25 +745,19 @@ end
 def overview_frame(type_agregator)
   html_file("overview-frame", "API Overview") do |out|
     out.element_body do
-      out.element_table("class"=>"navigation_list") do
-	out.element_tr do
-	  out.element_th("Packages")
-	end
-	  out.element_tr do
+      out.element_h3("Packages")
+      out.element_ul("class"=>"navigation_list") do
       
-	    out.element_td do
-	      out.element_a("(All Types)", {"href"=>"all-types-frame.html", "target"=>"current_package_frame"})
-	    end
-	  end
+	out.element_li do
+	  out.element_a("(All Types)", {"href"=>"all-types-frame.html", "target"=>"current_package_frame"})
+	end
 	packages = type_agregator.packages.sort
 	packages.each do |package|
-	  out.element_tr do
       
-	    out.element_td do
-	      name = package_display_name_for(package)
-	      
-	      out.element_a(name, {"href"=>package_link_for(package, "package-frame.html"), "target"=>"current_package_frame", "title"=>name})
-	    end
+	  out.element_li do
+	    name = package_display_name_for(package)
+	    
+	    out.element_a(name, {"href"=>package_link_for(package, "package-frame.html"), "target"=>"current_package_frame", "title"=>name})
 	  end
 	end
       end
@@ -796,10 +781,8 @@ end
 def all_types_frame(type_agregator)
   html_file("all-types-frame", "as2api") do |out|
     out.element_body do
-      out.element_table("class"=>"navigation_list") do
-        out.element_tr do
-	  out.element_th("All Types")
-	end
+      out.element_h3("All Types")
+      out.element_ul("class"=>"navigation_list") do
 	types = type_agregator.types.sort do |a,b|
 	  cmp = a.unqualified_name.downcase <=> b.unqualified_name.downcase
 	  if cmp == 0
@@ -811,10 +794,8 @@ def all_types_frame(type_agregator)
 	types.each do |type|
 	  if type.document?
 	    href = type.qualified_name.gsub(/\./, "/") + ".html"
-            out.element_tr do
-              out.element_td do
-	        out.element_a(type.unqualified_name, {"href"=>href, "title"=>type.qualified_name, "target"=>"type_frame"})
-	      end
+	    out.element_li do
+	      out.element_a(type.unqualified_name, {"href"=>href, "title"=>type.qualified_name, "target"=>"type_frame"})
 	    end
 	  end
 	end
