@@ -348,8 +348,8 @@ def html_file(name, title, encoding=nil)
 	                 "type"=>"text/css",
 	                 "href"=>base_path("style.css"))
         out.element_meta("name"=>"generator", "content"=>"http://www.badgers-in-foil.co.uk/projects/as2api/")
-	yield out
       end
+      yield out
     end
   end
 end
