@@ -68,6 +68,10 @@ class ASType
     end
   end
 
+  def has_ancestor?
+    !@parent.nil? && @parent.resolved?
+  end
+
   # The whole type name, including package-prefix
   def qualified_name
     if @package_name == ""

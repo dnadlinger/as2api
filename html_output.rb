@@ -470,15 +470,17 @@ def method_index_list(out, type)
     end
     known_method_names = []
     list_methods(out, type, known_method_names)
-    out.element_dl do
-      type.each_ancestor do |type|
-	if type.methods?
-	  out.element_dt do
-	    out.pcdata("Inherited from ")
-	    link_type(out, type)
-	  end
-	  out.element_dd do
-	    list_methods(out, type, known_method_names, link_for_type(type))
+    if type.has_ancestor?
+      out.element_dl do
+	type.each_ancestor do |type|
+	  if type.methods?
+	    out.element_dt do
+	      out.pcdata("Inherited from ")
+	      link_type(out, type)
+	    end
+	    out.element_dd do
+	      list_methods(out, type, known_method_names, link_for_type(type))
+	    end
 	  end
 	end
       end
