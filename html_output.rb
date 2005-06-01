@@ -650,7 +650,7 @@ def package_index(package)
       classes.sort!
       out.element_table("class"=>"summary_list", "summary"=>"") do
 	out.element_tr do
-	  out.element_th("Class Summary", {"colspan"=>"2"})
+	  out.element_th("Class Summary")
 	end
 	classes.each do |type|
 	  out.element_tr do
@@ -658,9 +658,9 @@ def package_index(package)
 	    out.element_td do
 	      out.element_a(type.unqualified_name, {"href"=>type.unqualified_name+".html"})
 	    end
-	    out.element_td do
+	    #out.element_td do
 	      # TODO: package description
-	    end
+	    #end
 	  end
 	end
       end
