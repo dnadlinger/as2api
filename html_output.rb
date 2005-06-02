@@ -446,15 +446,17 @@ def field_index_list(out, type)
   out.element_div("class"=>"field_index") do
     out.element_h2("Field Index")
     list_fields(out, type)
-    out.element_dl do
-      type.each_ancestor do |type|
-	if type.fields?
-	  out.element_dt do
-	    out.pcdata("Inherited from ")
-	    link_type(out, type)
-	  end
-	  out.element_dd do
-	    list_fields(out, type, link_for_type(type))
+    if type.has_ancestor?
+      out.element_dl do
+	type.each_ancestor do |type|
+	  if type.fields?
+	    out.element_dt do
+	      out.pcdata("Inherited from ")
+	      link_type(out, type)
+	    end
+	    out.element_dd do
+	      list_fields(out, type, link_for_type(type))
+	    end
 	  end
 	end
       end
