@@ -182,6 +182,63 @@ def comment_find_return(comment_data)
   return nil
 end
 
+def document_parameters(out, arguments, comment_data)
+  out.element_dt("Parameters")
+  out.element_dd do
+    out.element_table("class"=>"arguments", "summary"=>"") do
+      arguments.each do |arg|
+	desc = comment_find_param(comment_data, arg.name)
+	if desc
+	  out.element_tr do
+	    out.element_td do
+	      out.element_code(arg.name)
+	    end
+	    out.element_td do
+	      output_doccomment_blocktag(out, desc)
+	    end
+	  end
+	end
+      end
+    end
+  end
+end
+
+def document_return(out, return_comment)
+  out.element_dt("Return")
+  out.element_dd do
+    output_doccomment_blocktag(out, return_comment)
+  end
+end
+
+def document_exceptions(out, comment_data)
+  out.element_dt("throws")
+  out.element_dd do
+    out.element_table("class"=>"exceptions", "summary"=>"") do
+      comment_each_exception(comment_data) do |exception_comment|
+	out.element_tr do
+	  out.element_td do
+	    link_type_proxy(out, exception_comment.exception_type)
+	  end
+	  out.element_td do
+	    output_doccomment_blocktag(out, exception_comment)
+	  end
+	end
+      end
+    end
+  end
+end
+
+def document_seealso(out, comment_data)
+  out.element_dt("See Also")
+  out.element_dd do
+    comment_each_seealso(comment_data) do |see_comment|
+      out.element_p do
+	output_doccomment_blocktag(out, see_comment)
+      end
+    end
+  end
+end
+
 def document_method(out, type, method, alt_row=false)
   css_class = "method_details"
   css_class << " alt_row" if alt_row
@@ -198,58 +255,17 @@ def document_method(out, type, method, alt_row=false)
 	  #       should really filter out those that don't match before this
 	  #       test
 	  if comment_has_params?(comment_data)
-	    out.element_dt("Parameters")
-	    out.element_dd do
-	      out.element_table("class"=>"arguments", "summary"=>"") do
-		method.arguments.each do |arg|
-		  desc = comment_find_param(comment_data, arg.name)
-		  if desc
-		    out.element_tr do
-		      out.element_td do
-			out.element_code(arg.name)
-		      end
-		      out.element_td do
-                        output_doccomment_blocktag(out, desc)
-		      end
-		    end
-		  end
-		end
-	      end
-	    end
+	    document_parameters(out, method.arguments, comment_data)
 	  end
 	  return_comment = comment_find_return(comment_data)
 	  unless return_comment.nil?
-	    out.element_dt("Return")
-	    out.element_dd do
-              output_doccomment_blocktag(out, return_comment)
-	    end
+	    document_return(out, return_comment)
 	  end
 	  if comment_has_exceptions?(comment_data)
-            out.element_dt("throws")
-            out.element_dd do
-	      out.element_table("class"=>"exceptions", "summary"=>"") do
-	        comment_each_exception(comment_data) do |exception_comment|
-		  out.element_tr do
-		    out.element_td do
-		      link_type_proxy(out, exception_comment.exception_type)
-		    end
-		    out.element_td do
-                      output_doccomment_blocktag(out, exception_comment)
-		    end
-		  end
-	        end
-	      end
-	    end
+	    document_exceptions(out, comment_data)
 	  end
 	  if comment_has_seealso?(comment_data)
-	    out.element_dt("See Also")
-	    out.element_dd do
-	      comment_each_seealso(comment_data) do |see_comment|
-	        out.element_p do
-                  output_doccomment_blocktag(out, see_comment)
-		end
-	      end
-	    end
+	    document_seealso(out, comment_data)
 	  end
 	end
       end
@@ -284,14 +300,7 @@ def document_field(out, type, field)
 	output_doccomment_blocktag(out, comment_data[0])
         out.element_dl("class"=>"field_additional_info") do
 	  if comment_has_seealso?(comment_data)
-	    out.element_dt("See Also")
-	    out.element_dd do
-	      comment_each_seealso(comment_data) do |see_comment|
-	        out.element_p do
-                  output_doccomment_blocktag(out, see_comment)
-		end
-	      end
-	    end
+	    document_seealso(out, comment_data)
 	  end
 	end
       end
