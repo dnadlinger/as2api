@@ -559,6 +559,14 @@ def constructor_detail(out, type)
   end
 end
 
+# accessability; make a link to skip over the (navigation) elements produced
+# by the given block
+def skip_nav(out)
+  out.element_a("", {"href"=>"#skip_nav", "title"=>"Skip navigation"})
+  yield
+  out.element_a("", {"name"=>"skip_nav"})
+end
+
 def document_type(type)
   encoding = if type.source_utf8
     "utf-8"
@@ -566,9 +574,9 @@ def document_type(type)
     "iso-8859-1"
   end
   html_body(type.unqualified_name, type.qualified_name, encoding) do |out|
-    out.element_a("", {"href"=>"#skip_nav", "title"=>"Skip navigation"})  # accessability
-    class_navigation(out)
-    out.element_a("", {"name"=>"skip_nav"})
+    skip_nav(out) do
+      class_navigation(out)
+    end
     if type.instance_of?(ASClass)
       out.element_h1("Class "+type.qualified_name)
     elsif type.instance_of?(ASInterface)
@@ -661,9 +669,9 @@ end
 
 def package_index(package)
   html_body("package-summary", "Package #{package_display_name_for(package)} API Documentation") do |out|
-    out.element_a("", {"href"=>"#skip_nav", "title"=>"Skip navigation"})  # accessability
-    package_navigation(out)
-    out.element_a("", {"name"=>"skip_nav"})
+    skip_nav(out) do
+      package_navigation(out)
+    end
     out.element_h1("Package "+package_display_name_for(package))
     interfaces = package.interfaces
     unless interfaces.empty?
@@ -756,9 +764,9 @@ end
 
 def overview(type_agregator)
   html_body("overview-summary", "API Overview") do |out|
-    out.element_a("", {"href"=>"#skip_nav", "title"=>"Skip navigation"})  # accessability
-    overview_navigation(out)
-    out.element_a("", {"name"=>"skip_nav"})
+    skip_nav(out) do
+      overview_navigation(out)
+    end
     out.element_h1("API Overview")
     out.element_table("class"=>"summary_list", "summary"=>"") do
       out.element_tr do
@@ -994,3 +1002,4 @@ def document_types(output_path, type_agregator)
 end
 
 # vim:softtabstop=2:shiftwidth=2
+
