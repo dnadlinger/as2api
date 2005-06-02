@@ -235,7 +235,7 @@ def document_return(out, comment_data)
 end
 
 def document_exceptions(out, comment_data)
-  out.element_dt("throws")
+  out.element_dt("Throws")
   out.element_dd do
     out.element_table("class"=>"exceptions", "summary"=>"") do
       comment_each_exception(comment_data) do |exception_comment|
