@@ -160,6 +160,10 @@ def comment_has_seealso?(comment_data)
   return comment_has_blocktype?(comment_data, SeeBlockTag)
 end
 
+def comment_has_return?(comment_data)
+  return comment_has_blocktype?(comment_data, ReturnBlockTag)
+end
+
 def comment_each_exception(comment_data)
   comment_data.each_block do |block|
     yield block if block.is_a?(ThrowsBlockTag)
@@ -207,9 +211,10 @@ def document_parameters(out, arguments, comment_data)
   end
 end
 
-def document_return(out, return_comment)
+def document_return(out, comment_data)
   out.element_dt("Return")
   out.element_dd do
+    return_comment = comment_find_return(comment_data)
     output_doccomment_blocktag(out, return_comment)
   end
 end
@@ -261,9 +266,8 @@ def document_method(out, type, method, alt_row=false)
 	  if comment_has_params?(comment_data)
 	    document_parameters(out, method.arguments, comment_data)
 	  end
-	  return_comment = comment_find_return(comment_data)
-	  unless return_comment.nil?
-	    document_return(out, return_comment)
+	  if comment_has_return?(comment_data)
+	    document_return(out, comment_data)
 	  end
 	  if comment_has_exceptions?(comment_data)
 	    document_exceptions(out, comment_data)
