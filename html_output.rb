@@ -164,6 +164,21 @@ def comment_has_return?(comment_data)
   return comment_has_blocktype?(comment_data, ReturnBlockTag)
 end
 
+# Does the method comment include any info in addition to any basic description
+# block?
+def comment_has_method_additional_info?(comment_data)
+  return comment_has_params?(comment_data) ||
+         comment_has_return?(comment_data) ||
+         comment_has_exceptions?(comment_data) ||
+         comment_has_seealso?(comment_data)
+end
+
+# Does the field comment include any info in addition to any basic description
+# block?
+def comment_has_field_additional_info?(comment_data)
+  return comment_has_seealso?(comment_data)
+end
+
 def comment_each_exception(comment_data)
   comment_data.each_block do |block|
     yield block if block.is_a?(ThrowsBlockTag)
@@ -259,21 +274,23 @@ def document_method(out, type, method, alt_row=false)
       out.element_blockquote do
         comment_data = method.comment
         output_doccomment_blocktag(out, comment_data[0])
-        out.element_dl("class"=>"method_additional_info") do
-	  # TODO: assumes that params named in docs match formal arguments
-	  #       should really filter out those that don't match before this
-	  #       test
-	  if comment_has_params?(comment_data)
-	    document_parameters(out, method.arguments, comment_data)
-	  end
-	  if comment_has_return?(comment_data)
-	    document_return(out, comment_data)
-	  end
-	  if comment_has_exceptions?(comment_data)
-	    document_exceptions(out, comment_data)
-	  end
-	  if comment_has_seealso?(comment_data)
-	    document_seealso(out, comment_data)
+	if comment_has_method_additional_info?(comment_data)
+	  out.element_dl("class"=>"method_additional_info") do
+	    # TODO: assumes that params named in docs match formal arguments
+	    #       should really filter out those that don't match before this
+	    #       test
+	    if comment_has_params?(comment_data)
+	      document_parameters(out, method.arguments, comment_data)
+	    end
+	    if comment_has_return?(comment_data)
+	      document_return(out, comment_data)
+	    end
+	    if comment_has_exceptions?(comment_data)
+	      document_exceptions(out, comment_data)
+	    end
+	    if comment_has_seealso?(comment_data)
+	      document_seealso(out, comment_data)
+	    end
 	  end
 	end
       end
@@ -306,9 +323,11 @@ def document_field(out, type, field)
       out.element_blockquote do
 	comment_data = field.comment
 	output_doccomment_blocktag(out, comment_data[0])
-        out.element_dl("class"=>"field_additional_info") do
-	  if comment_has_seealso?(comment_data)
-	    document_seealso(out, comment_data)
+	if comment_has_field_additional_info?(comment_data)
+	  out.element_dl("class"=>"field_additional_info") do
+	    if comment_has_seealso?(comment_data)
+	      document_seealso(out, comment_data)
+	    end
 	  end
 	end
       end
