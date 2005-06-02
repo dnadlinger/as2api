@@ -230,7 +230,9 @@ def document_return(out, comment_data)
   out.element_dt("Return")
   out.element_dd do
     return_comment = comment_find_return(comment_data)
-    output_doccomment_blocktag(out, return_comment)
+    out.element_p do
+      output_doccomment_blocktag(out, return_comment)
+    end
   end
 end
 
@@ -273,7 +275,9 @@ def document_method(out, type, method, alt_row=false)
     if method.comment
       out.element_blockquote do
         comment_data = method.comment
-        output_doccomment_blocktag(out, comment_data[0])
+	out.element_p do
+          output_doccomment_blocktag(out, comment_data[0])
+	end
 	if comment_has_method_additional_info?(comment_data)
 	  out.element_dl("class"=>"method_additional_info") do
 	    # TODO: assumes that params named in docs match formal arguments
@@ -562,9 +566,13 @@ end
 # accessability; make a link to skip over the (navigation) elements produced
 # by the given block
 def skip_nav(out)
-  out.element_a("", {"href"=>"#skip_nav", "title"=>"Skip navigation"})
+  out.element_div do
+    out.element_a("", {"href"=>"#skip_nav", "title"=>"Skip navigation"})
+  end
   yield
-  out.element_a("", {"name"=>"skip_nav"})
+  out.element_div do
+    out.element_a("", {"name"=>"skip_nav"})
+  end
 end
 
 def document_type(type)
