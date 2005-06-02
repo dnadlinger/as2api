@@ -135,9 +135,15 @@ def class_navigation(out)
   end
 end
 
-def comment_has_blocktype?(comment_data, type)
+def comment_each_block_of_type(comment_data, type)
   comment_data.each_block do |block|
-    return true if block.is_a?(type)
+    yield block if block.is_a?(type)
+  end
+end
+
+def comment_has_blocktype?(comment_data, type)
+  comment_each_block_of_type(comment_data, type) do |block|
+    return true
   end
   return false
 end
@@ -161,23 +167,21 @@ def comment_each_exception(comment_data)
 end
 
 def comment_each_seealso(comment_data)
-  comment_data.each_block do |block|
-    yield block if block.is_a?(SeeBlockTag)
+  comment_each_block_of_type(comment_data, SeeBlockTag) do |block|
+    yield block
   end
 end
 
 def comment_find_param(comment_data, param_name)
-  comment_data.each_block do |block|
-    if block.is_a?(ParamBlockTag) && block.param_name == param_name
-      return block;
-    end
+  comment_each_block_of_type(comment_data, ParamBlockTag) do |block|
+    return block if block.param_name == param_name
   end
   return nil
 end
 
 def comment_find_return(comment_data)
-  comment_data.each_block do |block|
-    return block if block.is_a?(ReturnBlockTag)
+  comment_each_block_of_type(comment_data, ReturnBlockTag) do |block|
+    return block
   end
   return nil
 end
