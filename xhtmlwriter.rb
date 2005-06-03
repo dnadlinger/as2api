@@ -127,6 +127,10 @@ class XHTMLWriter
     @io.comment(text)
   end
 
+  def doctype(name, syspub, public_id, system_id)
+    @io.doctype(name, syspub, public_id, system_id)
+  end
+
   def xml; @io end
 end
 

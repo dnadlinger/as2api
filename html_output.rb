@@ -376,11 +376,29 @@ def write_file(name)
   end
 end
 
-def html_file(name, title, encoding=nil)
+def html_file(name, title, doctype=:strict, encoding=nil)
   write_file("#{name}.html") do |io|
     out = XHTMLWriter.new(XMLWriter.new(io))
     encoding = "iso-8859-1" if encoding.nil?
     out.pi("xml version=\"1.0\" encoding=\"#{encoding}\"")
+    case doctype
+    # FIXME: push this code down into XHTMLWriter, and have it switch the
+    # allowed elements depending on the value passed at construction
+    when :strict
+      out.doctype("html", "PUBLIC",
+                  "-//W3C//DTD XHTML 1.0 Strict//EN",
+		  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd")
+    when :transitional
+      out.doctype("html", "PUBLIC",
+                  "-//W3C//DTD XHTML 1.0 Transitionalt//EN",
+		  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd")
+    when :frameset
+      out.doctype("html", "PUBLIC",
+                  "-//W3C//DTD XHTML 1.0 Frameset//EN",
+		  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd")
+    else
+      raise "unhandled doctype #{doctype.inspect}"
+    end
     out.element_html do
       out.element_head do
         out.element_title(title)
@@ -394,8 +412,8 @@ def html_file(name, title, encoding=nil)
   end
 end
 
-def html_body(name, title, encoding=nil)
-  html_file(name, title, encoding) do |out|
+def html_body(name, title, doctype=:strict, encoding=nil)
+  html_file(name, title, doctype, encoding) do |out|
     out.element_body do
       yield out
       footer(out)
@@ -581,7 +599,7 @@ def document_type(type)
   else
     "iso-8859-1"
   end
-  html_body(type.unqualified_name, type.qualified_name, encoding) do |out|
+  html_body(type.unqualified_name, type.qualified_name, :strict, encoding) do |out|
     skip_nav(out) do
       class_navigation(out)
     end
@@ -726,7 +744,7 @@ def package_index(package)
 end
 
 def package_frame(package)
-  html_file("package-frame", "Package #{package_display_name_for(package)} API Naviation") do |out|
+  html_file("package-frame", "Package #{package_display_name_for(package)} API Naviation", :transitional) do |out|
     out.element_body do
       out.element_p do
 	out.element_a(package_display_name_for(package), {"href"=>"package-summary.html", "target"=>"type_frame"})
@@ -799,7 +817,7 @@ def overview(type_agregator)
 end
 
 def overview_frame(type_agregator)
-  html_file("overview-frame", "API Overview") do |out|
+  html_file("overview-frame", "API Overview", :transitional) do |out|
     out.element_body do
       out.element_h3("Packages")
       out.element_ul("class"=>"navigation_list") do
@@ -835,7 +853,7 @@ def package_list(type_agregator)
 end
 
 def all_types_frame(type_agregator)
-  html_file("all-types-frame", "as2api") do |out|
+  html_file("all-types-frame", "as2api", :transitional) do |out|
     out.element_body do
       out.element_h3("All Types")
       out.element_ul("class"=>"navigation_list") do
@@ -861,7 +879,7 @@ def all_types_frame(type_agregator)
 end
 
 def frameset
-  html_file("frameset", "as2api") do |out|
+  html_file("frameset", "as2api", :frameset) do |out|
     out.element_frameset("cols"=>"20%,80%") do
       out.element_frameset("rows"=>"30%,70%") do
 	out.element_frame("src"=>"overview-frame.html",
@@ -971,7 +989,7 @@ def index_files(type_agregator)
   index.sort!
 
   in_subdir("index-files") do
-    html_file("index", "Alphabetical Index") do |out|
+    html_body("index", "Alphabetical Index") do |out|
       index_navigation(out)
       index.each do |element|
 	out.element_p do
