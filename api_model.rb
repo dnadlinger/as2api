@@ -69,7 +69,7 @@ class ASType
   end
 
   def has_ancestor?
-    !@parent.nil? && @parent.resolved?
+    !@extends.nil? && @extends.resolved?
   end
 
   # The whole type name, including package-prefix
