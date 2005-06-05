@@ -52,6 +52,13 @@ class ASType
     !@constructor.nil?
   end
 
+  def get_method_called(name)
+    each_method do |method|
+      return method if method.name == name
+    end
+    nil
+  end
+
   # The type's name, excluding its package-prefix
   def unqualified_name
     @name
@@ -156,6 +163,18 @@ class ASClass < ASType
     end
   end
 
+  # like #each_interface, but then also reports each_interface of each_ancestor
+  def each_implemented_interface
+    each_interface do |interface|
+      yield interface.resolved_type if interface.resolved?
+    end
+    each_ancestor do |supertype|
+      supertype.each_interface do |interface|
+	yield interface.resolved_type if interface.resolved?
+      end
+    end
+  end
+
   def add_field(field)
     @fields << field
   end
@@ -200,13 +219,14 @@ end
 
 # A member in some type
 class ASMember
-  def initialize(access, name)
+  def initialize(containing_type, access, name)
+    @containing_type = containing_type
     @access = access
     @name = name
     @comment = nil
   end
 
-  attr_accessor :access, :name, :comment
+  attr_accessor :containing_type, :access, :name, :comment
 
   # compares two members based on their names
   def <=>(other)
@@ -218,8 +238,8 @@ end
 
 # A method member, which may appear in an ASClass or ASInterface
 class ASMethod < ASMember
-  def initialize(access, name)
-    super(access, name)
+  def initialize(containing_type, access, name)
+    super(containing_type, access, name)
     @return_type = nil
     @args = []
   end
@@ -237,6 +257,15 @@ class ASMethod < ASMember
   def argument(index)
     @args[index]
   end
+
+  def specified_by
+    raise "not applicable to interface methods" unless containing_type.is_a?(ASClass)
+    containing_type.each_implemented_interface do |interface|
+      spec_method = interface.get_method_called(name)
+      return spec_method unless spec_method.nil?
+    end
+    nil
+  end
 end
 
 # A field member, which may appear in an ASClass, but not an ASInterface
@@ -244,8 +273,8 @@ class ASField < ASMember
 end
 
 class ASExplicitField < ASField
-  def initialize(access, name)
-    super(access, name)
+  def initialize(containing_tyye, access, name)
+    super(containing_tyye, access, name)
     @field_type = nil
   end
 
@@ -260,8 +289,8 @@ end
 
 # A field implied by the presence of "get" or "set" methods with this name
 class ASImplicitField < ASField
-  def initialize(name)
-    super(nil, name)
+  def initialize(containing_tyye, name)
+    super(containing_tyye, nil, name)
     @getter_method = nil
     @setter_method = nil
   end

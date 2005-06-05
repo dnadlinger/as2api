@@ -265,6 +265,31 @@ def document_seealso(out, comment_data)
   end
 end
 
+def link_method(out, method)
+  out.element_a("href"=>link_for_method(method)) do
+    out.pcdata(method.name)
+    out.pcdata("()")
+  end
+end
+
+def document_specified_by(out, method)
+  out.element_dt("Specified By")
+  out.element_dd do
+    link_method(out, method)
+    out.pcdata(" in ")
+    link_type(out, method.containing_type, true)
+  end
+end
+
+def method_additional_info?(method, comment_data)
+  if method.containing_type.is_a?(ASClass)
+    spec_method = method.specified_by
+  else
+    spec_method = nil
+  end
+  return comment_has_method_additional_info?(comment_data) || !spec_method.nil?
+end
+
 def document_method(out, type, method, alt_row=false)
   css_class = "method_details"
   css_class << " alt_row" if alt_row
@@ -278,7 +303,7 @@ def document_method(out, type, method, alt_row=false)
 	out.element_p do
           output_doccomment_blocktag(out, comment_data[0])
 	end
-	if comment_has_method_additional_info?(comment_data)
+	if method_additional_info?(method, comment_data)
 	  out.element_dl("class"=>"method_additional_info") do
 	    # TODO: assumes that params named in docs match formal arguments
 	    #       should really filter out those that don't match before this
@@ -292,8 +317,25 @@ def document_method(out, type, method, alt_row=false)
 	    if comment_has_exceptions?(comment_data)
 	      document_exceptions(out, comment_data)
 	    end
+	    if type.is_a?(ASClass)
+	      spec_method = method.specified_by
+	      unless spec_method.nil?
+		document_specified_by(out, spec_method)
+	      end
+	    end
 	    if comment_has_seealso?(comment_data)
 	      document_seealso(out, comment_data)
+	    end
+	  end
+	end
+      end
+    else
+      if type.is_a?(ASClass)
+	spec_method = method.specified_by
+	unless spec_method.nil?
+	  out.element_blockquote do
+	    out.element_dl("class"=>"method_additional_info") do
+	      document_specified_by(out, spec_method)
 	    end
 	  end
 	end
@@ -934,12 +976,13 @@ class MemberIndexTerm < IndexTerm
   end
 end
 
+def link_for_method(method)
+  return "#{link_for_type(method.containing_type)}#method_#{method.name}"
+end
+
 class MethodIndexTerm < MemberIndexTerm
   def link(out)
-    href_prefix = link_for_type(@astype)
-    out.element_a("href"=>"#{href_prefix}#method_#{@asmember.name}") do
-      out.pcdata(@asmember.name + "()")
-    end
+    link_method(out, @asmember)
     out.pcdata(" method in ")
     link_type(out, @astype, true)
   end

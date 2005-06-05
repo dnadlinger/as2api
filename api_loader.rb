@@ -148,7 +148,7 @@ class DocASHandler < ActionScript::Parse::ASHandler
   end
 
   def start_member_field(name, type)
-    field = ASExplicitField.new(@last_modifier, name.body)
+    field = ASExplicitField.new(@defined_type, @last_modifier, name.body)
     unless type.nil?
       field.field_type = @type_resolver.resolve(type)
     end
@@ -178,7 +178,7 @@ class DocASHandler < ActionScript::Parse::ASHandler
   private
 
   def create_method(name, sig)
-    method = ASMethod.new(@last_modifier, name.body)
+    method = ASMethod.new(@defined_type, @last_modifier, name.body)
     if sig.return_type
       method.return_type = @type_resolver.resolve(sig.return_type)
     end
@@ -208,7 +208,7 @@ class DocASHandler < ActionScript::Parse::ASHandler
   def implicit_property_function(name, sig)
     field = @defined_type.get_field_called(name.body)
     if field.nil?
-      field = ASImplicitField.new(name.body)
+      field = ASImplicitField.new(@defined_type, name.body)
       @defined_type.add_field(field)
     end
     func = create_method(name, sig)
