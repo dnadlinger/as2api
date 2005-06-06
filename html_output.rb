@@ -290,7 +290,7 @@ def method_additional_info?(method, comment_data)
   return comment_has_method_additional_info?(comment_data) || !spec_method.nil?
 end
 
-def document_method(out, type, method, alt_row=false)
+def document_method(out, method, alt_row=false)
   css_class = "method_details"
   css_class << " alt_row" if alt_row
   out.element_div("class"=>css_class) do
@@ -317,7 +317,7 @@ def document_method(out, type, method, alt_row=false)
 	    if comment_has_exceptions?(comment_data)
 	      document_exceptions(out, comment_data)
 	    end
-	    if type.is_a?(ASClass)
+	    if method.containing_type.is_a?(ASClass)
 	      spec_method = method.specified_by
 	      unless spec_method.nil?
 		document_specified_by(out, spec_method)
@@ -330,7 +330,7 @@ def document_method(out, type, method, alt_row=false)
 	end
       end
     else
-      if type.is_a?(ASClass)
+      if method.containing_type.is_a?(ASClass)
 	spec_method = method.specified_by
 	unless spec_method.nil?
 	  out.element_blockquote do
@@ -360,7 +360,7 @@ def output_doccomment_inlinetag(out, inline)
   end
 end
 
-def document_field(out, type, field)
+def document_field(out, field)
   out.element_a("name"=>"field_#{field.name}")
   out.element_h3(field.name)
   out.element_div("class"=>"field_details") do
@@ -551,7 +551,7 @@ def field_detail_list(out, type)
   out.element_div("class"=>"field_detail_list") do
     out.element_h2("Field Detail")
     type.each_field do |field|
-      document_field(out, type, field) if document_member?(field)
+      document_field(out, field) if document_member?(field)
     end
   end
 end
@@ -610,7 +610,7 @@ def method_detail_list(out, type)
     count = 0
     type.each_method do |method|
       next unless document_member?(method)
-      document_method(out, type, method, count%2==0)
+      document_method(out, method, count%2==0)
       count += 1
     end
   end
@@ -619,7 +619,7 @@ end
 def constructor_detail(out, type)
   out.element_div("class"=>"constructor_detail_list") do
     out.element_h2("Constructor Detail")
-    document_method(out, type, type.constructor)
+    document_method(out, type.constructor)
   end
 end
 
