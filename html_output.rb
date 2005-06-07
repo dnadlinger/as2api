@@ -642,68 +642,68 @@ class TypePage
     @type = type
   end
 
-def generate
-  encoding = if @type.source_utf8
-    "utf-8"
-  else
-    "iso-8859-1"
-  end
-  html_body(@type.unqualified_name, @type.qualified_name, :strict, encoding) do |out|
-    skip_nav(out) do
-      class_navigation(out)
+  def generate
+    encoding = if @type.source_utf8
+      "utf-8"
+    else
+      "iso-8859-1"
     end
-    if @type.instance_of?(ASClass)
-      out.element_h1("Class "+@type.qualified_name)
-    elsif @type.instance_of?(ASInterface)
-      out.element_h1("Interface "+@type.qualified_name)
-    end
+    html_body(@type.unqualified_name, @type.qualified_name, :strict, encoding) do |out|
+      skip_nav(out) do
+	class_navigation(out)
+      end
+      if @type.instance_of?(ASClass)
+	out.element_h1("Class "+@type.qualified_name)
+      elsif @type.instance_of?(ASInterface)
+	out.element_h1("Interface "+@type.qualified_name)
+      end
 
-    type_hierachy(out, @type)
+      type_hierachy(out, @type)
 
-    if @type.implements_interfaces?
-      out.element_div("class"=>"interfaces") do
-	out.element_h2("Implemented Interfaces")
-	@type.each_interface do |interface|
-	  # TODO: need to resolve interface name, make links
-	  out.element_code do
-	    link_type_proxy(out, interface)
+      if @type.implements_interfaces?
+	out.element_div("class"=>"interfaces") do
+	  out.element_h2("Implemented Interfaces")
+	  @type.each_interface do |interface|
+	    # TODO: need to resolve interface name, make links
+	    out.element_code do
+	      link_type_proxy(out, interface)
+	    end
+	    out.pcdata(" ")
 	  end
-	  out.pcdata(" ")
 	end
       end
-    end
-    out.element_div("class"=>"type_description") do
-      if @type.comment
-        comment_data = @type.comment
+      out.element_div("class"=>"type_description") do
+	if @type.comment
+	  comment_data = @type.comment
 
-	out.element_h2("Description")
-	out.element_p do
-          output_doccomment_blocktag(out, comment_data[0])
-	end
-	out.element_dl("class"=>"type_details") do
-	  if comment_has_seealso?(comment_data)
-	    out.element_dt("See Also")
-	    out.element_dd do
-	      comment_each_seealso(comment_data) do |see_comment|
-	        out.element_p do
-                  output_doccomment_blocktag(out, see_comment)
+	  out.element_h2("Description")
+	  out.element_p do
+	    output_doccomment_blocktag(out, comment_data[0])
+	  end
+	  out.element_dl("class"=>"type_details") do
+	    if comment_has_seealso?(comment_data)
+	      out.element_dt("See Also")
+	      out.element_dd do
+		comment_each_seealso(comment_data) do |see_comment|
+		  out.element_p do
+		    output_doccomment_blocktag(out, see_comment)
+		  end
 		end
 	      end
 	    end
 	  end
 	end
       end
-    end
-    
-    field_index_list(out, @type) if @type.fields?
-    method_index_list(out, @type) if @type.methods?
-    constructor_detail(out, @type) if @type.constructor? && document_member?(@type.constructor)
-    field_detail_list(out, @type) if @type.fields?
-    method_detail_list(out, @type) if @type.methods?
+      
+      field_index_list(out, @type) if @type.fields?
+      method_index_list(out, @type) if @type.methods?
+      constructor_detail(out, @type) if @type.constructor? && document_member?(@type.constructor)
+      field_detail_list(out, @type) if @type.fields?
+      method_detail_list(out, @type) if @type.methods?
 
-    class_navigation(out)
+      class_navigation(out)
+    end
   end
-end
 
 end
 
@@ -752,55 +752,55 @@ class PackageIndexPage
     @package = package
   end
 
-def generate
-  html_body("package-summary", "Package #{package_display_name_for(@package)} API Documentation") do |out|
-    skip_nav(out) do
+  def generate
+    html_body("package-summary", "Package #{package_display_name_for(@package)} API Documentation") do |out|
+      skip_nav(out) do
+	package_navigation(out)
+      end
+      out.element_h1("Package "+package_display_name_for(@package))
+      interfaces = @package.interfaces
+      unless interfaces.empty?
+	interfaces.sort!
+	out.element_table("class"=>"summary_list", "summary"=>"") do
+	  out.element_tr do
+	    out.element_th("Interface Summary")
+	  end
+	  interfaces.each do |type|
+	    out.element_tr do
+	
+	      out.element_td do
+		out.element_a(type.unqualified_name, {"href"=>type.unqualified_name+".html"})
+	      end
+	      #out.element_td do
+		# TODO: package description
+	      #end
+	    end
+	  end
+	end
+      end
+      classes = @package.classes
+      unless classes.empty?
+	classes.sort!
+	out.element_table("class"=>"summary_list", "summary"=>"") do
+	  out.element_tr do
+	    out.element_th("Class Summary")
+	  end
+	  classes.each do |type|
+	    out.element_tr do
+	
+	      out.element_td do
+		out.element_a(type.unqualified_name, {"href"=>type.unqualified_name+".html"})
+	      end
+	      #out.element_td do
+		# TODO: package description
+	      #end
+	    end
+	  end
+	end
+      end
       package_navigation(out)
     end
-    out.element_h1("Package "+package_display_name_for(@package))
-    interfaces = @package.interfaces
-    unless interfaces.empty?
-      interfaces.sort!
-      out.element_table("class"=>"summary_list", "summary"=>"") do
-	out.element_tr do
-	  out.element_th("Interface Summary")
-	end
-	interfaces.each do |type|
-	  out.element_tr do
-      
-	    out.element_td do
-	      out.element_a(type.unqualified_name, {"href"=>type.unqualified_name+".html"})
-	    end
-	    #out.element_td do
-	      # TODO: package description
-	    #end
-	  end
-	end
-      end
-    end
-    classes = @package.classes
-    unless classes.empty?
-      classes.sort!
-      out.element_table("class"=>"summary_list", "summary"=>"") do
-	out.element_tr do
-	  out.element_th("Class Summary")
-	end
-	classes.each do |type|
-	  out.element_tr do
-      
-	    out.element_td do
-	      out.element_a(type.unqualified_name, {"href"=>type.unqualified_name+".html"})
-	    end
-	    #out.element_td do
-	      # TODO: package description
-	    #end
-	  end
-	end
-      end
-    end
-    package_navigation(out)
   end
-end
 
 end
 
@@ -812,40 +812,40 @@ class PackageFramePage
   end
 
   def generate
-  html_file("package-frame", "Package #{package_display_name_for(@package)} API Naviation", :transitional) do |out|
-    out.element_body do
-      out.element_p do
-	out.element_a(package_display_name_for(@package), {"href"=>"package-summary.html", "target"=>"type_frame"})
-      end
-      interfaces = @package.interfaces
-      unless interfaces.empty?
-	interfaces.sort!
-	out.element_h3("Interfaces")
-	out.element_ul("class"=>"navigation_list") do
-	  interfaces.each do |type|
-	
-	    out.element_li do
-	      out.element_a(type.unqualified_name, {"href"=>type.unqualified_name+".html", "target"=>"type_frame", "title"=>type.qualified_name})
+    html_file("package-frame", "Package #{package_display_name_for(@package)} API Naviation", :transitional) do |out|
+      out.element_body do
+	out.element_p do
+	  out.element_a(package_display_name_for(@package), {"href"=>"package-summary.html", "target"=>"type_frame"})
+	end
+	interfaces = @package.interfaces
+	unless interfaces.empty?
+	  interfaces.sort!
+	  out.element_h3("Interfaces")
+	  out.element_ul("class"=>"navigation_list") do
+	    interfaces.each do |type|
+	  
+	      out.element_li do
+		out.element_a(type.unqualified_name, {"href"=>type.unqualified_name+".html", "target"=>"type_frame", "title"=>type.qualified_name})
+	      end
 	    end
 	  end
 	end
-      end
-      classes = @package.classes
-      unless classes.empty?
-	classes.sort!
-	out.element_h3("Classes")
-	out.element_ul("class"=>"navigation_list") do
-	  classes.each do |type|
-	
-	    out.element_li do
-	      out.element_a(type.unqualified_name, {"href"=>type.unqualified_name+".html", "target"=>"type_frame", "title"=>type.qualified_name})
+	classes = @package.classes
+	unless classes.empty?
+	  classes.sort!
+	  out.element_h3("Classes")
+	  out.element_ul("class"=>"navigation_list") do
+	    classes.each do |type|
+	  
+	      out.element_li do
+		out.element_a(type.unqualified_name, {"href"=>type.unqualified_name+".html", "target"=>"type_frame", "title"=>type.qualified_name})
+	      end
 	    end
 	  end
 	end
       end
     end
   end
-end
 
 end
 
@@ -863,33 +863,33 @@ class OverviewPage
     @type_agregator = type_agregator
   end
 
-def generate
-  html_body("overview-summary", "API Overview") do |out|
-    skip_nav(out) do
-      overview_navigation(out)
-    end
-    out.element_h1("API Overview")
-    out.element_table("class"=>"summary_list", "summary"=>"") do
-      out.element_tr do
-	out.element_th("Packages")
+  def generate
+    html_body("overview-summary", "API Overview") do |out|
+      skip_nav(out) do
+	overview_navigation(out)
       end
-      packages = @type_agregator.packages.sort
-      packages.each do |package|
+      out.element_h1("API Overview")
+      out.element_table("class"=>"summary_list", "summary"=>"") do
 	out.element_tr do
-    
-	  out.element_td do
-	    name = package_display_name_for(package)
-	    out.element_a(name, {"href"=>package_link_for(package, "package-summary.html")})
+	  out.element_th("Packages")
+	end
+	packages = @type_agregator.packages.sort
+	packages.each do |package|
+	  out.element_tr do
+      
+	    out.element_td do
+	      name = package_display_name_for(package)
+	      out.element_a(name, {"href"=>package_link_for(package, "package-summary.html")})
+	    end
+	    #out.element_td do
+	      # TODO: package description
+	    #end
 	  end
-	  #out.element_td do
-	    # TODO: package description
-	  #end
 	end
       end
+      overview_navigation(out)
     end
-    overview_navigation(out)
   end
-end
 
 end
 
@@ -900,28 +900,28 @@ class OverviewFramePage
     @type_agregator = type_agregator
   end
 
-def generate
-  html_file("overview-frame", "API Overview", :transitional) do |out|
-    out.element_body do
-      out.element_h3("Packages")
-      out.element_ul("class"=>"navigation_list") do
-      
-	out.element_li do
-	  out.element_a("(All Types)", {"href"=>"all-types-frame.html", "target"=>"current_package_frame"})
-	end
-	packages = @type_agregator.packages.sort
-	packages.each do |package|
-      
+  def generate
+    html_file("overview-frame", "API Overview", :transitional) do |out|
+      out.element_body do
+	out.element_h3("Packages")
+	out.element_ul("class"=>"navigation_list") do
+	
 	  out.element_li do
-	    name = package_display_name_for(package)
-	    
-	    out.element_a(name, {"href"=>package_link_for(package, "package-frame.html"), "target"=>"current_package_frame", "title"=>name})
+	    out.element_a("(All Types)", {"href"=>"all-types-frame.html", "target"=>"current_package_frame"})
+	  end
+	  packages = @type_agregator.packages.sort
+	  packages.each do |package|
+	
+	    out.element_li do
+	      name = package_display_name_for(package)
+	      
+	      out.element_a(name, {"href"=>package_link_for(package, "package-frame.html"), "target"=>"current_package_frame", "title"=>name})
+	    end
 	  end
 	end
       end
     end
   end
-end
 
 end
 
@@ -946,31 +946,31 @@ class AllTypesFramePage
     @type_agregator = type_agregator
   end
 
-def generate
-  html_file("all-types-frame", "as2api", :transitional) do |out|
-    out.element_body do
-      out.element_h3("All Types")
-      out.element_ul("class"=>"navigation_list") do
-	types = @type_agregator.types.sort do |a,b|
-	  cmp = a.unqualified_name.downcase <=> b.unqualified_name.downcase
-	  if cmp == 0
-	    a.qualified_name <=> b.qualified_name
-	  else
-	    cmp
+  def generate
+    html_file("all-types-frame", "as2api", :transitional) do |out|
+      out.element_body do
+	out.element_h3("All Types")
+	out.element_ul("class"=>"navigation_list") do
+	  types = @type_agregator.types.sort do |a,b|
+	    cmp = a.unqualified_name.downcase <=> b.unqualified_name.downcase
+	    if cmp == 0
+	      a.qualified_name <=> b.qualified_name
+	    else
+	      cmp
+	    end
 	  end
-	end
-	types.each do |type|
-	  if type.document?
-	    href = type.qualified_name.gsub(/\./, "/") + ".html"
-	    out.element_li do
-	      out.element_a(type.unqualified_name, {"href"=>href, "title"=>type.qualified_name, "target"=>"type_frame"})
+	  types.each do |type|
+	    if type.document?
+	      href = type.qualified_name.gsub(/\./, "/") + ".html"
+	      out.element_li do
+		out.element_a(type.unqualified_name, {"href"=>href, "title"=>type.qualified_name, "target"=>"type_frame"})
+	      end
 	    end
 	  end
 	end
       end
     end
   end
-end
 
 end
 
@@ -1068,45 +1068,45 @@ class IndexPage
     @type_agregator = type_agregator
   end
 
-def create_index()
-  index = []
-  # TODO: include packages
-  @type_agregator.each_type do |astype|
-    if astype.document?
-      index << TypeIndexTerm.new(astype)
-      astype.each_method do |asmethod|
-      	if document_member?(asmethod)
-	  index << MethodIndexTerm.new(astype, asmethod)
+  def create_index()
+    index = []
+    # TODO: include packages
+    @type_agregator.each_type do |astype|
+      if astype.document?
+	index << TypeIndexTerm.new(astype)
+	astype.each_method do |asmethod|
+	  if document_member?(asmethod)
+	    index << MethodIndexTerm.new(astype, asmethod)
+	  end
 	end
-      end
-      if astype.is_a?(ASClass)
-	astype.each_field do |asfield|
-      	  if document_member?(asfield)
-	    index << FieldIndexTerm.new(astype, asfield)
+	if astype.is_a?(ASClass)
+	  astype.each_field do |asfield|
+	    if document_member?(asfield)
+	      index << FieldIndexTerm.new(astype, asfield)
+	    end
 	  end
 	end
       end
     end
+
+    index.sort!
   end
 
-  index.sort!
-end
+  def generate
+    index = create_index()
 
-def generate
-  index = create_index()
-
-  in_subdir("index-files") do
-    html_body("index", "Alphabetical Index") do |out|
-      index_navigation(out)
-      index.each do |element|
-	out.element_p do
-	  element.link(out)
+    in_subdir("index-files") do
+      html_body("index", "Alphabetical Index") do |out|
+	index_navigation(out)
+	index.each do |element|
+	  out.element_p do
+	    element.link(out)
+	  end
 	end
+	index_navigation(out)
       end
-      index_navigation(out)
     end
   end
-end
 
 end
 
