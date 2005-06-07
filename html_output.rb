@@ -745,12 +745,6 @@ def package_link_for(package, page)
   package_dir_for(package) + "/" + page
 end
 
-def package_pages(package)
-  in_subdir(package_dir_for(package)) do
-    create_page(PackageIndexPage.new(package))
-    create_page(PackageFramePage.new(package))
-  end
-end
 
 
 class PackageIndexPage < BasicPage
@@ -1134,7 +1128,10 @@ def document_types(output_path, type_agregator)
 
     # packages..
     type_agregator.each_package do |package|
-      package_pages(package)
+      in_subdir(package_dir_for(package)) do
+	create_page(PackageIndexPage.new(package))
+	create_page(PackageFramePage.new(package))
+      end
     end
 
     # types..
