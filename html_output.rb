@@ -126,15 +126,6 @@ def implicit_field_synopsis(out, field)
 end
 
 
-def class_navigation(out)
-  out.element_div("class"=>"main_nav") do
-    out.element_a("Overview", {"href"=>base_path("overview-summary.html")})
-    out.element_a("Package", {"href"=>"package-summary.html"})
-    out.element_span("Class", {"class"=>"nav_current"})
-    out.element_a("Index", {"href"=>base_path("index-files/index.html")})
-  end
-end
-
 def comment_each_block_of_type(comment_data, type)
   comment_data.each_block do |block|
     yield block if block.is_a?(type)
@@ -650,7 +641,7 @@ class TypePage
     end
     html_body(@type.unqualified_name, @type.qualified_name, :strict, encoding) do |out|
       skip_nav(out) do
-	class_navigation(out)
+	navigation(out)
       end
       if @type.instance_of?(ASClass)
 	out.element_h1("Class "+@type.qualified_name)
@@ -701,7 +692,16 @@ class TypePage
       field_detail_list(out, @type) if @type.fields?
       method_detail_list(out, @type) if @type.methods?
 
-      class_navigation(out)
+      navigation(out)
+    end
+  end
+
+  def navigation(out)
+    out.element_div("class"=>"main_nav") do
+      out.element_a("Overview", {"href"=>base_path("overview-summary.html")})
+      out.element_a("Package", {"href"=>"package-summary.html"})
+      out.element_span("Class", {"class"=>"nav_current"})
+      out.element_a("Index", {"href"=>base_path("index-files/index.html")})
     end
   end
 
@@ -729,15 +729,6 @@ def package_link_for(package, page)
   package_dir_for(package) + "/" + page
 end
 
-def package_navigation(out)
-  out.element_div("class"=>"main_nav") do
-    out.element_a("Overview", {"href"=>base_path("overview-summary.html")})
-    out.element_span("Package", {"class"=>"nav_current"})
-    out.element_span("Class")
-    out.element_a("Index", {"href"=>base_path("index-files/index.html")})
-  end
-end
-
 def package_pages(package)
   in_subdir(package_dir_for(package)) do
     PackageIndexPage.new(package).generate
@@ -755,7 +746,7 @@ class PackageIndexPage
   def generate
     html_body("package-summary", "Package #{package_display_name_for(@package)} API Documentation") do |out|
       skip_nav(out) do
-	package_navigation(out)
+	navigation(out)
       end
       out.element_h1("Package "+package_display_name_for(@package))
       interfaces = @package.interfaces
@@ -798,7 +789,16 @@ class PackageIndexPage
 	  end
 	end
       end
-      package_navigation(out)
+      navigation(out)
+    end
+  end
+
+  def navigation(out)
+    out.element_div("class"=>"main_nav") do
+      out.element_a("Overview", {"href"=>base_path("overview-summary.html")})
+      out.element_span("Package", {"class"=>"nav_current"})
+      out.element_span("Class")
+      out.element_a("Index", {"href"=>base_path("index-files/index.html")})
     end
   end
 
@@ -849,15 +849,6 @@ class PackageFramePage
 
 end
 
-def overview_navigation(out)
-  out.element_div("class"=>"main_nav") do
-    out.element_span("Overview", {"class"=>"nav_current"})
-    out.element_span("Package")
-    out.element_span("Class")
-    out.element_a("Index", {"href"=>"index-files/index.html"})
-  end
-end
-
 class OverviewPage
   def initialize(type_agregator)
     @type_agregator = type_agregator
@@ -866,7 +857,7 @@ class OverviewPage
   def generate
     html_body("overview-summary", "API Overview") do |out|
       skip_nav(out) do
-	overview_navigation(out)
+	navigation(out)
       end
       out.element_h1("API Overview")
       out.element_table("class"=>"summary_list", "summary"=>"") do
@@ -887,7 +878,16 @@ class OverviewPage
 	  end
 	end
       end
-      overview_navigation(out)
+      navigation(out)
+    end
+  end
+
+  def navigation(out)
+    out.element_div("class"=>"main_nav") do
+      out.element_span("Overview", {"class"=>"nav_current"})
+      out.element_span("Package")
+      out.element_span("Class")
+      out.element_a("Index", {"href"=>"index-files/index.html"})
     end
   end
 
@@ -1054,15 +1054,6 @@ class FieldIndexTerm < MemberIndexTerm
   end
 end
 
-def index_navigation(out)
-  out.element_div("class"=>"main_nav") do
-    out.element_a("Overview", {"href"=>base_path("overview-summary.html")})
-    out.element_span("Package")
-    out.element_span("Class")
-    out.element_span("Index", {"class"=>"nav_current"})
-  end
-end
-
 class IndexPage
   def initialize(type_agregator)
     @type_agregator = type_agregator
@@ -1097,14 +1088,23 @@ class IndexPage
 
     in_subdir("index-files") do
       html_body("index", "Alphabetical Index") do |out|
-	index_navigation(out)
+	navigation(out)
 	index.each do |element|
 	  out.element_p do
 	    element.link(out)
 	  end
 	end
-	index_navigation(out)
+	navigation(out)
       end
+    end
+  end
+
+  def navigation(out)
+    out.element_div("class"=>"main_nav") do
+      out.element_a("Overview", {"href"=>base_path("overview-summary.html")})
+      out.element_span("Package")
+      out.element_span("Class")
+      out.element_span("Index", {"class"=>"nav_current"})
     end
   end
 
