@@ -731,13 +731,6 @@ class TypePage < BasicPage
 end
 
 
-def list_see_also(out, docs)
-  docs.each_see_also do |see|
-    out.comment(" parsing for see-also not done yet ")
-    out.element_p(see)
-  end
-end
-
 def package_dir_for(package)
   package.name.gsub(/\./, "/")
 end
