@@ -93,8 +93,10 @@ def write_file(name)
 end
 
 def create_page(page)
-  write_file("#{page.base_name}.html") do |io|
-    page.generate(XMLWriter.new(io))
+  in_subdir(page.path_name) do
+    write_file("#{page.base_name}.html") do |io|
+      page.generate(XMLWriter.new(io))
+    end
   end
 end
 
@@ -118,14 +120,15 @@ end
 PROJECT_PAGE = "http://www.badgers-in-foil.co.uk/projects/as2api/"
 
 class Page
-  def initialize(base_name)
+  def initialize(path_name, base_name)
+    @path_name = path_name
     @base_name = base_name
     @encoding = "iso-8859-1"
     @doctype = :strict
     @title = nil
   end
 
-  attr_accessor :base_name, :encoding, :doctype, :title
+  attr_accessor :path_name, :base_name, :encoding, :doctype, :title
 
 
   def generate(xml_writer)
@@ -187,8 +190,8 @@ end
 
 class TypePage < BasicPage
 
-  def initialize(type)
-    super(type.unqualified_name)
+  def initialize(path_name, type)
+    super(path_name, type.unqualified_name)
     @type = type
     if @type.source_utf8
       @encoding = "utf-8"
@@ -753,8 +756,8 @@ end
 
 class PackageIndexPage < BasicPage
 
-  def initialize(package)
-    super("package-summary")
+  def initialize(path_name, package)
+    super(path_name, "package-summary")
     @package = package
     @title = "Package #{package_display_name_for(@package)} API Documentation"
   end
@@ -817,8 +820,8 @@ end
 
 class PackageFramePage < Page
 
-  def initialize(package)
-    super("package-frame")
+  def initialize(path_name, package)
+    super(path_name, "package-frame")
     @package = package
     @title = "Package #{package_display_name_for(@package)} API Naviation"
     @doctype = :transitional
@@ -861,8 +864,8 @@ class PackageFramePage < Page
 end
 
 class OverviewPage < BasicPage
-  def initialize(type_agregator)
-    super("overview-summary")
+  def initialize(path_name, type_agregator)
+    super(path_name, "overview-summary")
     @type_agregator = type_agregator
     @title = "API Overview"
   end
@@ -903,8 +906,8 @@ end
 
 class OverviewFramePage < Page
 
-  def initialize(type_agregator)
-    super("overview-frame")
+  def initialize(path_name, type_agregator)
+    super(path_name, "overview-frame")
     @type_agregator = type_agregator
     @title = "API Overview"
     @doctype = :transitional
@@ -934,15 +937,17 @@ class OverviewFramePage < Page
 end
 
 
-def package_list(type_agregator)
+def package_list(path_name, type_agregator)
   # REVISIT: Will a package list actually be useful for ActionScript, or can
   #          we always assume that any code that makes reference to a type
   #          must have access to that type's source in order to compile?
   #          (In theory, this file will allow javadoc to link to ActionScript
   #          classes, so maybe keep it just for that.)
-  write_file("package-list") do |out|
-    type_agregator.each_package do |package|
-      out.puts(package.name) unless package.name == ""
+  in_subdir(path_name) do
+    write_file("package-list") do |out|
+      type_agregator.each_package do |package|
+	out.puts(package.name) unless package.name == ""
+      end
     end
   end
 end
@@ -950,8 +955,8 @@ end
 
 class AllTypesFramePage < Page
 
-  def initialize(type_agregator)
-    super("all-types-frame")
+  def initialize(path_name, type_agregator)
+    super(path_name, "all-types-frame")
     @type_agregator = type_agregator
     @title = "as2api"
     @doctype = :transitional
@@ -986,8 +991,8 @@ end
 
 class FramesetPage < Page
 
-  def initialize
-    super("frameset")
+  def initialize(path_name)
+    super(path_name, "frameset")
     @title = "as2api"
     @doctype = :frameset
   end
@@ -1007,7 +1012,7 @@ class FramesetPage < Page
                         "title"=>"Package and type descriptions")
       out.element_noframes do
 	out.element_body do
-	    out.element_a("Non-frameset overview page", {"href"=>"overview-summary.html"})
+	  out.element_a("Non-frameset overview page", {"href"=>"overview-summary.html"})
 	end
       end
     end
@@ -1069,8 +1074,8 @@ class FieldIndexTerm < MemberIndexTerm
 end
 
 class IndexPage < BasicPage
-  def initialize(type_agregator)
-    super("index")
+  def initialize(path_name, type_agregator)
+    super(path_name, "index")
     @type_agregator = type_agregator
     @title = "Alphabetical Index"
   end
@@ -1121,34 +1126,29 @@ class IndexPage < BasicPage
 end
 
 def document_types(output_path, type_agregator)
-  in_subdir(output_path) do
-    create_page(FramesetPage.new)
-    create_page(OverviewPage.new(type_agregator))
-    create_page(OverviewFramePage.new(type_agregator))
-    package_list(type_agregator)
-    create_page(AllTypesFramePage.new(type_agregator))
+    create_page(FramesetPage.new(output_path))
+    create_page(OverviewPage.new(output_path, type_agregator))
+    create_page(OverviewFramePage.new(output_path, type_agregator))
+    package_list(output_path, type_agregator)
+    create_page(AllTypesFramePage.new(output_path, type_agregator))
 
     # packages..
     type_agregator.each_package do |package|
-      in_subdir(package_dir_for(package)) do
-	create_page(PackageIndexPage.new(package))
-	create_page(PackageFramePage.new(package))
-      end
+      dir = File.join(output_path, package_dir_for(package))
+      create_page(PackageIndexPage.new(dir, package))
+      create_page(PackageFramePage.new(dir, package))
     end
 
     # types..
     type_agregator.each_type do |type|
       if type.document?
-	in_subdir(type.package_name.gsub(/\./, "/")) do
-	  create_page(TypePage.new(type))
-	end
+	dir = File.join(output_path, type.package_name.gsub(/\./, "/"))
+	create_page(TypePage.new(dir, type))
       end
     end
 
-    in_subdir("index-files") do
-      create_page(IndexPage.new(type_agregator))
-    end
-  end
+    dir = File.join(output_path, "index-files")
+    create_page(IndexPage.new(dir, type_agregator))
 end
 
 # vim:softtabstop=2:shiftwidth=2
