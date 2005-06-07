@@ -1125,30 +1125,45 @@ class IndexPage < BasicPage
 
 end
 
+def make_page_list(output_path, type_agregator)
+  list = []
+
+  list << FramesetPage.new(output_path)
+  list << OverviewPage.new(output_path, type_agregator)
+  list << OverviewFramePage.new(output_path, type_agregator)
+  list << AllTypesFramePage.new(output_path, type_agregator)
+
+  # packages..
+  type_agregator.each_package do |package|
+    dir = File.join(output_path, package_dir_for(package))
+    list << PackageIndexPage.new(dir, package)
+    list << PackageFramePage.new(dir, package)
+  end
+
+  # types..
+  type_agregator.each_type do |type|
+    if type.document?
+      dir = File.join(output_path, type.package_name.gsub(/\./, "/"))
+      list << TypePage.new(dir, type)
+    end
+  end
+
+  dir = File.join(output_path, "index-files")
+  list << IndexPage.new(dir, type_agregator)
+
+  list
+end
+
+def create_all_pages(list)
+  list.each do |page|
+    create_page(page)
+  end
+end
+
 def document_types(output_path, type_agregator)
-    create_page(FramesetPage.new(output_path))
-    create_page(OverviewPage.new(output_path, type_agregator))
-    create_page(OverviewFramePage.new(output_path, type_agregator))
-    package_list(output_path, type_agregator)
-    create_page(AllTypesFramePage.new(output_path, type_agregator))
-
-    # packages..
-    type_agregator.each_package do |package|
-      dir = File.join(output_path, package_dir_for(package))
-      create_page(PackageIndexPage.new(dir, package))
-      create_page(PackageFramePage.new(dir, package))
-    end
-
-    # types..
-    type_agregator.each_type do |type|
-      if type.document?
-	dir = File.join(output_path, type.package_name.gsub(/\./, "/"))
-	create_page(TypePage.new(dir, type))
-      end
-    end
-
-    dir = File.join(output_path, "index-files")
-    create_page(IndexPage.new(dir, type_agregator))
+  list = make_page_list(output_path, type_agregator)
+  create_all_pages(list)
+  package_list(output_path, type_agregator)
 end
 
 # vim:softtabstop=2:shiftwidth=2
