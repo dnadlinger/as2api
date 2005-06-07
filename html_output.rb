@@ -1005,9 +1005,11 @@ class FramesetPage < Page
       out.element_frame("src"=>"overview-summary.html",
                         "name"=>"type_frame",
                         "title"=>"Package and type descriptions")
-    end
-    out.element_noframes do
-      out.element_a("Non-frameset overview page", {"href"=>"overview-summary.html"})
+      out.element_noframes do
+	out.element_body do
+	    out.element_a("Non-frameset overview page", {"href"=>"overview-summary.html"})
+	end
+      end
     end
   end
 end
