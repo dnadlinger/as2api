@@ -44,6 +44,10 @@ def link_type(out, type, qualified=false)
 end
 
 
+def link_for_method(method)
+  return "#{link_for_type(method.containing_type)}#method_#{method.name}"
+end
+
 def link_method(out, method)
   out.element_a("href"=>link_for_method(method)) do
     out.pcdata(method.name)
@@ -1041,10 +1045,6 @@ class MemberIndexTerm < IndexTerm
   def term
     @asmember.name
   end
-end
-
-def link_for_method(method)
-  return "#{link_for_type(method.containing_type)}#method_#{method.name}"
 end
 
 class MethodIndexTerm < MemberIndexTerm
