@@ -3,22 +3,6 @@ require 'xmlwriter'
 require 'xhtmlwriter'
 require 'doc_comment'
 
-def link_type_proxy(out, type_proxy, qualified=false)
-  if type_proxy.resolved? && type_proxy.resolved_type.document?
-    link_type(out, type_proxy.resolved_type, qualified)
-  else
-    if type_proxy.resolved?
-      if type_proxy.resolved_type.instance_of?(ASInterface)
-        out.element_span(type_proxy.local_name, {"class"=>"interface_name"})
-      else
-        out.element_span(type_proxy.local_name, {"class"=>"class_name"})
-      end
-    else
-      out.element_span(type_proxy.local_name, {"class"=>"unresolved_type_name"})
-    end
-  end
-end
-
 def link_for_type(type)
   base_path(type.qualified_name.gsub(/\./, "/")+".html")
 end
@@ -657,6 +641,22 @@ class TypePage < BasicPage
 	else
 	  out.pcdata("[Write Only]")
 	end
+      end
+    end
+  end
+
+  def link_type_proxy(out, type_proxy, qualified=false)
+    if type_proxy.resolved? && type_proxy.resolved_type.document?
+      link_type(out, type_proxy.resolved_type, qualified)
+    else
+      if type_proxy.resolved?
+	if type_proxy.resolved_type.instance_of?(ASInterface)
+	  out.element_span(type_proxy.local_name, {"class"=>"interface_name"})
+	else
+	  out.element_span(type_proxy.local_name, {"class"=>"class_name"})
+	end
+      else
+	out.element_span(type_proxy.local_name, {"class"=>"unresolved_type_name"})
       end
     end
   end
