@@ -88,54 +88,9 @@ def write_file(name)
   end
 end
 
-def html_file(name, title, doctype=:strict, encoding=nil)
-  write_file("#{name}.html") do |io|
-    out = XHTMLWriter.new(XMLWriter.new(io))
-    encoding = "iso-8859-1" if encoding.nil?
-    out.pi("xml version=\"1.0\" encoding=\"#{encoding}\"")
-    case doctype
-    # FIXME: push this code down into XHTMLWriter, and have it switch the
-    # allowed elements depending on the value passed at construction
-    when :strict
-      out.doctype("html", "PUBLIC",
-                  "-//W3C//DTD XHTML 1.0 Strict//EN",
-		  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd")
-    when :transitional
-      out.doctype("html", "PUBLIC",
-                  "-//W3C//DTD XHTML 1.0 Transitionalt//EN",
-		  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd")
-    when :frameset
-      out.doctype("html", "PUBLIC",
-                  "-//W3C//DTD XHTML 1.0 Frameset//EN",
-		  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd")
-    else
-      raise "unhandled doctype #{doctype.inspect}"
-    end
-    out.element_html do
-      out.element_head do
-        out.element_title(title)
-        out.element_link("rel"=>"stylesheet",
-	                 "type"=>"text/css",
-	                 "href"=>base_path("style.css"))
-        out.element_meta("name"=>"generator", "content"=>"http://www.badgers-in-foil.co.uk/projects/as2api/")
-      end
-      yield out
-    end
-  end
-end
-
-def html_body(name, title, doctype=:strict, encoding=nil)
-  html_file(name, title, doctype, encoding) do |out|
-    out.element_body do
-      yield out
-      footer(out)
-    end
-  end
-end
-
-def footer(out)
-  out.element_div("class"=>"footer") do
-    out.element_a("as2api", {"href"=>"http://www.badgers-in-foil.co.uk/projects/as2api/", "title"=>"ActionScript 2 API Documentation Generator"})
+def create_page(page)
+  write_file("#{page.base_name}.html") do |io|
+    page.generate(XMLWriter.new(io))
   end
 end
 
@@ -156,23 +111,90 @@ def skip_nav(out)
   end
 end
 
+PROJECT_PAGE = "http://www.badgers-in-foil.co.uk/projects/as2api/"
 
-class TypePage
-
-  def initialize(type)
-    @type = type
+class Page
+  def initialize(base_name)
+    @base_name = base_name
+    @encoding = "iso-8859-1"
+    @doctype = :strict
+    @title = nil
   end
 
-  def generate
-    encoding = if @type.source_utf8
-      "utf-8"
+  attr_accessor :base_name, :encoding, :doctype, :title
+
+
+  def generate(xml_writer)
+    out = XHTMLWriter.new(xml_writer)
+    out.pi("xml version=\"1.0\" encoding=\"#{encoding}\"") unless encoding.nil?
+    case doctype
+    # FIXME: push this code down into XHTMLWriter, and have it switch the
+    # allowed elements depending on the value passed at construction
+    when :strict
+      out.doctype("html", "PUBLIC",
+                  "-//W3C//DTD XHTML 1.0 Strict//EN",
+		  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd")
+    when :transitional
+      out.doctype("html", "PUBLIC",
+                  "-//W3C//DTD XHTML 1.0 Transitionalt//EN",
+		  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd")
+    when :frameset
+      out.doctype("html", "PUBLIC",
+                  "-//W3C//DTD XHTML 1.0 Frameset//EN",
+		  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd")
     else
-      "iso-8859-1"
+      raise "unhandled doctype #{doctype.inspect}"
     end
-    html_body(@type.unqualified_name, @type.qualified_name, :strict, encoding) do |out|
+    out.element_html do
+      generate_head(out)
+      generate_content(out)
+    end
+  end
+
+  def generate_head(out)
+    out.element_head do
+      out.element_title(title) unless title.nil?
+      out.element_link("rel"=>"stylesheet",
+		       "type"=>"text/css",
+		       "href"=>base_path("style.css"))
+      out.element_meta("name"=>"generator", "content"=>PROJECT_PAGE)
+    end
+  end
+end
+
+class BasicPage < Page
+  def generate_content(out)
+    out.element_body do
       skip_nav(out) do
 	navigation(out)
       end
+      generate_body_content(out)
+      navigation(out)
+      generate_footer(out)
+    end
+  end
+
+  def generate_footer(out)
+    out.element_div("class"=>"footer") do
+      out.element_a("as2api", {"href"=>PROJECT_PAGE, "title"=>"ActionScript 2 API Documentation Generator"})
+    end
+  end
+end
+
+class TypePage < BasicPage
+
+  def initialize(type)
+    super(type.unqualified_name)
+    @type = type
+    if @type.source_utf8
+      @encoding = "utf-8"
+    else
+      @encoding = "iso-8859-1"
+    end
+    @title = type.qualified_name
+  end
+
+  def generate_body_content(out)
       if @type.instance_of?(ASClass)
 	out.element_h1("Class "+@type.qualified_name)
       elsif @type.instance_of?(ASInterface)
@@ -221,9 +243,6 @@ class TypePage
       constructor_detail(out, @type) if @type.constructor? && document_member?(@type.constructor)
       field_detail_list(out, @type) if @type.fields?
       method_detail_list(out, @type) if @type.methods?
-
-      navigation(out)
-    end
   end
 
   def navigation(out)
@@ -735,23 +754,21 @@ end
 
 def package_pages(package)
   in_subdir(package_dir_for(package)) do
-    PackageIndexPage.new(package).generate
-    PackageFramePage.new(package).generate
+    create_page(PackageIndexPage.new(package))
+    create_page(PackageFramePage.new(package))
   end
 end
 
 
-class PackageIndexPage
+class PackageIndexPage < BasicPage
 
   def initialize(package)
+    super("package-summary")
     @package = package
+    @title = "Package #{package_display_name_for(@package)} API Documentation"
   end
 
-  def generate
-    html_body("package-summary", "Package #{package_display_name_for(@package)} API Documentation") do |out|
-      skip_nav(out) do
-	navigation(out)
-      end
+  def generate_body_content(out)
       out.element_h1("Package "+package_display_name_for(@package))
       interfaces = @package.interfaces
       unless interfaces.empty?
@@ -793,8 +810,6 @@ class PackageIndexPage
 	  end
 	end
       end
-      navigation(out)
-    end
   end
 
   def navigation(out)
@@ -809,14 +824,16 @@ class PackageIndexPage
 end
 
 
-class PackageFramePage
+class PackageFramePage < Page
 
   def initialize(package)
+    super("package-frame")
     @package = package
+    @title = "Package #{package_display_name_for(@package)} API Naviation"
+    @doctype = :transitional
   end
 
-  def generate
-    html_file("package-frame", "Package #{package_display_name_for(@package)} API Naviation", :transitional) do |out|
+  def generate_content(out)
       out.element_body do
 	out.element_p do
 	  out.element_a(package_display_name_for(@package), {"href"=>"package-summary.html", "target"=>"type_frame"})
@@ -848,21 +865,18 @@ class PackageFramePage
 	  end
 	end
       end
-    end
   end
 
 end
 
-class OverviewPage
+class OverviewPage < BasicPage
   def initialize(type_agregator)
+    super("overview-summary")
     @type_agregator = type_agregator
+    @title = "API Overview"
   end
 
-  def generate
-    html_body("overview-summary", "API Overview") do |out|
-      skip_nav(out) do
-	navigation(out)
-      end
+  def generate_body_content(out)
       out.element_h1("API Overview")
       out.element_table("class"=>"summary_list", "summary"=>"") do
 	out.element_tr do
@@ -882,8 +896,6 @@ class OverviewPage
 	  end
 	end
       end
-      navigation(out)
-    end
   end
 
   def navigation(out)
@@ -898,14 +910,16 @@ class OverviewPage
 end
 
 
-class OverviewFramePage
+class OverviewFramePage < Page
 
   def initialize(type_agregator)
+    super("overview-frame")
     @type_agregator = type_agregator
+    @title = "API Overview"
+    @doctype = :transitional
   end
 
-  def generate
-    html_file("overview-frame", "API Overview", :transitional) do |out|
+  def generate_content(out)
       out.element_body do
 	out.element_h3("Packages")
 	out.element_ul("class"=>"navigation_list") do
@@ -924,7 +938,6 @@ class OverviewFramePage
 	  end
 	end
       end
-    end
   end
 
 end
@@ -944,14 +957,16 @@ def package_list(type_agregator)
 end
 
 
-class AllTypesFramePage
+class AllTypesFramePage < Page
 
   def initialize(type_agregator)
+    super("all-types-frame")
     @type_agregator = type_agregator
+    @title = "as2api"
+    @doctype = :transitional
   end
 
-  def generate
-    html_file("all-types-frame", "as2api", :transitional) do |out|
+  def generate_content(out)
       out.element_body do
 	out.element_h3("All Types")
 	out.element_ul("class"=>"navigation_list") do
@@ -973,14 +988,20 @@ class AllTypesFramePage
 	  end
 	end
       end
-    end
   end
 
 end
 
 
-def frameset
-  html_file("frameset", "as2api", :frameset) do |out|
+class FramesetPage < Page
+
+  def initialize
+    super("frameset")
+    @title = "as2api"
+    @doctype = :frameset
+  end
+
+  def generate_content(out)
     out.element_frameset("cols"=>"20%,80%") do
       out.element_frameset("rows"=>"30%,70%") do
 	out.element_frame("src"=>"overview-frame.html",
@@ -1058,9 +1079,11 @@ class FieldIndexTerm < MemberIndexTerm
   end
 end
 
-class IndexPage
+class IndexPage < BasicPage
   def initialize(type_agregator)
+    super("index")
     @type_agregator = type_agregator
+    @title = "Alphabetical Index"
   end
 
   def create_index()
@@ -1087,18 +1110,12 @@ class IndexPage
     index.sort!
   end
 
-  def generate
+  def generate_body_content(out)
     index = create_index()
 
-    in_subdir("index-files") do
-      html_body("index", "Alphabetical Index") do |out|
-	navigation(out)
-	index.each do |element|
-	  out.element_p do
-	    element.link(out)
-	  end
-	end
-	navigation(out)
+    index.each do |element|
+      out.element_p do
+	element.link(out)
       end
     end
   end
@@ -1116,11 +1133,11 @@ end
 
 def document_types(output_path, type_agregator)
   in_subdir(output_path) do
-    frameset()
-    OverviewPage.new(type_agregator).generate
-    OverviewFramePage.new(type_agregator).generate
+    create_page(FramesetPage.new)
+    create_page(OverviewPage.new(type_agregator))
+    create_page(OverviewFramePage.new(type_agregator))
     package_list(type_agregator)
-    AllTypesFramePage.new(type_agregator).generate
+    create_page(AllTypesFramePage.new(type_agregator))
 
     # packages..
     type_agregator.each_package do |package|
@@ -1131,12 +1148,14 @@ def document_types(output_path, type_agregator)
     type_agregator.each_type do |type|
       if type.document?
 	in_subdir(type.package_name.gsub(/\./, "/")) do
-	  TypePage.new(type).generate
+	  create_page(TypePage.new(type))
 	end
       end
     end
 
-    IndexPage.new(type_agregator).generate
+    in_subdir("index-files") do
+      create_page(IndexPage.new(type_agregator))
+    end
   end
 end
 
