@@ -43,332 +43,11 @@ def link_type(out, type, qualified=false)
   end
 end
 
-def method_synopsis(out, method)
-  out.element_code("class"=>"method_synopsis") do
-    if method.access.is_static
-      out.pcdata("static ")
-    end
-    unless method.access.visibility.nil?
-      out.pcdata("#{method.access.visibility.body} ")
-    end
-    out.pcdata("function ")
-    out.element_strong("class"=>"method_name") do
-      out.pcdata(method.name)
-    end
-    out.pcdata("(")
-    method.arguments.each_with_index do |arg, index|
-      out.pcdata(", ") if index > 0
-      out.pcdata(arg.name)
-      if arg.arg_type
-        out.pcdata(":")
-	link_type_proxy(out, arg.arg_type)
-      end
-    end
-    out.pcdata(")")
-    if method.return_type
-      out.pcdata(":")
-      link_type_proxy(out, method.return_type)
-    end
-  end
-end
-
-def field_synopsis(out, field)
-  out.element_code("class"=>"field_synopsis") do
-    if field.instance_of?(ASImplicitField)
-      implicit_field_synopsis(out, field)
-    else
-      explicit_field_synopsis(out, field)
-    end
-  end
-end
-
-def explicit_field_synopsis(out, field)
-  if field.access.is_static
-    out.pcdata("static ")
-  end
-  unless field.access.visibility.nil?
-    out.pcdata("#{field.access.visibility.body} ")
-  end
-  out.element_strong("class"=>"field_name") do
-    out.pcdata(field.name)
-  end
-  if field.field_type
-    out.pcdata(":")
-    link_type_proxy(out, field.field_type)
-  end
-end
-
-def implicit_field_synopsis(out, field)
-  if field.access.is_static
-    out.pcdata("static ")
-  end
-  unless field.access.visibility.nil?
-    out.pcdata("#{field.access.visibility.body} ")
-  end
-  out.element_strong("class"=>"field_name") do
-    out.pcdata(field.name)
-  end
-  field_type = field.field_type
-  unless field_type.nil?
-    out.pcdata(":")
-    link_type_proxy(out, field_type)
-  end
-  unless field.readwrite?
-    out.pcdata(" ")
-    out.element_em("class"=>"read_write_only") do
-      if field.read?
-	out.pcdata("[Read Only]")
-      else
-	out.pcdata("[Write Only]")
-      end
-    end
-  end
-end
-
-
-def comment_each_block_of_type(comment_data, type)
-  comment_data.each_block do |block|
-    yield block if block.is_a?(type)
-  end
-end
-
-def comment_has_blocktype?(comment_data, type)
-  comment_each_block_of_type(comment_data, type) do |block|
-    return true
-  end
-  return false
-end
-
-def comment_has_params?(comment_data)
-  return comment_has_blocktype?(comment_data, ParamBlockTag)
-end
-
-def comment_has_exceptions?(comment_data)
-  return comment_has_blocktype?(comment_data, ThrowsBlockTag)
-end
-
-def comment_has_seealso?(comment_data)
-  return comment_has_blocktype?(comment_data, SeeBlockTag)
-end
-
-def comment_has_return?(comment_data)
-  return comment_has_blocktype?(comment_data, ReturnBlockTag)
-end
-
-# Does the method comment include any info in addition to any basic description
-# block?
-def comment_has_method_additional_info?(comment_data)
-  return comment_has_params?(comment_data) ||
-         comment_has_return?(comment_data) ||
-         comment_has_exceptions?(comment_data) ||
-         comment_has_seealso?(comment_data)
-end
-
-# Does the field comment include any info in addition to any basic description
-# block?
-def comment_has_field_additional_info?(comment_data)
-  return comment_has_seealso?(comment_data)
-end
-
-def comment_each_exception(comment_data)
-  comment_data.each_block do |block|
-    yield block if block.is_a?(ThrowsBlockTag)
-  end
-end
-
-def comment_each_seealso(comment_data)
-  comment_each_block_of_type(comment_data, SeeBlockTag) do |block|
-    yield block
-  end
-end
-
-def comment_find_param(comment_data, param_name)
-  comment_each_block_of_type(comment_data, ParamBlockTag) do |block|
-    return block if block.param_name == param_name
-  end
-  return nil
-end
-
-def comment_find_return(comment_data)
-  comment_each_block_of_type(comment_data, ReturnBlockTag) do |block|
-    return block
-  end
-  return nil
-end
-
-def document_parameters(out, arguments, comment_data)
-  out.element_dt("Parameters")
-  out.element_dd do
-    out.element_table("class"=>"arguments", "summary"=>"") do
-      arguments.each do |arg|
-	desc = comment_find_param(comment_data, arg.name)
-	if desc
-	  out.element_tr do
-	    out.element_td do
-	      out.element_code(arg.name)
-	    end
-	    out.element_td do
-	      output_doccomment_blocktag(out, desc)
-	    end
-	  end
-	end
-      end
-    end
-  end
-end
-
-def document_return(out, comment_data)
-  out.element_dt("Return")
-  out.element_dd do
-    return_comment = comment_find_return(comment_data)
-    out.element_p do
-      output_doccomment_blocktag(out, return_comment)
-    end
-  end
-end
-
-def document_exceptions(out, comment_data)
-  out.element_dt("Throws")
-  out.element_dd do
-    out.element_table("class"=>"exceptions", "summary"=>"") do
-      comment_each_exception(comment_data) do |exception_comment|
-	out.element_tr do
-	  out.element_td do
-	    link_type_proxy(out, exception_comment.exception_type)
-	  end
-	  out.element_td do
-	    output_doccomment_blocktag(out, exception_comment)
-	  end
-	end
-      end
-    end
-  end
-end
-
-def document_seealso(out, comment_data)
-  out.element_dt("See Also")
-  out.element_dd do
-    comment_each_seealso(comment_data) do |see_comment|
-      out.element_p do
-	output_doccomment_blocktag(out, see_comment)
-      end
-    end
-  end
-end
 
 def link_method(out, method)
   out.element_a("href"=>link_for_method(method)) do
     out.pcdata(method.name)
     out.pcdata("()")
-  end
-end
-
-def document_specified_by(out, method)
-  out.element_dt("Specified By")
-  out.element_dd do
-    link_method(out, method)
-    out.pcdata(" in ")
-    link_type(out, method.containing_type, true)
-  end
-end
-
-def method_additional_info?(method, comment_data)
-  if method.containing_type.is_a?(ASClass)
-    spec_method = method.specified_by
-  else
-    spec_method = nil
-  end
-  return comment_has_method_additional_info?(comment_data) || !spec_method.nil?
-end
-
-def document_method(out, method, alt_row=false)
-  css_class = "method_details"
-  css_class << " alt_row" if alt_row
-  out.element_div("class"=>css_class) do
-    out.element_a("name"=>"method_#{method.name}")
-    out.element_h3(method.name)
-    method_synopsis(out, method)
-    if method.comment
-      out.element_blockquote do
-        comment_data = method.comment
-	out.element_p do
-          output_doccomment_blocktag(out, comment_data[0])
-	end
-	if method_additional_info?(method, comment_data)
-	  out.element_dl("class"=>"method_additional_info") do
-	    # TODO: assumes that params named in docs match formal arguments
-	    #       should really filter out those that don't match before this
-	    #       test
-	    if comment_has_params?(comment_data)
-	      document_parameters(out, method.arguments, comment_data)
-	    end
-	    if comment_has_return?(comment_data)
-	      document_return(out, comment_data)
-	    end
-	    if comment_has_exceptions?(comment_data)
-	      document_exceptions(out, comment_data)
-	    end
-	    if method.containing_type.is_a?(ASClass)
-	      spec_method = method.specified_by
-	      unless spec_method.nil?
-		document_specified_by(out, spec_method)
-	      end
-	    end
-	    if comment_has_seealso?(comment_data)
-	      document_seealso(out, comment_data)
-	    end
-	  end
-	end
-      end
-    else
-      if method.containing_type.is_a?(ASClass)
-	spec_method = method.specified_by
-	unless spec_method.nil?
-	  out.element_blockquote do
-	    out.element_dl("class"=>"method_additional_info") do
-	      document_specified_by(out, spec_method)
-	    end
-	  end
-	end
-      end
-    end
-  end
-end
-
-def output_doccomment_blocktag(out, block)
-  block.each_inline do |inline|
-    output_doccomment_inlinetag(out, inline)
-  end
-end
-
-def output_doccomment_inlinetag(out, inline)
-  if inline.is_a?(String)
-    out.pcdata(inline)
-  elsif inline.is_a?(LinkTag)
-    link_type_proxy(out, inline.target)
-  else
-    out.element_em(inline.inspect)
-  end
-end
-
-def document_field(out, field)
-  out.element_a("name"=>"field_#{field.name}")
-  out.element_h3(field.name)
-  out.element_div("class"=>"field_details") do
-    field_synopsis(out, field)
-    if field.comment
-      out.element_blockquote do
-	comment_data = field.comment
-	output_doccomment_blocktag(out, comment_data[0])
-	if comment_has_field_additional_info?(comment_data)
-	  out.element_dl("class"=>"field_additional_info") do
-	    if comment_has_seealso?(comment_data)
-	      document_seealso(out, comment_data)
-	    end
-	  end
-	end
-      end
-    end
   end
 end
 
@@ -460,159 +139,10 @@ def footer(out)
   end
 end
 
-def type_hierachy(out, type)
-  # TODO: ASCII art is an accessability problem.  Replace with images that have
-  #       alt-text, or use CSS to generate content, e.g.
-  #          <span class="inherit_relation" title="inherited by"></span>
-  out.element_pre("class"=>"type_hierachy") do
-    count = 0
-    unless type.extends.nil?
-      count = type_hierachy_recursive(out, type.extends)
-    end
-    if count > 0
-      out.pcdata("   " * count)
-      out.pcdata("+--")
-    end
-    out.element_strong(type.qualified_name)
-  end
-end
-
-def type_hierachy_recursive(out, type_proxy)
-  count = 0
-  if type_proxy.resolved?
-    type = type_proxy.resolved_type
-    unless type.extends.nil?
-      count = type_hierachy_recursive(out, type.extends)
-    end
-  else
-    out.pcdata("????\n")
-    count = 1
-  end
-  if count > 0
-    out.pcdata("   " * count)
-    out.pcdata("+--")
-  end
-  link_type_proxy(out, type_proxy, true)
-  out.pcdata("\n")
-  return count + 1
-end
-
-def field_index_list(out, type)
-  out.element_div("class"=>"field_index") do
-    out.element_h2("Field Index")
-    list_fields(out, type)
-    if type.has_ancestor?
-      out.element_dl do
-	type.each_ancestor do |type|
-	  if type.fields?
-	    out.element_dt do
-	      out.pcdata("Inherited from ")
-	      link_type(out, type)
-	    end
-	    out.element_dd do
-	      list_fields(out, type, link_for_type(type))
-	    end
-	  end
-	end
-      end
-    end
-  end
-end
-
 def document_member?(member)
   !member.access.private?
 end
 
-def list_fields(out, type, href_prefix="")
-  fields = type.fields.sort
-  index = 0
-  fields.each do |field|
-    next unless document_member?(field)
-    out.pcdata(", ") if index > 0
-    out.element_code do
-      out.element_a("href"=>"#{href_prefix}#field_#{field.name}") do
-	out.pcdata(field.name)
-      end
-    end
-    index += 1
-  end
-end
-
-def field_detail_list(out, type)
-  out.element_div("class"=>"field_detail_list") do
-    out.element_h2("Field Detail")
-    type.each_field do |field|
-      document_field(out, field) if document_member?(field)
-    end
-  end
-end
-
-
-def method_index_list(out, type)
-  out.element_div("class"=>"method_index") do
-    out.element_h2("Method Index")
-    if type.constructor? && document_member?(type.constructor)
-      out.element_p do
-        out.element_code do
-          out.pcdata("new ")
-	    out.element_a("href"=>"#method_#{type.constructor.name}") do
-	      out.pcdata(type.constructor.name+"()")
-	    end
-        end
-      end
-    end
-    known_method_names = []
-    list_methods(out, type, known_method_names)
-    if type.has_ancestor?
-      out.element_dl do
-	type.each_ancestor do |type|
-	  if type.methods?
-	    out.element_dt do
-	      out.pcdata("Inherited from ")
-	      link_type(out, type)
-	    end
-	    out.element_dd do
-	      list_methods(out, type, known_method_names, link_for_type(type))
-	    end
-	  end
-	end
-      end
-    end
-  end
-end
-
-def list_methods(out, type, known_method_names, href_prefix="")
-  methods = type.methods.select do |method|
-    !known_method_names.include?(method.name) && document_member?(method)
-  end
-  methods.sort!
-  methods.each_with_index do |method, index|
-    known_method_names << method.name
-    out.pcdata(", ") if index > 0
-    out.element_a("href"=>"#{href_prefix}#method_#{method.name}") do
-      out.pcdata(method.name+"()")
-    end
-  end
-end
-
-def method_detail_list(out, type)
-  out.element_div("class"=>"method_detail_list") do
-    out.element_h2("Method Detail")
-    count = 0
-    type.each_method do |method|
-      next unless document_member?(method)
-      document_method(out, method, count%2==0)
-      count += 1
-    end
-  end
-end
-
-def constructor_detail(out, type)
-  out.element_div("class"=>"constructor_detail_list") do
-    out.element_h2("Constructor Detail")
-    document_method(out, type.constructor)
-  end
-end
 
 # accessability; make a link to skip over the (navigation) elements produced
 # by the given block
@@ -703,6 +233,480 @@ class TypePage
       out.element_span("Class", {"class"=>"nav_current"})
       out.element_a("Index", {"href"=>base_path("index-files/index.html")})
     end
+  end
+
+  def field_index_list(out, type)
+    out.element_div("class"=>"field_index") do
+      out.element_h2("Field Index")
+      list_fields(out, type)
+      if type.has_ancestor?
+	out.element_dl do
+	  type.each_ancestor do |type|
+	    if type.fields?
+	      out.element_dt do
+		out.pcdata("Inherited from ")
+		link_type(out, type)
+	      end
+	      out.element_dd do
+		list_fields(out, type, link_for_type(type))
+	      end
+	    end
+	  end
+	end
+      end
+    end
+  end
+
+  def list_fields(out, type, href_prefix="")
+    fields = type.fields.sort
+    index = 0
+    fields.each do |field|
+      next unless document_member?(field)
+      out.pcdata(", ") if index > 0
+      out.element_code do
+	out.element_a("href"=>"#{href_prefix}#field_#{field.name}") do
+	  out.pcdata(field.name)
+	end
+      end
+      index += 1
+    end
+  end
+
+  def method_index_list(out, type)
+    out.element_div("class"=>"method_index") do
+      out.element_h2("Method Index")
+      if type.constructor? && document_member?(type.constructor)
+	out.element_p do
+	  out.element_code do
+	    out.pcdata("new ")
+	      out.element_a("href"=>"#method_#{type.constructor.name}") do
+		out.pcdata(type.constructor.name+"()")
+	      end
+	  end
+	end
+      end
+      known_method_names = []
+      list_methods(out, type, known_method_names)
+      if type.has_ancestor?
+	out.element_dl do
+	  type.each_ancestor do |type|
+	    if type.methods?
+	      out.element_dt do
+		out.pcdata("Inherited from ")
+		link_type(out, type)
+	      end
+	      out.element_dd do
+		list_methods(out, type, known_method_names, link_for_type(type))
+	      end
+	    end
+	  end
+	end
+      end
+    end
+  end
+
+  def list_methods(out, type, known_method_names, href_prefix="")
+    methods = type.methods.select do |method|
+      !known_method_names.include?(method.name) && document_member?(method)
+    end
+    methods.sort!
+    methods.each_with_index do |method, index|
+      known_method_names << method.name
+      out.pcdata(", ") if index > 0
+      out.element_a("href"=>"#{href_prefix}#method_#{method.name}") do
+	out.pcdata(method.name+"()")
+      end
+    end
+  end
+
+  def constructor_detail(out, type)
+    out.element_div("class"=>"constructor_detail_list") do
+      out.element_h2("Constructor Detail")
+      document_method(out, type.constructor)
+    end
+  end
+
+  def field_detail_list(out, type)
+    out.element_div("class"=>"field_detail_list") do
+      out.element_h2("Field Detail")
+      type.each_field do |field|
+	document_field(out, field) if document_member?(field)
+      end
+    end
+  end
+
+  def document_field(out, field)
+    out.element_a("name"=>"field_#{field.name}")
+    out.element_h3(field.name)
+    out.element_div("class"=>"field_details") do
+      field_synopsis(out, field)
+      if field.comment
+	out.element_blockquote do
+	  comment_data = field.comment
+	  output_doccomment_blocktag(out, comment_data[0])
+	  if comment_has_field_additional_info?(comment_data)
+	    out.element_dl("class"=>"field_additional_info") do
+	      if comment_has_seealso?(comment_data)
+		document_seealso(out, comment_data)
+	      end
+	    end
+	  end
+	end
+      end
+    end
+  end
+
+  def method_detail_list(out, type)
+    out.element_div("class"=>"method_detail_list") do
+      out.element_h2("Method Detail")
+      count = 0
+      type.each_method do |method|
+	next unless document_member?(method)
+	document_method(out, method, count%2==0)
+	count += 1
+      end
+    end
+  end
+
+  def document_method(out, method, alt_row=false)
+    css_class = "method_details"
+    css_class << " alt_row" if alt_row
+    out.element_div("class"=>css_class) do
+      out.element_a("name"=>"method_#{method.name}")
+      out.element_h3(method.name)
+      method_synopsis(out, method)
+      if method.comment
+	out.element_blockquote do
+	  comment_data = method.comment
+	  out.element_p do
+	    output_doccomment_blocktag(out, comment_data[0])
+	  end
+	  if method_additional_info?(method, comment_data)
+	    out.element_dl("class"=>"method_additional_info") do
+	      # TODO: assumes that params named in docs match formal arguments
+	      #       should really filter out those that don't match before this
+	      #       test
+	      if comment_has_params?(comment_data)
+		document_parameters(out, method.arguments, comment_data)
+	      end
+	      if comment_has_return?(comment_data)
+		document_return(out, comment_data)
+	      end
+	      if comment_has_exceptions?(comment_data)
+		document_exceptions(out, comment_data)
+	      end
+	      if method.containing_type.is_a?(ASClass)
+		spec_method = method.specified_by
+		unless spec_method.nil?
+		  document_specified_by(out, spec_method)
+		end
+	      end
+	      if comment_has_seealso?(comment_data)
+		document_seealso(out, comment_data)
+	      end
+	    end
+	  end
+	end
+      else
+	if method.containing_type.is_a?(ASClass)
+	  spec_method = method.specified_by
+	  unless spec_method.nil?
+	    out.element_blockquote do
+	      out.element_dl("class"=>"method_additional_info") do
+		document_specified_by(out, spec_method)
+	      end
+	    end
+	  end
+	end
+      end
+    end
+  end
+
+  def type_hierachy(out, type)
+    # TODO: ASCII art is an accessability problem.  Replace with images that
+    #       have alt-text, or use CSS to generate content, e.g.
+    #          <span class="inherit_relation" title="inherited by"></span>
+    out.element_pre("class"=>"type_hierachy") do
+      count = 0
+      unless type.extends.nil?
+	count = type_hierachy_recursive(out, type.extends)
+      end
+      if count > 0
+	out.pcdata("   " * count)
+	out.pcdata("+--")
+      end
+      out.element_strong(type.qualified_name)
+    end
+  end
+
+  def type_hierachy_recursive(out, type_proxy)
+    count = 0
+    if type_proxy.resolved?
+      type = type_proxy.resolved_type
+      unless type.extends.nil?
+	count = type_hierachy_recursive(out, type.extends)
+      end
+    else
+      out.pcdata("????\n")
+      count = 1
+    end
+    if count > 0
+      out.pcdata("   " * count)
+      out.pcdata("+--")
+    end
+    link_type_proxy(out, type_proxy, true)
+    out.pcdata("\n")
+    return count + 1
+  end
+
+  def document_parameters(out, arguments, comment_data)
+    out.element_dt("Parameters")
+    out.element_dd do
+      out.element_table("class"=>"arguments", "summary"=>"") do
+	arguments.each do |arg|
+	  desc = comment_find_param(comment_data, arg.name)
+	  if desc
+	    out.element_tr do
+	      out.element_td do
+		out.element_code(arg.name)
+	      end
+	      out.element_td do
+		output_doccomment_blocktag(out, desc)
+	      end
+	    end
+	  end
+	end
+      end
+    end
+  end
+
+  def document_return(out, comment_data)
+    out.element_dt("Return")
+    out.element_dd do
+      return_comment = comment_find_return(comment_data)
+      out.element_p do
+	output_doccomment_blocktag(out, return_comment)
+      end
+    end
+  end
+
+  def document_exceptions(out, comment_data)
+    out.element_dt("Throws")
+    out.element_dd do
+      out.element_table("class"=>"exceptions", "summary"=>"") do
+	comment_each_exception(comment_data) do |exception_comment|
+	  out.element_tr do
+	    out.element_td do
+	      link_type_proxy(out, exception_comment.exception_type)
+	    end
+	    out.element_td do
+	      output_doccomment_blocktag(out, exception_comment)
+	    end
+	  end
+	end
+      end
+    end
+  end
+
+  def document_seealso(out, comment_data)
+    out.element_dt("See Also")
+    out.element_dd do
+      comment_each_seealso(comment_data) do |see_comment|
+	out.element_p do
+	  output_doccomment_blocktag(out, see_comment)
+	end
+      end
+    end
+  end
+
+  def document_specified_by(out, method)
+    out.element_dt("Specified By")
+    out.element_dd do
+      link_method(out, method)
+      out.pcdata(" in ")
+      link_type(out, method.containing_type, true)
+    end
+  end
+
+  def method_additional_info?(method, comment_data)
+    if method.containing_type.is_a?(ASClass)
+      spec_method = method.specified_by
+    else
+      spec_method = nil
+    end
+    return comment_has_method_additional_info?(comment_data) || !spec_method.nil?
+  end
+
+  def output_doccomment_blocktag(out, block)
+    block.each_inline do |inline|
+      output_doccomment_inlinetag(out, inline)
+    end
+  end
+
+  def output_doccomment_inlinetag(out, inline)
+    if inline.is_a?(String)
+      out.pcdata(inline)
+    elsif inline.is_a?(LinkTag)
+      link_type_proxy(out, inline.target)
+    else
+      out.element_em(inline.inspect)
+    end
+  end
+
+  def method_synopsis(out, method)
+    out.element_code("class"=>"method_synopsis") do
+      if method.access.is_static
+	out.pcdata("static ")
+      end
+      unless method.access.visibility.nil?
+	out.pcdata("#{method.access.visibility.body} ")
+      end
+      out.pcdata("function ")
+      out.element_strong("class"=>"method_name") do
+	out.pcdata(method.name)
+      end
+      out.pcdata("(")
+      method.arguments.each_with_index do |arg, index|
+	out.pcdata(", ") if index > 0
+	out.pcdata(arg.name)
+	if arg.arg_type
+	  out.pcdata(":")
+	  link_type_proxy(out, arg.arg_type)
+	end
+      end
+      out.pcdata(")")
+      if method.return_type
+	out.pcdata(":")
+	link_type_proxy(out, method.return_type)
+      end
+    end
+  end
+
+  def field_synopsis(out, field)
+    out.element_code("class"=>"field_synopsis") do
+      if field.instance_of?(ASImplicitField)
+	implicit_field_synopsis(out, field)
+      else
+	explicit_field_synopsis(out, field)
+      end
+    end
+  end
+
+  def explicit_field_synopsis(out, field)
+    if field.access.is_static
+      out.pcdata("static ")
+    end
+    unless field.access.visibility.nil?
+      out.pcdata("#{field.access.visibility.body} ")
+    end
+    out.element_strong("class"=>"field_name") do
+      out.pcdata(field.name)
+    end
+    if field.field_type
+      out.pcdata(":")
+      link_type_proxy(out, field.field_type)
+    end
+  end
+
+  def implicit_field_synopsis(out, field)
+    if field.access.is_static
+      out.pcdata("static ")
+    end
+    unless field.access.visibility.nil?
+      out.pcdata("#{field.access.visibility.body} ")
+    end
+    out.element_strong("class"=>"field_name") do
+      out.pcdata(field.name)
+    end
+    field_type = field.field_type
+    unless field_type.nil?
+      out.pcdata(":")
+      link_type_proxy(out, field_type)
+    end
+    unless field.readwrite?
+      out.pcdata(" ")
+      out.element_em("class"=>"read_write_only") do
+	if field.read?
+	  out.pcdata("[Read Only]")
+	else
+	  out.pcdata("[Write Only]")
+	end
+      end
+    end
+  end
+
+
+  # TODO: All these comment_*() methods obviously want to belong to some new
+  #       class, as yet unwritten.
+
+  def comment_each_block_of_type(comment_data, type)
+    comment_data.each_block do |block|
+      yield block if block.is_a?(type)
+    end
+  end
+
+  def comment_has_blocktype?(comment_data, type)
+    comment_each_block_of_type(comment_data, type) do |block|
+      return true
+    end
+    return false
+  end
+
+  def comment_has_params?(comment_data)
+    return comment_has_blocktype?(comment_data, ParamBlockTag)
+  end
+
+  def comment_has_exceptions?(comment_data)
+    return comment_has_blocktype?(comment_data, ThrowsBlockTag)
+  end
+
+  def comment_has_seealso?(comment_data)
+    return comment_has_blocktype?(comment_data, SeeBlockTag)
+  end
+
+  def comment_has_return?(comment_data)
+    return comment_has_blocktype?(comment_data, ReturnBlockTag)
+  end
+
+  # Does the method comment include any info in addition to any basic
+  # description block?
+  def comment_has_method_additional_info?(comment_data)
+    return comment_has_params?(comment_data) ||
+	   comment_has_return?(comment_data) ||
+	   comment_has_exceptions?(comment_data) ||
+	   comment_has_seealso?(comment_data)
+  end
+
+  # Does the field comment include any info in addition to any basic description
+  # block?
+  def comment_has_field_additional_info?(comment_data)
+    return comment_has_seealso?(comment_data)
+  end
+
+  def comment_each_exception(comment_data)
+    comment_data.each_block do |block|
+      yield block if block.is_a?(ThrowsBlockTag)
+    end
+  end
+
+  def comment_each_seealso(comment_data)
+    comment_each_block_of_type(comment_data, SeeBlockTag) do |block|
+      yield block
+    end
+  end
+
+  def comment_find_param(comment_data, param_name)
+    comment_each_block_of_type(comment_data, ParamBlockTag) do |block|
+      return block if block.param_name == param_name
+    end
+    return nil
+  end
+
+  def comment_find_return(comment_data)
+    comment_each_block_of_type(comment_data, ReturnBlockTag) do |block|
+      return block
+    end
+    return nil
   end
 
 end
