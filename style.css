@@ -54,6 +54,11 @@ ul.navigation_list li {
 	list-style: none;
 }
 
+table.exceptions td, table.arguments td {
+	vertical-align: text-top;
+	padding: 0 1em .5em 0;
+}
+
 /*
 .unresolved_type_name {
 	background-color: red;
