@@ -20,9 +20,12 @@ h2 {
 	background-color: #EEEEFF;
 	padding: 4px;
 }
-.main_nav > * {
+.main_nav li {
 	font-family: sans-serif;
 	font-weight: bolder;
+	display: inline;
+}
+.main_nav li * {
 	padding: 4px;
 }
 .nav_current {

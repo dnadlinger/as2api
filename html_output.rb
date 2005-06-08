@@ -239,11 +239,19 @@ class TypePage < BasicPage
   end
 
   def navigation
-    html_div("class"=>"main_nav") do
-      html_a("Overview", {"href"=>base_path("overview-summary.html")})
-      html_a("Package", {"href"=>"package-summary.html"})
-      html_span("Class", {"class"=>"nav_current"})
-      html_a("Index", {"href"=>base_path("index-files/index.html")})
+    html_ul("class"=>"main_nav") do
+      html_li do
+	html_a("Overview", {"href"=>base_path("overview-summary.html")})
+      end
+      html_li do
+	html_a("Package", {"href"=>"package-summary.html"})
+      end
+      html_li do
+	html_span("Class", {"class"=>"nav_current"})
+      end
+      html_li do
+	html_a("Index", {"href"=>base_path("index-files/index.html")})
+      end
     end
   end
 
@@ -809,11 +817,19 @@ class PackageIndexPage < BasicPage
   end
 
   def navigation
-    html_div("class"=>"main_nav") do
-      html_a("Overview", {"href"=>base_path("overview-summary.html")})
-      html_span("Package", {"class"=>"nav_current"})
-      html_span("Class")
-      html_a("Index", {"href"=>base_path("index-files/index.html")})
+    html_ul("class"=>"main_nav") do
+      html_li do
+	html_a("Overview", {"href"=>base_path("overview-summary.html")})
+      end
+      html_li do
+	html_span("Package", {"class"=>"nav_current"})
+      end
+      html_li do
+	html_span("Class")
+      end
+      html_li do
+	html_a("Index", {"href"=>base_path("index-files/index.html")})
+      end
     end
   end
 
@@ -895,11 +911,19 @@ class OverviewPage < BasicPage
   end
 
   def navigation
-    html_div("class"=>"main_nav") do
-      html_span("Overview", {"class"=>"nav_current"})
-      html_span("Package")
-      html_span("Class")
-      html_a("Index", {"href"=>"index-files/index.html"})
+    html_ul("class"=>"main_nav") do
+      html_li do
+	html_span("Overview", {"class"=>"nav_current"})
+      end
+      html_li do
+	html_span("Package")
+      end
+      html_li do
+	html_span("Class")
+      end
+      html_li do
+	html_a("Index", {"href"=>"index-files/index.html"})
+      end
     end
   end
 
@@ -1117,11 +1141,19 @@ class IndexPage < BasicPage
   end
 
   def navigation
-    html_div("class"=>"main_nav") do
-      html_a("Overview", {"href"=>base_path("overview-summary.html")})
-      html_span("Package")
-      html_span("Class")
-      html_span("Index", {"class"=>"nav_current"})
+    html_ul("class"=>"main_nav") do
+      html_li do
+	html_a("Overview", {"href"=>base_path("overview-summary.html")})
+      end
+      html_li do
+	html_span("Package")
+      end
+      html_li do
+	html_span("Class")
+      end
+      html_li do
+	html_span("Index", {"class"=>"nav_current"})
+      end
     end
   end
 
