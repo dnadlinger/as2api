@@ -1,7 +1,4 @@
-class XHTMLWriter
-  def initialize(io)
-    @io = io
-  end
+module XHTMLWriter
 
   private
 
@@ -95,7 +92,7 @@ class XHTMLWriter
 
   TAGS.each do |name|
     class_eval <<-HERE
-      def element_#{name}(*args)
+      def html_#{name}(*args)
 	if block_given?
 	  @io.element("#{name}", *args) { yield }
 	else

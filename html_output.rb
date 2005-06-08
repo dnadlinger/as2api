@@ -17,11 +17,11 @@ def link_type(out, type, qualified=false)
     attr_title = "Class #{type.qualified_name}"
   end
   if qualified
-    out.element_a(type.qualified_name, {"href"=>href,
+    out.html_a(type.qualified_name, {"href"=>href,
                                         "class"=>attr_class,
                                         "title"=>attr_title})
   else
-    out.element_a(type.unqualified_name, {"href"=>href,
+    out.html_a(type.unqualified_name, {"href"=>href,
                                           "class"=>attr_class,
                                           "title"=>attr_title})
   end
@@ -33,7 +33,7 @@ def link_for_method(method)
 end
 
 def link_method(out, method)
-  out.element_a("href"=>link_for_method(method)) do
+  out.html_a("href"=>link_for_method(method)) do
     out.pcdata(method.name)
     out.pcdata("()")
   end
@@ -92,82 +92,85 @@ end
 # accessability; make a link to skip over the (navigation) elements produced
 # by the given block
 def skip_nav(out)
-  out.element_div do
-    out.element_a("", {"href"=>"#skip_nav", "title"=>"Skip navigation"})
+  out.html_div do
+    out.html_a("", {"href"=>"#skip_nav", "title"=>"Skip navigation"})
   end
   yield
-  out.element_div do
-    out.element_a("", {"name"=>"skip_nav"})
+  out.html_div do
+    out.html_a("", {"name"=>"skip_nav"})
   end
 end
 
 PROJECT_PAGE = "http://www.badgers-in-foil.co.uk/projects/as2api/"
 
 class Page
+  include XHTMLWriter
+
   def initialize(path_name, base_name)
     @path_name = path_name
     @base_name = base_name
     @encoding = "iso-8859-1"
-    @doctype = :strict
+    @doctype_id = :strict
     @title = nil
+    @io = nil  # to be set during the lifetime of generate() call
   end
 
-  attr_accessor :path_name, :base_name, :encoding, :doctype, :title
+  attr_accessor :path_name, :base_name, :encoding, :doctype_id, :title
 
 
   def generate(xml_writer)
-    out = XHTMLWriter.new(xml_writer)
-    out.pi("xml version=\"1.0\" encoding=\"#{encoding}\"") unless encoding.nil?
-    case doctype
+    @io = xml_writer
+    pi("xml version=\"1.0\" encoding=\"#{encoding}\"") unless encoding.nil?
+    case doctype_id
     # FIXME: push this code down into XHTMLWriter, and have it switch the
     # allowed elements depending on the value passed at construction
     when :strict
-      out.doctype("html", "PUBLIC",
-                  "-//W3C//DTD XHTML 1.0 Strict//EN",
-		  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd")
+      doctype("html", "PUBLIC",
+              "-//W3C//DTD XHTML 1.0 Strict//EN",
+	      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd")
     when :transitional
-      out.doctype("html", "PUBLIC",
-                  "-//W3C//DTD XHTML 1.0 Transitionalt//EN",
-		  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd")
+      doctype("html", "PUBLIC",
+              "-//W3C//DTD XHTML 1.0 Transitionalt//EN",
+	      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd")
     when :frameset
-      out.doctype("html", "PUBLIC",
-                  "-//W3C//DTD XHTML 1.0 Frameset//EN",
-		  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd")
+      doctype("html", "PUBLIC",
+              "-//W3C//DTD XHTML 1.0 Frameset//EN",
+	      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-frameset.dtd")
     else
-      raise "unhandled doctype #{doctype.inspect}"
+      raise "unhandled doctype #{doctype_id.inspect}"
     end
-    out.element_html do
-      generate_head(out)
-      generate_content(out)
+    html_html do
+      generate_head
+      generate_content
     end
   end
 
-  def generate_head(out)
-    out.element_head do
-      out.element_title(title) unless title.nil?
-      out.element_link("rel"=>"stylesheet",
+  def generate_head
+    html_head do
+      html_title(title) unless title.nil?
+      html_link("rel"=>"stylesheet",
 		       "type"=>"text/css",
 		       "href"=>base_path("style.css"))
-      out.element_meta("name"=>"generator", "content"=>PROJECT_PAGE)
+      html_meta("name"=>"generator", "content"=>PROJECT_PAGE)
     end
   end
 end
 
 class BasicPage < Page
-  def generate_content(out)
-    out.element_body do
-      skip_nav(out) do
-	navigation(out)
+  def generate_content
+    html_body do
+      skip_nav(self) do
+	navigation
       end
-      generate_body_content(out)
-      navigation(out)
-      generate_footer(out)
+      generate_body_content
+      navigation
+      generate_footer
     end
   end
 
-  def generate_footer(out)
-    out.element_div("class"=>"footer") do
-      out.element_a("as2api", {"href"=>PROJECT_PAGE, "title"=>"ActionScript 2 API Documentation Generator"})
+  def generate_footer
+    html_div("class"=>"footer") do
+      html_a("as2api", {"href"=>PROJECT_PAGE, "title"=>"ActionScript 2 API Documentation Generator"})
     end
   end
 end
@@ -185,42 +188,42 @@ class TypePage < BasicPage
     @title = type.qualified_name
   end
 
-  def generate_body_content(out)
+  def generate_body_content
       if @type.instance_of?(ASClass)
-	out.element_h1("Class "+@type.qualified_name)
+	html_h1("Class "+@type.qualified_name)
       elsif @type.instance_of?(ASInterface)
-	out.element_h1("Interface "+@type.qualified_name)
+	html_h1("Interface "+@type.qualified_name)
       end
 
-      type_hierachy(out, @type)
+      type_hierachy(@type)
 
       if @type.implements_interfaces?
-	out.element_div("class"=>"interfaces") do
-	  out.element_h2("Implemented Interfaces")
+	html_div("class"=>"interfaces") do
+	  html_h2("Implemented Interfaces")
 	  @type.each_interface do |interface|
 	    # TODO: need to resolve interface name, make links
-	    out.element_code do
-	      link_type_proxy(out, interface)
+	    html_code do
+	      link_type_proxy(interface)
 	    end
-	    out.pcdata(" ")
+	    pcdata(" ")
 	  end
 	end
       end
-      out.element_div("class"=>"type_description") do
+      html_div("class"=>"type_description") do
 	if @type.comment
 	  comment_data = @type.comment
 
-	  out.element_h2("Description")
-	  out.element_p do
-	    output_doccomment_blocktag(out, comment_data[0])
+	  html_h2("Description")
+	  html_p do
+	    output_doccomment_blocktag(comment_data[0])
 	  end
-	  out.element_dl("class"=>"type_details") do
+	  html_dl("class"=>"type_details") do
 	    if comment_has_seealso?(comment_data)
-	      out.element_dt("See Also")
-	      out.element_dd do
+	      html_dt("See Also")
+	      html_dd do
 		comment_each_seealso(comment_data) do |see_comment|
-		  out.element_p do
-		    output_doccomment_blocktag(out, see_comment)
+		  html_p do
+		    output_doccomment_blocktag(see_comment)
 		  end
 		end
 	      end
@@ -229,36 +232,36 @@ class TypePage < BasicPage
 	end
       end
       
-      field_index_list(out, @type) if @type.fields?
-      method_index_list(out, @type) if @type.methods?
-      constructor_detail(out, @type) if @type.constructor? && document_member?(@type.constructor)
-      field_detail_list(out, @type) if @type.fields?
-      method_detail_list(out, @type) if @type.methods?
+      field_index_list(@type) if @type.fields?
+      method_index_list(@type) if @type.methods?
+      constructor_detail(@type) if @type.constructor? && document_member?(@type.constructor)
+      field_detail_list(@type) if @type.fields?
+      method_detail_list(@type) if @type.methods?
   end
 
-  def navigation(out)
-    out.element_div("class"=>"main_nav") do
-      out.element_a("Overview", {"href"=>base_path("overview-summary.html")})
-      out.element_a("Package", {"href"=>"package-summary.html"})
-      out.element_span("Class", {"class"=>"nav_current"})
-      out.element_a("Index", {"href"=>base_path("index-files/index.html")})
+  def navigation
+    html_div("class"=>"main_nav") do
+      html_a("Overview", {"href"=>base_path("overview-summary.html")})
+      html_a("Package", {"href"=>"package-summary.html"})
+      html_span("Class", {"class"=>"nav_current"})
+      html_a("Index", {"href"=>base_path("index-files/index.html")})
     end
   end
 
-  def field_index_list(out, type)
-    out.element_div("class"=>"field_index") do
-      out.element_h2("Field Index")
-      list_fields(out, type)
+  def field_index_list(type)
+    html_div("class"=>"field_index") do
+      html_h2("Field Index")
+      list_fields(type)
       if type.has_ancestor?
-	out.element_dl do
+	html_dl do
 	  type.each_ancestor do |type|
 	    if type.fields?
-	      out.element_dt do
-		out.pcdata("Inherited from ")
-		link_type(out, type)
+	      html_dt do
+		pcdata("Inherited from ")
+		link_type(type)
 	      end
-	      out.element_dd do
-		list_fields(out, type, link_for_type(type))
+	      html_dd do
+		list_fields(type, link_for_type(type))
 	      end
 	    end
 	  end
@@ -267,46 +270,46 @@ class TypePage < BasicPage
     end
   end
 
-  def list_fields(out, type, href_prefix="")
+  def list_fields(type, href_prefix="")
     fields = type.fields.sort
     index = 0
     fields.each do |field|
       next unless document_member?(field)
-      out.pcdata(", ") if index > 0
-      out.element_code do
-	out.element_a("href"=>"#{href_prefix}#field_#{field.name}") do
-	  out.pcdata(field.name)
+      pcdata(", ") if index > 0
+      html_code do
+	html_a("href"=>"#{href_prefix}#field_#{field.name}") do
+	  pcdata(field.name)
 	end
       end
       index += 1
     end
   end
 
-  def method_index_list(out, type)
-    out.element_div("class"=>"method_index") do
-      out.element_h2("Method Index")
+  def method_index_list(type)
+    html_div("class"=>"method_index") do
+      html_h2("Method Index")
       if type.constructor? && document_member?(type.constructor)
-	out.element_p do
-	  out.element_code do
-	    out.pcdata("new ")
-	      out.element_a("href"=>"#method_#{type.constructor.name}") do
-		out.pcdata(type.constructor.name+"()")
+	html_p do
+	  html_code do
+	    pcdata("new ")
+	      html_a("href"=>"#method_#{type.constructor.name}") do
+		pcdata(type.constructor.name+"()")
 	      end
 	  end
 	end
       end
       known_method_names = []
-      list_methods(out, type, known_method_names)
+      list_methods(type, known_method_names)
       if type.has_ancestor?
-	out.element_dl do
+	html_dl do
 	  type.each_ancestor do |type|
 	    if type.methods?
-	      out.element_dt do
-		out.pcdata("Inherited from ")
-		link_type(out, type)
+	      html_dt do
+		pcdata("Inherited from ")
+		link_type(self, type)
 	      end
-	      out.element_dd do
-		list_methods(out, type, known_method_names, link_for_type(type))
+	      html_dd do
+		list_methods(type, known_method_names, link_for_type(type))
 	      end
 	    end
 	  end
@@ -315,49 +318,49 @@ class TypePage < BasicPage
     end
   end
 
-  def list_methods(out, type, known_method_names, href_prefix="")
+  def list_methods(type, known_method_names, href_prefix="")
     methods = type.methods.select do |method|
       !known_method_names.include?(method.name) && document_member?(method)
     end
     methods.sort!
     methods.each_with_index do |method, index|
       known_method_names << method.name
-      out.pcdata(", ") if index > 0
-      out.element_a("href"=>"#{href_prefix}#method_#{method.name}") do
-	out.pcdata(method.name+"()")
+      pcdata(", ") if index > 0
+      html_a("href"=>"#{href_prefix}#method_#{method.name}") do
+	pcdata(method.name+"()")
       end
     end
   end
 
-  def constructor_detail(out, type)
-    out.element_div("class"=>"constructor_detail_list") do
-      out.element_h2("Constructor Detail")
-      document_method(out, type.constructor)
+  def constructor_detail(type)
+    html_div("class"=>"constructor_detail_list") do
+      html_h2("Constructor Detail")
+      document_method(type.constructor)
     end
   end
 
-  def field_detail_list(out, type)
-    out.element_div("class"=>"field_detail_list") do
-      out.element_h2("Field Detail")
+  def field_detail_list(type)
+    html_div("class"=>"field_detail_list") do
+      html_h2("Field Detail")
       type.each_field do |field|
-	document_field(out, field) if document_member?(field)
+	document_field(field) if document_member?(field)
       end
     end
   end
 
-  def document_field(out, field)
-    out.element_a("name"=>"field_#{field.name}")
-    out.element_h3(field.name)
-    out.element_div("class"=>"field_details") do
-      field_synopsis(out, field)
+  def document_field(field)
+    html_a("name"=>"field_#{field.name}")
+    html_h3(field.name)
+    html_div("class"=>"field_details") do
+      field_synopsis(field)
       if field.comment
-	out.element_blockquote do
+	html_blockquote do
 	  comment_data = field.comment
-	  output_doccomment_blocktag(out, comment_data[0])
+	  output_doccomment_blocktag(comment_data[0])
 	  if comment_has_field_additional_info?(comment_data)
-	    out.element_dl("class"=>"field_additional_info") do
+	    html_dl("class"=>"field_additional_info") do
 	      if comment_has_seealso?(comment_data)
-		document_seealso(out, comment_data)
+		document_seealso(comment_data)
 	      end
 	    end
 	  end
@@ -366,53 +369,53 @@ class TypePage < BasicPage
     end
   end
 
-  def method_detail_list(out, type)
-    out.element_div("class"=>"method_detail_list") do
-      out.element_h2("Method Detail")
+  def method_detail_list(type)
+    html_div("class"=>"method_detail_list") do
+      html_h2("Method Detail")
       count = 0
       type.each_method do |method|
 	next unless document_member?(method)
-	document_method(out, method, count%2==0)
+	document_method(method, count%2==0)
 	count += 1
       end
     end
   end
 
-  def document_method(out, method, alt_row=false)
+  def document_method(method, alt_row=false)
     css_class = "method_details"
     css_class << " alt_row" if alt_row
-    out.element_div("class"=>css_class) do
-      out.element_a("name"=>"method_#{method.name}")
-      out.element_h3(method.name)
-      method_synopsis(out, method)
+    html_div("class"=>css_class) do
+      html_a("name"=>"method_#{method.name}")
+      html_h3(method.name)
+      method_synopsis(method)
       if method.comment
-	out.element_blockquote do
+	html_blockquote do
 	  comment_data = method.comment
-	  out.element_p do
-	    output_doccomment_blocktag(out, comment_data[0])
+	  html_p do
+	    output_doccomment_blocktag(comment_data[0])
 	  end
 	  if method_additional_info?(method, comment_data)
-	    out.element_dl("class"=>"method_additional_info") do
+	    html_dl("class"=>"method_additional_info") do
 	      # TODO: assumes that params named in docs match formal arguments
 	      #       should really filter out those that don't match before this
 	      #       test
 	      if comment_has_params?(comment_data)
-		document_parameters(out, method.arguments, comment_data)
+		document_parameters(method.arguments, comment_data)
 	      end
 	      if comment_has_return?(comment_data)
-		document_return(out, comment_data)
+		document_return(comment_data)
 	      end
 	      if comment_has_exceptions?(comment_data)
-		document_exceptions(out, comment_data)
+		document_exceptions(comment_data)
 	      end
 	      if method.containing_type.is_a?(ASClass)
 		spec_method = method.specified_by
 		unless spec_method.nil?
-		  document_specified_by(out, spec_method)
+		  document_specified_by(spec_method)
 		end
 	      end
 	      if comment_has_seealso?(comment_data)
-		document_seealso(out, comment_data)
+		document_seealso(comment_data)
 	      end
 	    end
 	  end
@@ -421,9 +424,9 @@ class TypePage < BasicPage
 	if method.containing_type.is_a?(ASClass)
 	  spec_method = method.specified_by
 	  unless spec_method.nil?
-	    out.element_blockquote do
-	      out.element_dl("class"=>"method_additional_info") do
-		document_specified_by(out, spec_method)
+	    html_blockquote do
+	      html_dl("class"=>"method_additional_info") do
+		document_specified_by(spec_method)
 	      end
 	    end
 	  end
@@ -432,56 +435,56 @@ class TypePage < BasicPage
     end
   end
 
-  def type_hierachy(out, type)
+  def type_hierachy(type)
     # TODO: ASCII art is an accessability problem.  Replace with images that
     #       have alt-text, or use CSS to generate content, e.g.
     #          <span class="inherit_relation" title="inherited by"></span>
-    out.element_pre("class"=>"type_hierachy") do
+    html_pre("class"=>"type_hierachy") do
       count = 0
       unless type.extends.nil?
-	count = type_hierachy_recursive(out, type.extends)
+	count = type_hierachy_recursive(type.extends)
       end
       if count > 0
-	out.pcdata("   " * count)
-	out.pcdata("+--")
+	pcdata("   " * count)
+	pcdata("+--")
       end
-      out.element_strong(type.qualified_name)
+      html_strong(type.qualified_name)
     end
   end
 
-  def type_hierachy_recursive(out, type_proxy)
+  def type_hierachy_recursive(type_proxy)
     count = 0
     if type_proxy.resolved?
       type = type_proxy.resolved_type
       unless type.extends.nil?
-	count = type_hierachy_recursive(out, type.extends)
+	count = type_hierachy_recursive(type.extends)
       end
     else
-      out.pcdata("????\n")
+      pcdata("????\n")
       count = 1
     end
     if count > 0
-      out.pcdata("   " * count)
-      out.pcdata("+--")
+      pcdata("   " * count)
+      pcdata("+--")
     end
-    link_type_proxy(out, type_proxy, true)
-    out.pcdata("\n")
+    link_type_proxy(type_proxy, true)
+    pcdata("\n")
     return count + 1
   end
 
-  def document_parameters(out, arguments, comment_data)
-    out.element_dt("Parameters")
-    out.element_dd do
-      out.element_table("class"=>"arguments", "summary"=>"") do
+  def document_parameters(arguments, comment_data)
+    html_dt("Parameters")
+    html_dd do
+      html_table("class"=>"arguments", "summary"=>"") do
 	arguments.each do |arg|
 	  desc = comment_find_param(comment_data, arg.name)
 	  if desc
-	    out.element_tr do
-	      out.element_td do
-		out.element_code(arg.name)
+	    html_tr do
+	      html_td do
+		html_code(arg.name)
 	      end
-	      out.element_td do
-		output_doccomment_blocktag(out, desc)
+	      html_td do
+		output_doccomment_blocktag(desc)
 	      end
 	    end
 	  end
@@ -490,27 +493,27 @@ class TypePage < BasicPage
     end
   end
 
-  def document_return(out, comment_data)
-    out.element_dt("Return")
-    out.element_dd do
+  def document_return(comment_data)
+    html_dt("Return")
+    html_dd do
       return_comment = comment_find_return(comment_data)
-      out.element_p do
-	output_doccomment_blocktag(out, return_comment)
+      html_p do
+	output_doccomment_blocktag(return_comment)
       end
     end
   end
 
-  def document_exceptions(out, comment_data)
-    out.element_dt("Throws")
-    out.element_dd do
-      out.element_table("class"=>"exceptions", "summary"=>"") do
+  def document_exceptions(comment_data)
+    html_dt("Throws")
+    html_dd do
+      html_table("class"=>"exceptions", "summary"=>"") do
 	comment_each_exception(comment_data) do |exception_comment|
-	  out.element_tr do
-	    out.element_td do
-	      link_type_proxy(out, exception_comment.exception_type)
+	  html_tr do
+	    html_td do
+	      link_type_proxy(exception_comment.exception_type)
 	    end
-	    out.element_td do
-	      output_doccomment_blocktag(out, exception_comment)
+	    html_td do
+	      output_doccomment_blocktag(exception_comment)
 	    end
 	  end
 	end
@@ -518,23 +521,23 @@ class TypePage < BasicPage
     end
   end
 
-  def document_seealso(out, comment_data)
-    out.element_dt("See Also")
-    out.element_dd do
+  def document_seealso(comment_data)
+    html_dt("See Also")
+    html_dd do
       comment_each_seealso(comment_data) do |see_comment|
-	out.element_p do
-	  output_doccomment_blocktag(out, see_comment)
+	html_p do
+	  output_doccomment_blocktag(see_comment)
 	end
       end
     end
   end
 
-  def document_specified_by(out, method)
-    out.element_dt("Specified By")
-    out.element_dd do
-      link_method(out, method)
-      out.pcdata(" in ")
-      link_type(out, method.containing_type, true)
+  def document_specified_by(method)
+    html_dt("Specified By")
+    html_dd do
+      link_method(self, method)
+      pcdata(" in ")
+      link_type(self, method.containing_type, true)
     end
   end
 
@@ -547,116 +550,116 @@ class TypePage < BasicPage
     return comment_has_method_additional_info?(comment_data) || !spec_method.nil?
   end
 
-  def output_doccomment_blocktag(out, block)
+  def output_doccomment_blocktag(block)
     block.each_inline do |inline|
-      output_doccomment_inlinetag(out, inline)
+      output_doccomment_inlinetag(inline)
     end
   end
 
-  def output_doccomment_inlinetag(out, inline)
+  def output_doccomment_inlinetag(inline)
     if inline.is_a?(String)
-      out.pcdata(inline)
+      pcdata(inline)
     elsif inline.is_a?(LinkTag)
-      link_type_proxy(out, inline.target)
+      link_type_proxy(inline.target)
     else
-      out.element_em(inline.inspect)
+      html_em(inline.inspect)
     end
   end
 
-  def method_synopsis(out, method)
-    out.element_code("class"=>"method_synopsis") do
+  def method_synopsis(method)
+    html_code("class"=>"method_synopsis") do
       if method.access.is_static
-	out.pcdata("static ")
+	pcdata("static ")
       end
       unless method.access.visibility.nil?
-	out.pcdata("#{method.access.visibility.body} ")
+	pcdata("#{method.access.visibility.body} ")
       end
-      out.pcdata("function ")
-      out.element_strong("class"=>"method_name") do
-	out.pcdata(method.name)
+      pcdata("function ")
+      html_strong("class"=>"method_name") do
+	pcdata(method.name)
       end
-      out.pcdata("(")
+      pcdata("(")
       method.arguments.each_with_index do |arg, index|
-	out.pcdata(", ") if index > 0
-	out.pcdata(arg.name)
+	pcdata(", ") if index > 0
+	pcdata(arg.name)
 	if arg.arg_type
-	  out.pcdata(":")
-	  link_type_proxy(out, arg.arg_type)
+	  pcdata(":")
+	  link_type_proxy(arg.arg_type)
 	end
       end
-      out.pcdata(")")
+      pcdata(")")
       if method.return_type
-	out.pcdata(":")
-	link_type_proxy(out, method.return_type)
+	pcdata(":")
+	link_type_proxy(method.return_type)
       end
     end
   end
 
-  def field_synopsis(out, field)
-    out.element_code("class"=>"field_synopsis") do
+  def field_synopsis(field)
+    html_code("class"=>"field_synopsis") do
       if field.instance_of?(ASImplicitField)
-	implicit_field_synopsis(out, field)
+	implicit_field_synopsis(field)
       else
-	explicit_field_synopsis(out, field)
+	explicit_field_synopsis(field)
       end
     end
   end
 
-  def explicit_field_synopsis(out, field)
+  def explicit_field_synopsis(field)
     if field.access.is_static
-      out.pcdata("static ")
+      pcdata("static ")
     end
     unless field.access.visibility.nil?
-      out.pcdata("#{field.access.visibility.body} ")
+      pcdata("#{field.access.visibility.body} ")
     end
-    out.element_strong("class"=>"field_name") do
-      out.pcdata(field.name)
+    html_strong("class"=>"field_name") do
+      pcdata(field.name)
     end
     if field.field_type
-      out.pcdata(":")
-      link_type_proxy(out, field.field_type)
+      pcdata(":")
+      link_type_proxy(field.field_type)
     end
   end
 
-  def implicit_field_synopsis(out, field)
+  def implicit_field_synopsis(field)
     if field.access.is_static
-      out.pcdata("static ")
+      pcdata("static ")
     end
     unless field.access.visibility.nil?
-      out.pcdata("#{field.access.visibility.body} ")
+      pcdata("#{field.access.visibility.body} ")
     end
-    out.element_strong("class"=>"field_name") do
-      out.pcdata(field.name)
+    html_strong("class"=>"field_name") do
+      pcdata(field.name)
     end
     field_type = field.field_type
     unless field_type.nil?
-      out.pcdata(":")
-      link_type_proxy(out, field_type)
+      pcdata(":")
+      link_type_proxy(field_type)
     end
     unless field.readwrite?
-      out.pcdata(" ")
-      out.element_em("class"=>"read_write_only") do
+      pcdata(" ")
+      html_em("class"=>"read_write_only") do
 	if field.read?
-	  out.pcdata("[Read Only]")
+	  pcdata("[Read Only]")
 	else
-	  out.pcdata("[Write Only]")
+	  pcdata("[Write Only]")
 	end
       end
     end
   end
 
-  def link_type_proxy(out, type_proxy, qualified=false)
+  def link_type_proxy(type_proxy, qualified=false)
     if type_proxy.resolved? && type_proxy.resolved_type.document?
-      link_type(out, type_proxy.resolved_type, qualified)
+      link_type(self, type_proxy.resolved_type, qualified)
     else
       if type_proxy.resolved?
 	if type_proxy.resolved_type.instance_of?(ASInterface)
-	  out.element_span(type_proxy.local_name, {"class"=>"interface_name"})
+	  html_span(type_proxy.local_name, {"class"=>"interface_name"})
 	else
-	  out.element_span(type_proxy.local_name, {"class"=>"class_name"})
+	  html_span(type_proxy.local_name, {"class"=>"class_name"})
 	end
       else
-	out.element_span(type_proxy.local_name, {"class"=>"unresolved_type_name"})
+	html_span(type_proxy.local_name, {"class"=>"unresolved_type_name"})
       end
     end
   end
@@ -762,22 +765,22 @@ class PackageIndexPage < BasicPage
     @title = "Package #{package_display_name_for(@package)} API Documentation"
   end
 
-  def generate_body_content(out)
-      out.element_h1("Package "+package_display_name_for(@package))
+  def generate_body_content
+      html_h1("Package "+package_display_name_for(@package))
       interfaces = @package.interfaces
       unless interfaces.empty?
 	interfaces.sort!
-	out.element_table("class"=>"summary_list", "summary"=>"") do
-	  out.element_tr do
-	    out.element_th("Interface Summary")
+	html_table("class"=>"summary_list", "summary"=>"") do
+	  html_tr do
+	    html_th("Interface Summary")
 	  end
 	  interfaces.each do |type|
-	    out.element_tr do
+	    html_tr do
 	
-	      out.element_td do
-		out.element_a(type.unqualified_name, {"href"=>type.unqualified_name+".html"})
+	      html_td do
+		html_a(type.unqualified_name, {"href"=>type.unqualified_name+".html"})
 	      end
-	      #out.element_td do
+	      #html_td do
 		# TODO: package description
 	      #end
 	    end
@@ -787,17 +790,17 @@ class PackageIndexPage < BasicPage
       classes = @package.classes
       unless classes.empty?
 	classes.sort!
-	out.element_table("class"=>"summary_list", "summary"=>"") do
-	  out.element_tr do
-	    out.element_th("Class Summary")
+	html_table("class"=>"summary_list", "summary"=>"") do
+	  html_tr do
+	    html_th("Class Summary")
 	  end
 	  classes.each do |type|
-	    out.element_tr do
+	    html_tr do
 	
-	      out.element_td do
-		out.element_a(type.unqualified_name, {"href"=>type.unqualified_name+".html"})
+	      html_td do
+		html_a(type.unqualified_name, {"href"=>type.unqualified_name+".html"})
 	      end
-	      #out.element_td do
+	      #html_td do
 		# TODO: package description
 	      #end
 	    end
@@ -806,12 +809,12 @@ class PackageIndexPage < BasicPage
       end
   end
 
-  def navigation(out)
-    out.element_div("class"=>"main_nav") do
-      out.element_a("Overview", {"href"=>base_path("overview-summary.html")})
-      out.element_span("Package", {"class"=>"nav_current"})
-      out.element_span("Class")
-      out.element_a("Index", {"href"=>base_path("index-files/index.html")})
+  def navigation
+    html_div("class"=>"main_nav") do
+      html_a("Overview", {"href"=>base_path("overview-summary.html")})
+      html_span("Package", {"class"=>"nav_current"})
+      html_span("Class")
+      html_a("Index", {"href"=>base_path("index-files/index.html")})
     end
   end
 
@@ -824,23 +827,23 @@ class PackageFramePage < Page
     super(path_name, "package-frame")
     @package = package
     @title = "Package #{package_display_name_for(@package)} API Naviation"
-    @doctype = :transitional
+    @doctype_id = :transitional
   end
 
-  def generate_content(out)
-      out.element_body do
-	out.element_p do
-	  out.element_a(package_display_name_for(@package), {"href"=>"package-summary.html", "target"=>"type_frame"})
+  def generate_content
+      html_body do
+	html_p do
+	  html_a(package_display_name_for(@package), {"href"=>"package-summary.html", "target"=>"type_frame"})
 	end
 	interfaces = @package.interfaces
 	unless interfaces.empty?
 	  interfaces.sort!
-	  out.element_h3("Interfaces")
-	  out.element_ul("class"=>"navigation_list") do
+	  html_h3("Interfaces")
+	  html_ul("class"=>"navigation_list") do
 	    interfaces.each do |type|
 	  
-	      out.element_li do
-		out.element_a(type.unqualified_name, {"href"=>type.unqualified_name+".html", "target"=>"type_frame", "title"=>type.qualified_name})
+	      html_li do
+		html_a(type.unqualified_name, {"href"=>type.unqualified_name+".html", "target"=>"type_frame", "title"=>type.qualified_name})
 	      end
 	    end
 	  end
@@ -848,12 +851,12 @@ class PackageFramePage < Page
 	classes = @package.classes
 	unless classes.empty?
 	  classes.sort!
-	  out.element_h3("Classes")
-	  out.element_ul("class"=>"navigation_list") do
+	  html_h3("Classes")
+	  html_ul("class"=>"navigation_list") do
 	    classes.each do |type|
 	  
-	      out.element_li do
-		out.element_a(type.unqualified_name, {"href"=>type.unqualified_name+".html", "target"=>"type_frame", "title"=>type.qualified_name})
+	      html_li do
+		html_a(type.unqualified_name, {"href"=>type.unqualified_name+".html", "target"=>"type_frame", "title"=>type.qualified_name})
 	      end
 	    end
 	  end
@@ -870,21 +873,21 @@ class OverviewPage < BasicPage
     @title = "API Overview"
   end
 
-  def generate_body_content(out)
-      out.element_h1("API Overview")
-      out.element_table("class"=>"summary_list", "summary"=>"") do
-	out.element_tr do
-	  out.element_th("Packages")
+  def generate_body_content
+      html_h1("API Overview")
+      html_table("class"=>"summary_list", "summary"=>"") do
+	html_tr do
+	  html_th("Packages")
 	end
 	packages = @type_agregator.packages.sort
 	packages.each do |package|
-	  out.element_tr do
+	  html_tr do
       
-	    out.element_td do
+	    html_td do
 	      name = package_display_name_for(package)
-	      out.element_a(name, {"href"=>package_link_for(package, "package-summary.html")})
+	      html_a(name, {"href"=>package_link_for(package, "package-summary.html")})
 	    end
-	    #out.element_td do
+	    #html_td do
 	      # TODO: package description
 	    #end
 	  end
@@ -892,12 +895,12 @@ class OverviewPage < BasicPage
       end
   end
 
-  def navigation(out)
-    out.element_div("class"=>"main_nav") do
-      out.element_span("Overview", {"class"=>"nav_current"})
-      out.element_span("Package")
-      out.element_span("Class")
-      out.element_a("Index", {"href"=>"index-files/index.html"})
+  def navigation
+    html_div("class"=>"main_nav") do
+      html_span("Overview", {"class"=>"nav_current"})
+      html_span("Package")
+      html_span("Class")
+      html_a("Index", {"href"=>"index-files/index.html"})
     end
   end
 
@@ -910,24 +913,24 @@ class OverviewFramePage < Page
     super(path_name, "overview-frame")
     @type_agregator = type_agregator
     @title = "API Overview"
-    @doctype = :transitional
+    @doctype_id = :transitional
   end
 
-  def generate_content(out)
-      out.element_body do
-	out.element_h3("Packages")
-	out.element_ul("class"=>"navigation_list") do
+  def generate_content
+      html_body do
+	html_h3("Packages")
+	html_ul("class"=>"navigation_list") do
 	
-	  out.element_li do
-	    out.element_a("(All Types)", {"href"=>"all-types-frame.html", "target"=>"current_package_frame"})
+	  html_li do
+	    html_a("(All Types)", {"href"=>"all-types-frame.html", "target"=>"current_package_frame"})
 	  end
 	  packages = @type_agregator.packages.sort
 	  packages.each do |package|
 	
-	    out.element_li do
+	    html_li do
 	      name = package_display_name_for(package)
 	      
-	      out.element_a(name, {"href"=>package_link_for(package, "package-frame.html"), "target"=>"current_package_frame", "title"=>name})
+	      html_a(name, {"href"=>package_link_for(package, "package-frame.html"), "target"=>"current_package_frame", "title"=>name})
 	    end
 	  end
 	end
@@ -959,13 +962,13 @@ class AllTypesFramePage < Page
     super(path_name, "all-types-frame")
     @type_agregator = type_agregator
     @title = "as2api"
-    @doctype = :transitional
+    @doctype_id = :transitional
   end
 
-  def generate_content(out)
-      out.element_body do
-	out.element_h3("All Types")
-	out.element_ul("class"=>"navigation_list") do
+  def generate_content
+      html_body do
+	html_h3("All Types")
+	html_ul("class"=>"navigation_list") do
 	  types = @type_agregator.types.sort do |a,b|
 	    cmp = a.unqualified_name.downcase <=> b.unqualified_name.downcase
 	    if cmp == 0
@@ -977,8 +980,8 @@ class AllTypesFramePage < Page
 	  types.each do |type|
 	    if type.document?
 	      href = type.qualified_name.gsub(/\./, "/") + ".html"
-	      out.element_li do
-		out.element_a(type.unqualified_name, {"href"=>href, "title"=>type.qualified_name, "target"=>"type_frame"})
+	      html_li do
+		html_a(type.unqualified_name, {"href"=>href, "title"=>type.qualified_name, "target"=>"type_frame"})
 	      end
 	    end
 	  end
@@ -994,25 +997,25 @@ class FramesetPage < Page
   def initialize(path_name)
     super(path_name, "frameset")
     @title = "as2api"
-    @doctype = :frameset
+    @doctype_id = :frameset
   end
 
-  def generate_content(out)
-    out.element_frameset("cols"=>"20%,80%") do
-      out.element_frameset("rows"=>"30%,70%") do
-	out.element_frame("src"=>"overview-frame.html",
+  def generate_content
+    html_frameset("cols"=>"20%,80%") do
+      html_frameset("rows"=>"30%,70%") do
+	html_frame("src"=>"overview-frame.html",
 	                  "name"=>"all_packages_frame",
 	                  "title"=>"All Packages")
-	out.element_frame("src"=>"all-types-frame.html",
+	html_frame("src"=>"all-types-frame.html",
 	                  "name"=>"current_package_frame",
                           "title"=>"All types")
       end
-      out.element_frame("src"=>"overview-summary.html",
+      html_frame("src"=>"overview-summary.html",
                         "name"=>"type_frame",
                         "title"=>"Package and type descriptions")
-      out.element_noframes do
-	out.element_body do
-	  out.element_a("Non-frameset overview page", {"href"=>"overview-summary.html"})
+      html_noframes do
+	html_body do
+	  html_a("Non-frameset overview page", {"href"=>"overview-summary.html"})
 	end
       end
     end
@@ -1039,7 +1042,7 @@ class TypeIndexTerm < IndexTerm
   def link(out)
     link_type(out, @astype)
     out.pcdata(" in package ")
-    out.element_a(@astype.package_name, {"href"=>"../" + @astype.package_name.gsub(".", "/") + "/package-summary.html"})
+    out.html_a(@astype.package_name, {"href"=>"../" + @astype.package_name.gsub(".", "/") + "/package-summary.html"})
   end
 end
 
@@ -1065,7 +1068,7 @@ end
 class FieldIndexTerm < MemberIndexTerm
   def link(out)
     href_prefix = link_for_type(@astype)
-    out.element_a("href"=>"#{href_prefix}#field_#{@asmember.name}") do
+    out.html_a("href"=>"#{href_prefix}#field_#{@asmember.name}") do
       out.pcdata(@asmember.name)
     end
     out.pcdata(" field in ")
@@ -1104,22 +1107,22 @@ class IndexPage < BasicPage
     index.sort!
   end
 
-  def generate_body_content(out)
+  def generate_body_content
     index = create_index()
 
     index.each do |element|
-      out.element_p do
-	element.link(out)
+      html_p do
+	element.link(self)
       end
     end
   end
 
-  def navigation(out)
-    out.element_div("class"=>"main_nav") do
-      out.element_a("Overview", {"href"=>base_path("overview-summary.html")})
-      out.element_span("Package")
-      out.element_span("Class")
-      out.element_span("Index", {"class"=>"nav_current"})
+  def navigation
+    html_div("class"=>"main_nav") do
+      html_a("Overview", {"href"=>base_path("overview-summary.html")})
+      html_span("Package")
+      html_span("Class")
+      html_span("Index", {"class"=>"nav_current"})
     end
   end
 
