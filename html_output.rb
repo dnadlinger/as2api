@@ -17,14 +17,13 @@ def link_type(out, type, qualified=false)
     attr_title = "Class #{type.qualified_name}"
   end
   if qualified
-    out.html_a(type.qualified_name, {"href"=>href,
-                                        "class"=>attr_class,
-                                        "title"=>attr_title})
+    content = type.qualified_name
   else
-    out.html_a(type.unqualified_name, {"href"=>href,
-                                          "class"=>attr_class,
-                                          "title"=>attr_title})
+    content = type.unqualified_name
   end
+  out.html_a(content, {"href"=>href,
+		       "class"=>attr_class,
+		       "title"=>attr_title})
 end
 
 
