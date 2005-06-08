@@ -12,6 +12,11 @@ h2 {
 .method_details, .field_details {
 	padding-bottom: .5em;
 }
+
+.method_info, .field_info {
+	padding-left: 3em;
+}
+
 .alt_row {
 	background-color: #eeeeee;
 }

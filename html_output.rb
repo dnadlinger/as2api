@@ -361,7 +361,7 @@ class TypePage < BasicPage
     html_div("class"=>"field_details") do
       field_synopsis(field)
       if field.comment
-	html_blockquote do
+	html_div("class"=>"field_info") do
 	  comment_data = field.comment
 	  output_doccomment_blocktag(comment_data[0])
 	  if comment_has_field_additional_info?(comment_data)
@@ -396,7 +396,7 @@ class TypePage < BasicPage
       html_h3(method.name)
       method_synopsis(method)
       if method.comment
-	html_blockquote do
+	html_div("class"=>"method_info") do
 	  comment_data = method.comment
 	  html_p do
 	    output_doccomment_blocktag(comment_data[0])
@@ -431,7 +431,7 @@ class TypePage < BasicPage
 	if method.containing_type.is_a?(ASClass)
 	  spec_method = method.specified_by
 	  unless spec_method.nil?
-	    html_blockquote do
+	    html_div("class"=>"method_info") do
 	      html_dl("class"=>"method_additional_info") do
 		document_specified_by(spec_method)
 	      end
