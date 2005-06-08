@@ -216,14 +216,12 @@ class TypePage < BasicPage
 	  html_p do
 	    output_doccomment_blocktag(comment_data[0])
 	  end
-	  html_dl("class"=>"type_details") do
-	    if comment_has_seealso?(comment_data)
-	      html_dt("See Also")
-	      html_dd do
-		comment_each_seealso(comment_data) do |see_comment|
-		  html_p do
-		    output_doccomment_blocktag(see_comment)
-		  end
+	  if comment_has_seealso?(comment_data)
+	    html_h4("See Also")
+	    html_ul("class"=>"extra_info") do
+	      comment_each_seealso(comment_data) do |see_comment|
+		html_li do
+		  output_doccomment_blocktag(see_comment)
 		end
 	      end
 	    end
@@ -260,16 +258,14 @@ class TypePage < BasicPage
       html_h2("Field Index")
       list_fields(type)
       if type.has_ancestor?
-	html_dl do
-	  type.each_ancestor do |type|
-	    if type.fields?
-	      html_dt do
-		pcdata("Inherited from ")
-		link_type(type)
-	      end
-	      html_dd do
-		list_fields(type, link_for_type(type))
-	      end
+	type.each_ancestor do |type|
+	  if type.fields?
+	    html_h4 do
+	      pcdata("Inherited from ")
+	      link_type(type)
+	    end
+	    html_p("class"=>"extra_info") do
+	      list_fields(type, link_for_type(type))
 	    end
 	  end
 	end
@@ -308,16 +304,14 @@ class TypePage < BasicPage
       known_method_names = []
       list_methods(type, known_method_names)
       if type.has_ancestor?
-	html_dl do
-	  type.each_ancestor do |type|
-	    if type.methods?
-	      html_dt do
-		pcdata("Inherited from ")
-		link_type(self, type)
-	      end
-	      html_dd do
-		list_methods(type, known_method_names, link_for_type(type))
-	      end
+	type.each_ancestor do |type|
+	  if type.methods?
+	    html_h4 do
+	      pcdata("Inherited from ")
+	      link_type(self, type)
+	    end
+	    html_p("class"=>"extra_infp") do
+	      list_methods(type, known_method_names, link_for_type(type))
 	    end
 	  end
 	end
@@ -365,10 +359,8 @@ class TypePage < BasicPage
 	  comment_data = field.comment
 	  output_doccomment_blocktag(comment_data[0])
 	  if comment_has_field_additional_info?(comment_data)
-	    html_dl("class"=>"field_additional_info") do
-	      if comment_has_seealso?(comment_data)
-		document_seealso(comment_data)
-	      end
+	    if comment_has_seealso?(comment_data)
+	      document_seealso(comment_data)
 	    end
 	  end
 	end
@@ -402,28 +394,26 @@ class TypePage < BasicPage
 	    output_doccomment_blocktag(comment_data[0])
 	  end
 	  if method_additional_info?(method, comment_data)
-	    html_dl("class"=>"method_additional_info") do
-	      # TODO: assumes that params named in docs match formal arguments
-	      #       should really filter out those that don't match before this
-	      #       test
-	      if comment_has_params?(comment_data)
-		document_parameters(method.arguments, comment_data)
+	    # TODO: assumes that params named in docs match formal arguments
+	    #       should really filter out those that don't match before this
+	    #       test
+	    if comment_has_params?(comment_data)
+	      document_parameters(method.arguments, comment_data)
+	    end
+	    if comment_has_return?(comment_data)
+	      document_return(comment_data)
+	    end
+	    if comment_has_exceptions?(comment_data)
+	      document_exceptions(comment_data)
+	    end
+	    if method.containing_type.is_a?(ASClass)
+	      spec_method = method.specified_by
+	      unless spec_method.nil?
+		document_specified_by(spec_method)
 	      end
-	      if comment_has_return?(comment_data)
-		document_return(comment_data)
-	      end
-	      if comment_has_exceptions?(comment_data)
-		document_exceptions(comment_data)
-	      end
-	      if method.containing_type.is_a?(ASClass)
-		spec_method = method.specified_by
-		unless spec_method.nil?
-		  document_specified_by(spec_method)
-		end
-	      end
-	      if comment_has_seealso?(comment_data)
-		document_seealso(comment_data)
-	      end
+	    end
+	    if comment_has_seealso?(comment_data)
+	      document_seealso(comment_data)
 	    end
 	  end
 	end
@@ -432,9 +422,7 @@ class TypePage < BasicPage
 	  spec_method = method.specified_by
 	  unless spec_method.nil?
 	    html_div("class"=>"method_info") do
-	      html_dl("class"=>"method_additional_info") do
-		document_specified_by(spec_method)
-	      end
+	      document_specified_by(spec_method)
 	    end
 	  end
 	end
@@ -480,19 +468,17 @@ class TypePage < BasicPage
   end
 
   def document_parameters(arguments, comment_data)
-    html_dt("Parameters")
-    html_dd do
-      html_table("class"=>"arguments", "summary"=>"") do
-	arguments.each do |arg|
-	  desc = comment_find_param(comment_data, arg.name)
-	  if desc
-	    html_tr do
-	      html_td do
-		html_code(arg.name)
-	      end
-	      html_td do
-		output_doccomment_blocktag(desc)
-	      end
+    html_h4("Parameters")
+    html_table("class"=>"arguments extra_info", "summary"=>"") do
+      arguments.each do |arg|
+	desc = comment_find_param(comment_data, arg.name)
+	if desc
+	  html_tr do
+	    html_td do
+	      html_code(arg.name)
+	    end
+	    html_td do
+	      output_doccomment_blocktag(desc)
 	    end
 	  end
 	end
@@ -501,27 +487,23 @@ class TypePage < BasicPage
   end
 
   def document_return(comment_data)
-    html_dt("Return")
-    html_dd do
-      return_comment = comment_find_return(comment_data)
-      html_p do
-	output_doccomment_blocktag(return_comment)
-      end
+    html_h4("Return")
+    return_comment = comment_find_return(comment_data)
+    html_p("class"=>"extra_info") do
+      output_doccomment_blocktag(return_comment)
     end
   end
 
   def document_exceptions(comment_data)
-    html_dt("Throws")
-    html_dd do
-      html_table("class"=>"exceptions", "summary"=>"") do
-	comment_each_exception(comment_data) do |exception_comment|
-	  html_tr do
-	    html_td do
-	      link_type_proxy(exception_comment.exception_type)
-	    end
-	    html_td do
-	      output_doccomment_blocktag(exception_comment)
-	    end
+    html_h4("Throws")
+    html_table("class"=>"exceptions extra_info", "summary"=>"") do
+      comment_each_exception(comment_data) do |exception_comment|
+	html_tr do
+	  html_td do
+	    link_type_proxy(exception_comment.exception_type)
+	  end
+	  html_td do
+	    output_doccomment_blocktag(exception_comment)
 	  end
 	end
       end
@@ -529,10 +511,10 @@ class TypePage < BasicPage
   end
 
   def document_seealso(comment_data)
-    html_dt("See Also")
-    html_dd do
+    html_h4("See Also")
+    html_ul("class"=>"extra_info") do
       comment_each_seealso(comment_data) do |see_comment|
-	html_p do
+	html_li do
 	  output_doccomment_blocktag(see_comment)
 	end
       end
@@ -540,8 +522,8 @@ class TypePage < BasicPage
   end
 
   def document_specified_by(method)
-    html_dt("Specified By")
-    html_dd do
+    html_h4("Specified By")
+    html_p("class"=>"extra_info") do
       link_method(self, method)
       pcdata(" in ")
       link_type(self, method.containing_type, true)

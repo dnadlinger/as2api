@@ -1,4 +1,4 @@
-h1, h2, h3, th {
+h1, h2, h3, h4 th {
 	font-family: sans-serif;
 }
 
@@ -7,6 +7,15 @@ h2 {
 	padding-left: .2em;
 	padding-right: .2em;
 	-moz-border-radius: .2em;
+}
+
+h4 {
+	margin: 0;
+}
+
+.extra_info {
+	padding-left: 2em;
+	margin: 0;
 }
 
 .method_details, .field_details {
