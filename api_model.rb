@@ -183,6 +183,15 @@ class ASClass < ASType
     !@fields.empty?
   end
 
+  # returns true if this class, or any superclass has fields
+  def inherited_fields?
+    return true if fields?
+    each_ancestor do |supertype|
+      return true if supertype.fields?
+    end
+    false
+  end
+
   def each_field
     @fields.each do |field|
       yield field

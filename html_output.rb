@@ -229,7 +229,7 @@ class TypePage < BasicPage
 	end
       end
       
-      field_index_list(@type) if @type.fields?
+      field_index_list(@type) if @type.inherited_fields?
       method_index_list(@type) if @type.methods?
       constructor_detail(@type) if @type.constructor? && document_member?(@type.constructor)
       field_detail_list(@type) if @type.fields?
