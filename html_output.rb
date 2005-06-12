@@ -262,7 +262,7 @@ class TypePage < BasicPage
 	  if type.fields?
 	    html_h4 do
 	      pcdata("Inherited from ")
-	      link_type(type)
+	      link_type(self, type)
 	    end
 	    html_p("class"=>"extra_info") do
 	      list_fields(type, link_for_type(type))
