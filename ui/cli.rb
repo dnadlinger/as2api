@@ -32,6 +32,7 @@ class CLI
 
   def parse_opts
     opts = GetoptLong.new(
+      [ "--help",       "-h", GetoptLong::NO_ARGUMENT ],
       [ "--output-dir", "-d", GetoptLong::REQUIRED_ARGUMENT ],
       [ "--classpath",  "-c", GetoptLong::REQUIRED_ARGUMENT ]
     )
@@ -46,6 +47,9 @@ class CLI
 	  conf.output_dir = arg
 	when "--classpath"
 	  conf.classpath.concat(arg.split(File::PATH_SEPARATOR))
+	when "--help"
+	  usage
+	  exit(0)
       end
     end
     if ARGV.empty?
@@ -127,9 +131,24 @@ class CLI
 Usage:
   #{$0} [options] <package spec> ...
 
+A package spec can be given as:
+
+  com.example.pkg
+        Document types in the package 'com.example.pkg'.
+  com.example.pkg.*
+        Document types in the package 'com.example.pkg', and any other packages
+        with the same prefix (e.g. 'com.example.pkg.utils.extra' types too).
+
 Where options include:
+
   --classpath <path>
+        A list of paths, delimited by '#{File::PATH_SEPARATOR}'.  Each path will
+	be searched for packages matching the given <package spec> list.  If
+	no classpath is specified, only the current directory is searched.
   --output-dir <path>
+        The directory into which generated HTML files will be placed (the
+	directory will be created, if required.  If no output directory is
+	specified the default 'apidocs' is used.
     END
   end
 
