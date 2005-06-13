@@ -3,7 +3,10 @@ require 'documenter'
 require 'getoptlong'
 require 'html_output'
 
-Conf = Struct.new(:output_dir, :classpath, :package_filters)
+Conf = Struct.new(:output_dir,
+                  :classpath,
+		  :package_filters,
+		  :title)
 
 SourceFile = Struct.new(:prefix, :suffix)
 
@@ -34,7 +37,8 @@ class CLI
     opts = GetoptLong.new(
       [ "--help",       "-h", GetoptLong::NO_ARGUMENT ],
       [ "--output-dir", "-d", GetoptLong::REQUIRED_ARGUMENT ],
-      [ "--classpath",  "-c", GetoptLong::REQUIRED_ARGUMENT ]
+      [ "--classpath",        GetoptLong::REQUIRED_ARGUMENT ],
+      [ "--title",            GetoptLong::REQUIRED_ARGUMENT ]
     )
 
     conf = Conf.new
@@ -47,6 +51,8 @@ class CLI
 	  conf.output_dir = arg
 	when "--classpath"
 	  conf.classpath.concat(arg.split(File::PATH_SEPARATOR))
+	when "--title"
+	  conf.title = arg
 	when "--help"
 	  usage
 	  exit(0)
@@ -123,7 +129,7 @@ class CLI
     error("No source files matching specified packages") if files.empty?
     type_agregator = parse_all(files)
     type_agregator.resolve_types
-    document_types(@conf.output_dir, type_agregator)
+    document_types(@conf, type_agregator)
   end
 
   def usage
@@ -131,7 +137,7 @@ class CLI
 Usage:
   #{$0} [options] <package spec> ...
 
-A package spec can be given as:
+Each package spec can be given as:
 
   com.example.pkg
         Document types in the package 'com.example.pkg'.

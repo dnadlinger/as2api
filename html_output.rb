@@ -111,11 +111,23 @@ class Page
     @encoding = "iso-8859-1"
     @doctype_id = :strict
     @title = nil
+    @title_extra = nil
     @io = nil  # to be set during the lifetime of generate() call
   end
 
-  attr_accessor :path_name, :base_name, :encoding, :doctype_id, :title
+  attr_accessor :path_name, :base_name, :encoding, :doctype_id, :title, :title_extra
 
+  def title
+    if @title_extra
+      if @title
+	"#{@title} - #{@title_extra}"
+      else
+	@title_extra
+      end
+    else
+      @title
+    end
+  end
 
   def generate(xml_writer)
     @io = xml_writer
@@ -229,7 +241,7 @@ class TypePage < BasicPage
 	end
       end
       
-      field_index_list(@type) if @type.inherited_fields?
+      field_index_list(@type) if @type.fields? && @type.inherited_fields?
       method_index_list(@type) if @type.methods?
       constructor_detail(@type) if @type.constructor? && document_member?(@type.constructor)
       field_detail_list(@type) if @type.fields?
@@ -966,7 +978,6 @@ class AllTypesFramePage < Page
   def initialize(path_name, type_agregator)
     super(path_name, "all-types-frame")
     @type_agregator = type_agregator
-    @title = "as2api"
     @doctype_id = :transitional
   end
 
@@ -1001,7 +1012,6 @@ class FramesetPage < Page
 
   def initialize(path_name)
     super(path_name, "frameset")
-    @title = "as2api"
     @doctype_id = :frameset
   end
 
@@ -1141,17 +1151,17 @@ class IndexPage < BasicPage
 
 end
 
-def make_page_list(output_path, type_agregator)
+def make_page_list(conf, type_agregator)
   list = []
 
-  list << FramesetPage.new(output_path)
-  list << OverviewPage.new(output_path, type_agregator)
-  list << OverviewFramePage.new(output_path, type_agregator)
-  list << AllTypesFramePage.new(output_path, type_agregator)
+  list << FramesetPage.new(conf.output_dir)
+  list << OverviewPage.new(conf.output_dir, type_agregator)
+  list << OverviewFramePage.new(conf.output_dir, type_agregator)
+  list << AllTypesFramePage.new(conf.output_dir, type_agregator)
 
   # packages..
   type_agregator.each_package do |package|
-    dir = File.join(output_path, package_dir_for(package))
+    dir = File.join(conf.output_dir, package_dir_for(package))
     list << PackageIndexPage.new(dir, package)
     list << PackageFramePage.new(dir, package)
   end
@@ -1159,27 +1169,28 @@ def make_page_list(output_path, type_agregator)
   # types..
   type_agregator.each_type do |type|
     if type.document?
-      dir = File.join(output_path, type.package_name.gsub(/\./, "/"))
+      dir = File.join(conf.output_dir, type.package_name.gsub(/\./, "/"))
       list << TypePage.new(dir, type)
     end
   end
 
-  dir = File.join(output_path, "index-files")
+  dir = File.join(conf.output_dir, "index-files")
   list << IndexPage.new(dir, type_agregator)
 
   list
 end
 
-def create_all_pages(list)
+def create_all_pages(conf, list)
   list.each do |page|
+    page.title_extra = conf.title
     create_page(page)
   end
 end
 
-def document_types(output_path, type_agregator)
-  list = make_page_list(output_path, type_agregator)
-  create_all_pages(list)
-  package_list(output_path, type_agregator)
+def document_types(conf, type_agregator)
+  list = make_page_list(conf, type_agregator)
+  create_all_pages(conf, list)
+  package_list(conf.output_dir, type_agregator)
 end
 
 # vim:softtabstop=2:shiftwidth=2
