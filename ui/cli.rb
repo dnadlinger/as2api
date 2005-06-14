@@ -6,7 +6,8 @@ require 'html_output'
 Conf = Struct.new(:output_dir,
                   :classpath,
 		  :package_filters,
-		  :title)
+		  :title,
+		  :progress_listener)
 
 SourceFile = Struct.new(:prefix, :suffix)
 
@@ -31,6 +32,42 @@ class PackageGlobFilter
 end
 
 
+class VerboseProgressListener < NullProgressListener
+  def parsing_sources(total_files)
+    @total = total_files
+    $stderr.puts("Parsing #{total_files} source files:")
+    yield
+    progress_bar(total_files)  # ensure we see '100%'
+    puts
+  end
+
+  def parse_source(file_number, file_name)
+    progress_bar(file_number)
+  end
+
+  def generating_pages(total_pages)
+    @total = total_pages
+    $stderr.puts("Generating #{total_pages} HTML pages:")
+    yield
+    progress_bar(total_pages)  # ensure we see '100%'
+    puts
+  end
+
+  def generate_page(file_number, file_name)
+    progress_bar(file_number)
+  end
+
+  private
+
+  WIDTH = 38
+
+  def progress_bar(count)
+    size = count*WIDTH/@total
+    $stderr.print "[#{'='*size}#{' '*(WIDTH-size)}] #{count*100/@total}%\r"
+  end
+end
+
+
 class CLI
 
   def parse_opts
@@ -38,7 +75,8 @@ class CLI
       [ "--help",       "-h", GetoptLong::NO_ARGUMENT ],
       [ "--output-dir", "-d", GetoptLong::REQUIRED_ARGUMENT ],
       [ "--classpath",        GetoptLong::REQUIRED_ARGUMENT ],
-      [ "--title",            GetoptLong::REQUIRED_ARGUMENT ]
+      [ "--title",            GetoptLong::REQUIRED_ARGUMENT ],
+      [ "--progress",         GetoptLong::NO_ARGUMENT ]
     )
 
     conf = Conf.new
@@ -56,6 +94,8 @@ class CLI
 	when "--help"
 	  usage
 	  exit(0)
+	when "--progress"
+	  conf.progress_listener = VerboseProgressListener.new
       end
     end
     if ARGV.empty?
@@ -66,6 +106,7 @@ class CLI
       conf.package_filters << to_filter(package_spec)
     end
 
+    conf.progress_listener = NullProgressListener.new if conf.progress_listener.nil?
     conf.classpath << "." if conf.classpath.empty?
     conf.output_dir = "apidoc" if conf.output_dir.nil?
 
@@ -102,11 +143,9 @@ class CLI
     File.open(File.join(file.prefix, file.suffix)) do |io|
       begin
 	is_utf8 = detect_bom?(io)
-	print "Parsing #{file.prefix}:#{file.suffix}"
 	type = simple_parse(io)
 	type.input_filename = file.suffix
 	type.sourcepath_location(File.dirname(file.suffix))
-	puts " -> #{type.qualified_name}"
 	type.source_utf8 = is_utf8
 	type_agregator.add_type(type)
       rescue =>e
@@ -117,8 +156,11 @@ class CLI
 
   def parse_all(files)
     type_agregator = GlobalTypeAggregator.new
-    files.each do |file|
-      parse_file(file, type_agregator)
+    @conf.progress_listener.parsing_sources(files.length) do
+      files.each_with_index do |file, index|
+	@conf.progress_listener.parse_source(index, file)
+	parse_file(file, type_agregator)
+      end
     end
     type_agregator
   end

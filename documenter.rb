@@ -5,6 +5,21 @@ require 'api_loader'
 
 
 
+class NullProgressListener
+  def parsing_sources(total_files)
+    yield
+  end
+
+  def parse_source(file_number, file_name)
+  end
+
+  def generating_pages(total_pages)
+    yield
+  end
+
+  def generate_page(file_number, file_name)
+  end
+end
 
 def simple_parse(input)
   as_io = ASIO.new(input)

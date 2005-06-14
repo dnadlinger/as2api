@@ -1181,9 +1181,12 @@ def make_page_list(conf, type_agregator)
 end
 
 def create_all_pages(conf, list)
-  list.each do |page|
-    page.title_extra = conf.title
-    create_page(page)
+  conf.progress_listener.generating_pages(list.length) do
+    list.each_with_index do |page, index|
+      page.title_extra = conf.title
+      conf.progress_listener.generate_page(index, page)
+      create_page(page)
+    end
   end
 end
 
