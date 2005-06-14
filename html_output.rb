@@ -322,7 +322,7 @@ class TypePage < BasicPage
 	      pcdata("Inherited from ")
 	      link_type(self, type)
 	    end
-	    html_p("class"=>"extra_infp") do
+	    html_p("class"=>"extra_info") do
 	      list_methods(type, known_method_names, link_for_type(type))
 	    end
 	  end
