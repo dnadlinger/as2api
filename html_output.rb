@@ -3,6 +3,118 @@ require 'xmlwriter'
 require 'xhtmlwriter'
 require 'doc_comment'
 
+
+def stylesheet(output_dir)
+  in_subdir(output_dir) do
+    name = "style.css"
+
+    # avoid overwriting a (possibly modified) existing stylesheet
+    return if FileTest.exist?(File.join($path, name))
+
+    write_file(name) do |out|
+      out.print <<-HERE
+h1, h2, h3, h4 th {
+	font-family: sans-serif;
+}
+
+h2 {
+	background-color: #ccccff;
+	padding-left: .2em;
+	padding-right: .2em;
+	-moz-border-radius: .2em;
+}
+
+h4 {
+	margin: 0;
+}
+
+.extra_info {
+	padding-left: 2em;
+	margin: 0;
+}
+
+.method_details, .field_details {
+	padding-bottom: .5em;
+}
+
+.method_info, .field_info {
+	padding-left: 3em;
+}
+
+.alt_row {
+	background-color: #eeeeee;
+}
+
+.main_nav {
+	background-color: #EEEEFF;
+	padding: 4px;
+}
+.main_nav li {
+	font-family: sans-serif;
+	font-weight: bolder;
+	display: inline;
+}
+.main_nav li * {
+	padding: 4px;
+}
+.nav_current {
+	background-color: #00008B;
+	color: #FFFFFF;
+}
+
+table.summary_list {
+	border-collapse: collapse;
+	width: 100%;
+	margin-bottom: 1em;
+}
+table.summary_list th {
+	background-color: #CCCCFF;
+	font-size: larger;
+}
+table.summary_list td, table.summary_list th {
+	border: 2px solid grey;
+	padding: .2em;
+}
+ul.navigation_list {
+	padding-left: 0;
+}
+ul.navigation_list li {
+	margin: 0 0 .4em 0;
+	list-style: none;
+}
+
+table.exceptions td, table.arguments td {
+	vertical-align: text-top;
+	padding: 0 1em .5em 0;
+}
+
+/*
+.unresolved_type_name {
+	background-color: red;
+	color: white;
+}
+*/
+
+.interface_name {
+	font-style: italic;
+}
+
+.footer {
+	text-align: center;
+	font-size: smaller;
+}
+/*
+.read_write_only {
+}
+*/
+.diagram {
+	text-align: center;
+}
+      HERE
+    end
+  end
+end
+
 def link_for_type(type)
   base_path(type.qualified_name.gsub(/\./, "/")+".html")
 end
@@ -1194,6 +1306,7 @@ def document_types(conf, type_agregator)
   list = make_page_list(conf, type_agregator)
   create_all_pages(conf, list)
   package_list(conf.output_dir, type_agregator)
+  stylesheet(conf.output_dir)
 end
 
 # vim:softtabstop=2:shiftwidth=2
