@@ -197,6 +197,10 @@ Where options include:
         The directory into which generated HTML files will be placed (the
 	directory will be created, if required.  If no output directory is
 	specified the default 'apidocs' is used.
+  --progress
+	Print feedback showing how far tasks have progressed
+  --title <text>
+        Put the given text into the titles of generated HTML pages
     END
   end
 
