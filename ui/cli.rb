@@ -155,7 +155,7 @@ class CLI
   end
 
   def parse_all(files)
-    type_agregator = GlobalTypeAggregator.new
+    type_agregator = GlobalTypeAggregator.new(@conf.classpath)
     @conf.progress_listener.parsing_sources(files.length) do
       files.each_with_index do |file, index|
 	@conf.progress_listener.parse_source(index, file)

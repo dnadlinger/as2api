@@ -9,6 +9,33 @@ require 'doc_comment'
 ActionScript::Parse::ASToken.module_eval("attr_accessor :last_comment")
 
 
+def simple_parse(input)
+  as_io = ASIO.new(input)
+  lex = DocASLexer.new(ActionScript::Parse::ASLexer.new(as_io))
+  parse = DocASParser.new(lex)
+  handler = DocASHandler.new
+  parse.handler = handler
+  parse.parse_compilation_unit
+  handler.defined_type
+end
+
+
+def parse_file(file)
+  File.open(File.join(file.prefix, file.suffix)) do |io|
+    begin
+      is_utf8 = detect_bom?(io)
+      type = simple_parse(io)
+      type.input_filename = file.suffix
+      type.sourcepath_location(File.dirname(file.suffix))
+      type.source_utf8 = is_utf8
+      return type
+    rescue =>e
+      $stderr.puts "#{file.suffix}: #{e.message}\n#{e.backtrace.join("\n")}"
+    end
+  end
+end
+
+
 # Hacked subclass of SkipASLexer that remembers multiline comment tokens as
 # they're bing skipped over, and then pokes them into the next real token
 # that comes by
@@ -80,7 +107,6 @@ class DocASHandler < ActionScript::Parse::ASHandler
   end
 
   def compilation_unit_start
-    @type_resolver = LocalTypeResolver.new
     @import_manager = ImportManager.new
     @defined_type = nil
   end
@@ -97,6 +123,7 @@ class DocASHandler < ActionScript::Parse::ASHandler
 
   def start_class(dynamic, name, super_name, interfaces)
     @defined_type = ASClass.new(name)
+    @type_resolver = LocalTypeResolver.new(@defined_type)
     if @doc_comment
       input = create_comment_parser_input(@doc_comment)
       @defined_type.comment = @type_comment_parser.parse(input)
@@ -121,6 +148,7 @@ class DocASHandler < ActionScript::Parse::ASHandler
 
   def start_interface(name, super_name)
     @defined_type = ASInterface.new(name)
+    @type_resolver = LocalTypeResolver.new(@defined_type)
     if @doc_comment
       input = create_comment_parser_input(@doc_comment)
       @defined_type.comment = @type_comment_parser.parse(input)
@@ -279,13 +307,14 @@ end
 class TypeProxy
   # TODO: this should be in api_model.rb
 
-  def initialize(name)
+  def initialize(containing_type, name)
     @name = name
+    @containing_type = containing_type
     @resolved_type = nil
     @lineno = nil
   end
 
-  attr_accessor :name, :resolved_type, :lineno
+  attr_accessor :name, :containing_type, :resolved_type, :lineno
 
   def resolved?
     !@resolved_type.nil?
@@ -312,7 +341,8 @@ class LocalTypeResolver
   #       class supplies *aren't* resolved yet, this class is completely
   #       mis-named.
 
-  def initialize
+  def initialize(containing_type)
+    @containing_type = containing_type
     @named_types = {}
   end
 
@@ -323,7 +353,7 @@ class LocalTypeResolver
     end
     type = @named_types[name]
     if type.nil?
-      type = TypeProxy.new(name)
+      type = TypeProxy.new(@containing_type, name)
       type.lineno = lineno
       @named_types[name] = type
     end
@@ -348,9 +378,11 @@ class GlobalTypeAggregator
   # TODO: this structure sucks; responsibility for type resolution should be
   #       entirely seperate from aggregation, not shoe-horned into this class
 
-  def initialize
+  def initialize(classpath)
+    @classpath = classpath
     @types = []
     @packages = {}
+    @parsed_external_types = {}
   end
 
   def add_type(type)
@@ -399,6 +431,9 @@ class GlobalTypeAggregator
       resolver = type.type_resolver
       resolver.each do |type_proxy|
 	real_type = local_namespace[type_proxy.local_name]
+	unless real_type
+	  real_type = maybe_parse_external_definition(type_proxy)
+	end
 	if real_type
 	  type_proxy.resolved_type = real_type
 	else
@@ -441,6 +476,48 @@ class GlobalTypeAggregator
 	local_namespace[package_type.unqualified_name] = package_type
       end
     end
+  end
+
+  def classname_to_filename(qualified_class_name)
+    return qualified_class_name.sub(/\./, File::SEPARATOR) + ".as"
+  end
+
+  def search_classpath_for(qualified_class_name)
+    filename = classname_to_filename(qualified_class_name)
+
+    @classpath.each do |path|
+      if FileTest.exist?(File.join(path, filename))
+	return SourceFile.new(path, filename)
+      end
+    end
+
+    nil
+  end
+
+  def find_file_matching(type_proxy)
+    file_name = search_classpath_for(type_proxy.name)
+    return file_name unless file_name.nil?
+    return nil if type_proxy.qualified?
+
+    type_proxy.containing_type.import_manager.each_package do |package_name|
+      candidate_name = package_name.join(".") + "." + type_proxy.name
+      file_name = search_classpath_for(candidate_name)
+      return file_name unless file_name.nil?
+    end
+
+    nil
+  end
+
+  def maybe_parse_external_definition(type_proxy)
+    source_file = find_file_matching(type_proxy)
+    return nil if source_file.nil?
+    astype = @parsed_external_types[source_file.suffix]
+    return astype unless astype.nil?
+    astype = parse_file(source_file)
+    astype.document = false
+    @parsed_external_types[source_file.suffix] = astype
+
+    astype
   end
 end
 

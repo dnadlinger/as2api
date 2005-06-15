@@ -21,17 +21,6 @@ class NullProgressListener
   end
 end
 
-def simple_parse(input)
-  as_io = ASIO.new(input)
-  lex = DocASLexer.new(ActionScript::Parse::ASLexer.new(as_io))
-  parse = DocASParser.new(lex)
-  handler = DocASHandler.new
-  parse.handler = handler
-  parse.parse_compilation_unit
-  handler.defined_type
-end
-
-
 BOM = "\357\273\277"
 
 # Look for a byte-order-marker in the first 3 bytes of io.
