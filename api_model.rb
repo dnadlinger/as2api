@@ -26,6 +26,7 @@ class ASType
     @type_resolver = nil
     @import_manager = nil
     @input_filename = nil
+    @document = true
   end
 
   attr_accessor :package, :extends, :comment, :source_utf8, :type_resolver, :import_manager, :input_filename, :intrinsic, :constructor
@@ -120,7 +121,11 @@ class ASType
   end
 
   def document?
-    true
+    @document
+  end
+
+  def document=(is_allowed_in_documentation)
+    @document = is_allowed_in_documentation
   end
 end
 
@@ -128,10 +133,7 @@ class ASVoidType < ASType
   def initialize
     @name = "Void"
     @package_name = ""
-  end
-
-  def document?
-    false
+    @document = false
   end
 end
 
