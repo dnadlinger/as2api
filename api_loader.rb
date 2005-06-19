@@ -458,6 +458,7 @@ class GlobalTypeAggregator
     importer = type.import_manager
     importer.each_type do |type_name|
       import_type = local_namespace[type_name.join(".")]
+      import_type = maybe_parse_external_definition(TypeProxy.new(type, type_name.join('.'))) unless import_type
       if import_type
 	local_namespace[type_name.last.body] = import_type
       else
