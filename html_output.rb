@@ -173,7 +173,7 @@ class Page
   def initialize(base_name, path_name=nil)
     @path_name = path_name
     @base_name = base_name
-    @encoding = "iso-8859-1"
+    @encoding = nil
     @doctype_id = :strict
     @title = nil
     @title_extra = nil
@@ -196,7 +196,11 @@ class Page
 
   def generate(xml_writer)
     @io = xml_writer
-    pi("xml version=\"1.0\" encoding=\"#{encoding}\"") unless encoding.nil?
+    if encoding.nil?
+      pi("xml version=\"1.0\"")
+    else
+      pi("xml version=\"1.0\" encoding=\"#{encoding}\"")
+    end
     case doctype_id
     # FIXME: push this code down into XHTMLWriter, and have it switch the
     # allowed elements depending on the value passed at construction
@@ -299,8 +303,6 @@ class TypePage < BasicPage
     @type = type
     if @type.source_utf8
       @encoding = "utf-8"
-    else
-      @encoding = "iso-8859-1"
     end
     @title = type.qualified_name
   end
@@ -1287,6 +1289,7 @@ def create_all_pages(conf, list)
   conf.progress_listener.generating_pages(list.length) do
     list.each_with_index do |page, index|
       page.title_extra = conf.title
+      page.encoding = conf.input_encoding
       conf.progress_listener.generate_page(index, page)
       create_page(conf.output_dir, page)
     end

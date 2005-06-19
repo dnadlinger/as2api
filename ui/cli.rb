@@ -7,7 +7,8 @@ Conf = Struct.new(:output_dir,
                   :classpath,
 		  :package_filters,
 		  :title,
-		  :progress_listener)
+		  :progress_listener,
+		  :input_encoding)
 
 SourceFile = Struct.new(:prefix, :suffix)
 
@@ -76,7 +77,8 @@ class CLI
       [ "--output-dir", "-d", GetoptLong::REQUIRED_ARGUMENT ],
       [ "--classpath",        GetoptLong::REQUIRED_ARGUMENT ],
       [ "--title",            GetoptLong::REQUIRED_ARGUMENT ],
-      [ "--progress",         GetoptLong::NO_ARGUMENT ]
+      [ "--progress",         GetoptLong::NO_ARGUMENT ],
+      [ "--encoding",         GetoptLong::REQUIRED_ARGUMENT ]
     )
 
     conf = Conf.new
@@ -96,6 +98,8 @@ class CLI
 	  exit(0)
 	when "--progress"
 	  conf.progress_listener = VerboseProgressListener.new
+	when "--encoding"
+	  conf.input_encoding = arg
       end
     end
     if ARGV.empty?
@@ -201,6 +205,8 @@ Where options include:
 	Print feedback showing how far tasks have progressed
   --title <text>
         Put the given text into the titles of generated HTML pages
+  --encoding <name>
+        The encoding of the source files to be parsed.
     END
   end
 
