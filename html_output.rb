@@ -5,14 +5,13 @@ require 'doc_comment'
 
 
 def stylesheet(output_dir)
-  in_subdir(output_dir) do
-    name = "style.css"
+  name = "style.css"
 
-    # avoid overwriting a (possibly modified) existing stylesheet
-    return if FileTest.exist?(File.join($path, name))
+  # avoid overwriting a (possibly modified) existing stylesheet
+  return if FileTest.exist?(File.join(output_dir, name))
 
-    write_file(name) do |out|
-      out.print <<-HERE
+  write_file(output_dir, name) do |out|
+    out.print <<-HERE
 h1, h2, h3, h4 th {
 	font-family: sans-serif;
 }
@@ -110,88 +109,42 @@ table.exceptions td, table.arguments td {
 .diagram {
 	text-align: center;
 }
-      HERE
-    end
+    HERE
   end
 end
 
-def link_for_type(type)
-  base_path(type.qualified_name.gsub(/\./, "/")+".html")
-end
 
-def link_type(out, type, qualified=false)
-  href = link_for_type(type)
-  if type.instance_of?(ASInterface)
-    attr_class = "interface_name"
-    attr_title = "Interface #{type.qualified_name}"
-  else
-    attr_class = "class_name"
-    attr_title = "Class #{type.qualified_name}"
+def ensure_dir(path)
+  path_components = path.split(File::SEPARATOR)
+  base_path = nil
+  if path_components.first == ""
+    path_components.shift
+    base_path = "/"
   end
-  if qualified
-    content = type.qualified_name
-  else
-    content = type.unqualified_name
-  end
-  out.html_a(content, {"href"=>href,
-		       "class"=>attr_class,
-		       "title"=>attr_title})
-end
-
-
-def link_for_method(method)
-  return "#{link_for_type(method.containing_type)}#method_#{method.name}"
-end
-
-def link_method(out, method)
-  out.html_a("href"=>link_for_method(method)) do
-    out.pcdata(method.name)
-    out.pcdata("()")
-  end
-end
-
-$base_path = ""
-$path = ""
-
-def base_path(file)
-  "#{$base_path}#{file}"
-end
-
-def in_subdir(path)
-  save_path = $path
-  save_base_path = $base_path.dup
-  path = path.split(File::SEPARATOR)
-  if path.first == ""
-    path.shift
-    $path = "/"
-  end
-  path.each do |part|
-    if $path == ""
-      $path = part
+  path_components.each do |part|
+    if base_path.nil?
+      base_path = part
     else
-      $base_path << ".."+File::SEPARATOR
-      $path = File.join($path, part)
+      base_path = File.join(base_path, part)
     end
-    unless FileTest.exist?($path)
-      Dir.mkdir($path)
+    unless FileTest.exist?(base_path)
+      Dir.mkdir(base_path)
     end
   end
-  yield
-  $path = save_path
-  $base_path = save_base_path
 end
 
-def write_file(name)
-  File.open(File.join($path, name), "w") do |io|
+def write_file(path, name)
+  ensure_dir(path)
+  name = File.join(path, name)
+  File.open(name, "w") do |io|
     yield io
   end
 end
 
-def create_page(page)
-  in_subdir(page.path_name) do
-    write_file("#{page.base_name}.html") do |io|
-      page.generate(XMLWriter.new(io))
-    end
+def create_page(output_dir, page)
+  dir = File.join(output_dir, page.path_name)
+  write_file(dir, "#{page.base_name}.html") do |io|
+    page.generate(XMLWriter.new(io))
   end
 end
 
@@ -217,7 +170,7 @@ PROJECT_PAGE = "http://www.badgers-in-foil.co.uk/projects/as2api/"
 class Page
   include XHTMLWriter
 
-  def initialize(path_name, base_name)
+  def initialize(base_name, path_name=nil)
     @path_name = path_name
     @base_name = base_name
     @encoding = "iso-8859-1"
@@ -277,6 +230,46 @@ class Page
       html_meta("name"=>"generator", "content"=>PROJECT_PAGE)
     end
   end
+
+  def link_for_type(type)
+    base_path(type.qualified_name.gsub(/\./, "/")+".html")
+  end
+
+  def link_type(type, qualified=false)
+    href = link_for_type(type)
+    if type.instance_of?(ASInterface)
+      attr_class = "interface_name"
+      attr_title = "Interface #{type.qualified_name}"
+    else
+      attr_class = "class_name"
+      attr_title = "Class #{type.qualified_name}"
+    end
+    if qualified
+      content = type.qualified_name
+    else
+      content = type.unqualified_name
+    end
+    html_a(content, {"href"=>href,
+		     "class"=>attr_class,
+		     "title"=>attr_title})
+  end
+
+
+  def link_for_method(method)
+    return "#{link_for_type(method.containing_type)}#method_#{method.name}"
+  end
+
+  def link_method(method)
+    html_a("href"=>link_for_method(method)) do
+      pcdata(method.name)
+      pcdata("()")
+    end
+  end
+
+  def base_path(file)
+    return file if @path_name.nil?
+    ((".."+File::SEPARATOR) * @path_name.split(File::SEPARATOR).length) + file
+  end
 end
 
 class BasicPage < Page
@@ -300,8 +293,9 @@ end
 
 class TypePage < BasicPage
 
-  def initialize(path_name, type)
-    super(path_name, type.unqualified_name)
+  def initialize(type)
+    dir = type.package_name.gsub(/\./, "/")
+    super(type.unqualified_name, dir)
     @type = type
     if @type.source_utf8
       @encoding = "utf-8"
@@ -386,7 +380,7 @@ class TypePage < BasicPage
 	  if type.fields?
 	    html_h4 do
 	      pcdata("Inherited from ")
-	      link_type(self, type)
+	      link_type(type)
 	    end
 	    html_p("class"=>"extra_info") do
 	      list_fields(type, link_for_type(type))
@@ -432,7 +426,7 @@ class TypePage < BasicPage
 	  if type.methods?
 	    html_h4 do
 	      pcdata("Inherited from ")
-	      link_type(self, type)
+	      link_type(type)
 	    end
 	    html_p("class"=>"extra_info") do
 	      list_methods(type, known_method_names, link_for_type(type))
@@ -648,9 +642,9 @@ class TypePage < BasicPage
   def document_specified_by(method)
     html_h4("Specified By")
     html_p("class"=>"extra_info") do
-      link_method(self, method)
+      link_method(method)
       pcdata(" in ")
-      link_type(self, method.containing_type, true)
+      link_type(method.containing_type, true)
     end
   end
 
@@ -763,7 +757,7 @@ class TypePage < BasicPage
 
   def link_type_proxy(type_proxy, qualified=false)
     if type_proxy.resolved? && type_proxy.resolved_type.document?
-      link_type(self, type_proxy.resolved_type, qualified)
+      link_type(type_proxy.resolved_type, qualified)
     else
       if type_proxy.resolved?
 	if type_proxy.resolved_type.instance_of?(ASInterface)
@@ -872,8 +866,9 @@ end
 
 class PackageIndexPage < BasicPage
 
-  def initialize(path_name, package)
-    super(path_name, "package-summary")
+  def initialize(package)
+    dir = package_dir_for(package)
+    super("package-summary", dir)
     @package = package
     @title = "Package #{package_display_name_for(@package)} API Documentation"
   end
@@ -944,8 +939,9 @@ end
 
 class PackageFramePage < Page
 
-  def initialize(path_name, package)
-    super(path_name, "package-frame")
+  def initialize(package)
+    dir = package_dir_for(package)
+    super("package-frame", dir)
     @package = package
     @title = "Package #{package_display_name_for(@package)} API Naviation"
     @doctype_id = :transitional
@@ -988,8 +984,8 @@ class PackageFramePage < Page
 end
 
 class OverviewPage < BasicPage
-  def initialize(path_name, type_agregator)
-    super(path_name, "overview-summary")
+  def initialize(type_agregator)
+    super("overview-summary")
     @type_agregator = type_agregator
     @title = "API Overview"
   end
@@ -1038,8 +1034,8 @@ end
 
 class OverviewFramePage < Page
 
-  def initialize(path_name, type_agregator)
-    super(path_name, "overview-frame")
+  def initialize(type_agregator)
+    super("overview-frame")
     @type_agregator = type_agregator
     @title = "API Overview"
     @doctype_id = :transitional
@@ -1075,11 +1071,9 @@ def package_list(path_name, type_agregator)
   #          must have access to that type's source in order to compile?
   #          (In theory, this file will allow javadoc to link to ActionScript
   #          classes, so maybe keep it just for that.)
-  in_subdir(path_name) do
-    write_file("package-list") do |out|
-      type_agregator.each_package do |package|
-	out.puts(package.name) unless package.name == ""
-      end
+  write_file(path_name, "package-list") do |out|
+    type_agregator.each_package do |package|
+      out.puts(package.name) unless package.name == ""
     end
   end
 end
@@ -1087,8 +1081,8 @@ end
 
 class AllTypesFramePage < Page
 
-  def initialize(path_name, type_agregator)
-    super(path_name, "all-types-frame")
+  def initialize(type_agregator)
+    super("all-types-frame")
     @type_agregator = type_agregator
     @doctype_id = :transitional
   end
@@ -1122,8 +1116,8 @@ end
 
 class FramesetPage < Page
 
-  def initialize(path_name)
-    super(path_name, "frameset")
+  def initialize
+    super("frameset")
     @doctype_id = :frameset
   end
 
@@ -1167,7 +1161,7 @@ class TypeIndexTerm < IndexTerm
   end
 
   def link(out)
-    link_type(out, @astype)
+    out.link_type(@astype)
     out.pcdata(" in package ")
     out.html_a(@astype.package_name, {"href"=>"../" + @astype.package_name.gsub(".", "/") + "/package-summary.html"})
   end
@@ -1186,26 +1180,26 @@ end
 
 class MethodIndexTerm < MemberIndexTerm
   def link(out)
-    link_method(out, @asmember)
+    out.link_method(@asmember)
     out.pcdata(" method in ")
-    link_type(out, @astype, true)
+    out.link_type(@astype, true)
   end
 end
 
 class FieldIndexTerm < MemberIndexTerm
   def link(out)
-    href_prefix = link_for_type(@astype)
+    href_prefix = out.link_for_type(@astype)
     out.html_a("href"=>"#{href_prefix}#field_#{@asmember.name}") do
       out.pcdata(@asmember.name)
     end
     out.pcdata(" field in ")
-    link_type(out, @astype, true)
+    out.link_type(@astype, true)
   end
 end
 
 class IndexPage < BasicPage
-  def initialize(path_name, type_agregator)
-    super(path_name, "index")
+  def initialize(type_agregator)
+    super("index", "index-files")
     @type_agregator = type_agregator
     @title = "Alphabetical Index"
   end
@@ -1266,28 +1260,25 @@ end
 def make_page_list(conf, type_agregator)
   list = []
 
-  list << FramesetPage.new(conf.output_dir)
-  list << OverviewPage.new(conf.output_dir, type_agregator)
-  list << OverviewFramePage.new(conf.output_dir, type_agregator)
-  list << AllTypesFramePage.new(conf.output_dir, type_agregator)
+  list << FramesetPage.new()
+  list << OverviewPage.new(type_agregator)
+  list << OverviewFramePage.new(type_agregator)
+  list << AllTypesFramePage.new(type_agregator)
 
   # packages..
   type_agregator.each_package do |package|
-    dir = File.join(conf.output_dir, package_dir_for(package))
-    list << PackageIndexPage.new(dir, package)
-    list << PackageFramePage.new(dir, package)
+    list << PackageIndexPage.new(package)
+    list << PackageFramePage.new(package)
   end
 
   # types..
   type_agregator.each_type do |type|
     if type.document?
-      dir = File.join(conf.output_dir, type.package_name.gsub(/\./, "/"))
-      list << TypePage.new(dir, type)
+      list << TypePage.new(type)
     end
   end
 
-  dir = File.join(conf.output_dir, "index-files")
-  list << IndexPage.new(dir, type_agregator)
+  list << IndexPage.new(type_agregator)
 
   list
 end
@@ -1297,7 +1288,7 @@ def create_all_pages(conf, list)
     list.each_with_index do |page, index|
       page.title_extra = conf.title
       conf.progress_listener.generate_page(index, page)
-      create_page(page)
+      create_page(conf.output_dir, page)
     end
   end
 end

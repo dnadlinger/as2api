@@ -86,7 +86,7 @@ class CLI
     opts.each do |opt, arg|
       case opt
 	when "--output-dir"
-	  conf.output_dir = arg
+	  conf.output_dir = File.expand_path(arg)
 	when "--classpath"
 	  conf.classpath.concat(arg.split(File::PATH_SEPARATOR))
 	when "--title"
