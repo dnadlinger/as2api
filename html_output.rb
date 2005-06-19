@@ -253,9 +253,13 @@ class Page
     else
       content = type.unqualified_name
     end
-    html_a(content, {"href"=>href,
-		     "class"=>attr_class,
-		     "title"=>attr_title})
+    if type.document?
+      html_a(content, {"href"=>href,
+		       "class"=>attr_class,
+		       "title"=>attr_title})
+    else
+      pcdata(content)
+    end
   end
 
 
@@ -264,7 +268,12 @@ class Page
   end
 
   def link_method(method)
-    html_a("href"=>link_for_method(method)) do
+    if method.containing_type.document?
+      html_a("href"=>link_for_method(method)) do
+	pcdata(method.name)
+	pcdata("()")
+      end
+    else
       pcdata(method.name)
       pcdata("()")
     end
@@ -447,7 +456,11 @@ class TypePage < BasicPage
     methods.each_with_index do |method, index|
       known_method_names << method.name
       pcdata(", ") if index > 0
-      html_a("href"=>"#{href_prefix}#method_#{method.name}") do
+      if type.document?
+	html_a("href"=>"#{href_prefix}#method_#{method.name}") do
+	  pcdata(method.name+"()")
+	end
+      else
 	pcdata(method.name+"()")
       end
     end
