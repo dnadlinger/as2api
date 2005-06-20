@@ -133,12 +133,13 @@ end
 
 
 class LinkTag
-  def initialize(target, text)
+  def initialize(target, member, text)
     @target = target
+    @member = member
     @text = text
   end
 
-  attr_accessor :target, :text
+  attr_accessor :target, :member, :text
 end
 
 
@@ -189,9 +190,21 @@ def create_link(input)
   if input.text =~ /^([^ ]+(?:\([^\)]*\))?)\s*/
     target = $1
     text = $'
-    type_proxy = input.type_resolver.resolve(target, input.lineno)
-    return LinkTag.new(type_proxy, text)
-else
+    # TODO: need a MemberProxy (and maybe Method+Field subclasses) with similar
+    #       role to TypeProxy, to simplify this, and output_doccomment_inlinetag
+    if target =~ /([^#]*)#(.*)/
+      type_name = $1
+      member_name = $2
+    else
+      type_name = target
+      member_name = nil
+    end
+    if type_name == ""
+      type_proxy = nil
+    else
+      type_proxy = input.type_resolver.resolve(type_name, input.lineno)
+    end
+    return LinkTag.new(type_proxy, member_name, text)
   end
   return nil
 end
@@ -340,7 +353,7 @@ class SeeParser < BlockParser
 	  end
       end
     else
-      $stderr.puts "@see tag didn't handle extra line #{input.text.inspect}"
+      @data.add_inline(input.text)
     end
   end
 end

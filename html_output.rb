@@ -682,7 +682,33 @@ class TypePage < BasicPage
     if inline.is_a?(String)
       pcdata(inline)
     elsif inline.is_a?(LinkTag)
-      link_type_proxy(inline.target)
+      if inline.target && inline.member
+	if inline.target.resolved?
+	  href = link_for_type(inline.target.resolved_type)
+	  if inline.member =~ /\(/
+	    target = "#method_#{$`}"
+	  else
+	    target = "#field_#{inline.member}"
+	  end
+	  href << target
+	  html_a("href"=>href) do
+	    pcdata("#{inline.target.name}.#{inline.member}")
+	  end
+	else
+	  pcdata("#{inline.target.name}##{inline.member}")
+	end
+      elsif inline.target
+	link_type_proxy(inline.target)
+      else
+	if inline.member =~ /\(/
+	  target = "#method_#{$`}"
+	else
+	  target = "#field_#{inline.member}"
+	end
+	html_a("href"=>target) do
+	  pcdata(inline.member)
+	end
+      end
     else
       html_em(inline.inspect)
     end
