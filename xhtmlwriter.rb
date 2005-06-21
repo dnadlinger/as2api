@@ -128,6 +128,10 @@ module XHTMLWriter
     @io.doctype(name, syspub, public_id, system_id)
   end
 
+  def passthrough(text)
+    @io.passthrough(text)
+  end
+
   def xml; @io end
 end
 

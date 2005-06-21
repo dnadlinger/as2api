@@ -680,7 +680,8 @@ class TypePage < BasicPage
 
   def output_doccomment_inlinetag(inline)
     if inline.is_a?(String)
-      pcdata(inline)
+      passthrough(inline)  # allow HTML through unabused (though I wish it were
+                           # easy to require it be valid XHTML)
     elsif inline.is_a?(LinkTag)
       if inline.target && inline.member
 	if inline.target.resolved?

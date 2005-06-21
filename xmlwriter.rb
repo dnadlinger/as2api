@@ -83,6 +83,10 @@ class XMLWriter
     @io.print("?>")
   end
 
+  def passthrough(text)
+    @io.print(text)
+  end
+
   private
   def chk_name(name)
     raise "bad character '#{$&}' in tag name #{name}" if name =~ /[<>& "']/
