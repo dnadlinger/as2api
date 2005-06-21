@@ -2,7 +2,7 @@
 require 'xmlwriter'
 require 'xhtmlwriter'
 require 'doc_comment'
-
+require 'rexml/document'
 
 def stylesheet(output_dir)
   name = "style.css"
@@ -907,11 +907,12 @@ end
 
 class PackageIndexPage < BasicPage
 
-  def initialize(package)
+  def initialize(conf, package)
     dir = package_dir_for(package)
     super("package-summary", dir)
     @package = package
     @title = "Package #{package_display_name_for(@package)} API Documentation"
+    @conf = conf
   end
 
   def generate_body_content
@@ -956,6 +957,12 @@ class PackageIndexPage < BasicPage
 	  end
 	end
       end
+
+    if @conf.draw_diagrams
+      draw_package_diagrams
+      class_diagram
+      interface_diagram
+    end
   end
 
   def navigation
@@ -973,6 +980,134 @@ class PackageIndexPage < BasicPage
 	html_a("Index", {"href"=>base_path("index-files/index.html")})
       end
     end
+  end
+
+  def class_diagram
+    dir = File.join(@conf.output_dir, path_name)
+    if FileTest.exists?(File.join(dir, "package-classes.png"))
+      html_h1("Class Inheritance Diagram")
+      html_div("class"=>"diagram") do
+	if FileTest.exists?(File.join(dir, "package-classes.cmapx"))
+	  map = true
+	  File.open(File.join(dir, "package-classes.cmapx")) do |io|
+	    copy_xml(io, @io)
+	  end
+	else
+	  map = false
+	end
+	attr = {"src"=>"package-classes.png"}
+	attr["usemap"] = "class_diagram" if map
+        html_img(attr)
+      end
+    end
+  end
+
+  def interface_diagram
+    dir = File.join(@conf.output_dir, path_name)
+    if FileTest.exists?(File.join(dir, "package-interfaces.png"))
+      html_h1("Interface Inheritance Diagram")
+      html_div("class"=>"diagram") do
+	if FileTest.exists?(File.join(dir, "package-interfaces.cmapx"))
+	  map = true
+	  File.open(File.join(dir, "package-interfaces.cmapx")) do |io|
+	    copy_xml(io, @io)
+	  end
+	else
+	  map = false
+	end
+	attr = {"src"=>"package-interfaces.png"}
+	attr["usemap"] = "interface_diagram" if map
+        html_img(attr)
+      end
+    end
+  end
+
+  def draw_package_diagrams
+    asclasses = @package.classes
+    dir = File.join(@conf.output_dir, path_name)
+    unless asclasses.empty?
+      write_file(dir, "classes.dot") do |io|
+	io.puts("strict digraph class_diagram {")
+	  io.puts("  rankdir=LR;")
+	   asclasses.each do |astype|
+	    io.puts("  #{astype.unqualified_name}[")
+	    io.puts("    label=\"#{astype.unqualified_name}\",")
+	    io.puts("    URL=\"#{astype.unqualified_name}.html\",")
+	    io.puts("    tooltip=\"#{astype.qualified_name}\",")
+	    io.puts("    fontname=\"Times-Italic\",") if astype.is_a?(ASInterface)
+	    io.puts("    shape=\"record\"")
+	    io.puts("  ];")
+	  end
+	  asclasses.each do |astype|
+	    parent = astype.extends
+	    if !parent.nil? && parent.resolved?
+	      if parent.resolved_type.package_name == @package.name
+		io.puts("  #{parent.resolved_type.unqualified_name} -> #{astype.unqualified_name};")
+	      end
+	    end
+	  end
+	io.puts("}")
+      end
+      system(@conf.dot_exe, "-Tpng", "-o", File.join(dir, "package-classes.png"), File.join(dir, "classes.dot"))
+      system(@conf.dot_exe, "-Tcmapx", "-o", File.join(dir, "package-classes.cmapx"), File.join(dir, "classes.dot"))
+      #File.delete(File.join(dir, "types.dot"))
+    end
+
+    asinterfaces = @package.interfaces
+    unless asinterfaces.empty?
+      write_file(dir, "interfaces.dot") do |io|
+	io.puts("strict digraph interface_diagram {")
+	  io.puts("  rankdir=LR;")
+	  asinterfaces.each do |astype|
+	    io.puts("  #{astype.unqualified_name}[")
+	    io.puts("    label=\"#{astype.unqualified_name}\",")
+	    io.puts("    URL=\"#{astype.unqualified_name}.html\",")
+	    io.puts("    tooltip=\"#{astype.qualified_name}\",")
+	    io.puts("    fontname=\"Times-Italic\",") if astype.is_a?(ASInterface)
+	    io.puts("    shape=\"record\"")
+	    io.puts("  ];")
+	  end
+	  asinterfaces.each do |astype|
+	    parent = astype.extends
+	    if !parent.nil? && parent.resolved?
+	      if parent.resolved_type.package_name == @package.name
+		io.puts("  #{parent.resolved_type.unqualified_name} -> #{astype.unqualified_name};")
+	      end
+	    end
+	  end
+	io.puts("}")
+      end
+      system(@conf.dot_exe, "-Tpng", "-o", File.join(dir, "package-interfaces.png"), File.join(dir, "interfaces.dot"))
+      system(@conf.dot_exe, "-Tcmapx", "-o", File.join(dir, "package-interfaces.cmapx"), File.join(dir, "interfaces.dot"))
+      #File.delete(File.join(dir, "types.dot"))
+    end
+  end
+
+  class XMLAdapter
+    def initialize(out)
+      @out = out
+    end
+
+    def tag_start(name, attrs)
+      attr_map = {}
+      attrs.each do |el|
+	attr_map[el[0]] = el[1]
+      end
+      @out.start_tag(name, attr_map)
+    end
+
+    def tag_end(name)
+      @out.end_tag(name)
+    end
+
+    def text(text)
+      @out.pcdata(text)
+    end
+  end
+
+  def copy_xml(io, out)
+    listener = XMLAdapter.new(out)
+    REXML::Document.parse_stream(io, listener)
   end
 
 end
@@ -1308,7 +1443,7 @@ def make_page_list(conf, type_agregator)
 
   # packages..
   type_agregator.each_package do |package|
-    list << PackageIndexPage.new(package)
+    list << PackageIndexPage.new(conf, package)
     list << PackageFramePage.new(package)
   end
 

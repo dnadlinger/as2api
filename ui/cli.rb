@@ -8,7 +8,9 @@ Conf = Struct.new(:output_dir,
 		  :package_filters,
 		  :title,
 		  :progress_listener,
-		  :input_encoding)
+		  :input_encoding,
+		  :draw_diagrams,
+		  :dot_exe)
 
 SourceFile = Struct.new(:prefix, :suffix)
 
@@ -78,12 +80,16 @@ class CLI
       [ "--classpath",        GetoptLong::REQUIRED_ARGUMENT ],
       [ "--title",            GetoptLong::REQUIRED_ARGUMENT ],
       [ "--progress",         GetoptLong::NO_ARGUMENT ],
-      [ "--encoding",         GetoptLong::REQUIRED_ARGUMENT ]
+      [ "--encoding",         GetoptLong::REQUIRED_ARGUMENT ],
+      [ "--draw-diagrams",    GetoptLong::NO_ARGUMENT ],
+      [ "--dot-exe",          GetoptLong::REQUIRED_ARGUMENT ]
     )
 
     conf = Conf.new
     conf.classpath = []
     conf.package_filters = []
+    conf.draw_diagrams = false
+    conf.dot_exe = "dot"  #  i.e. assume 'dot' is in our PATH
 
     opts.each do |opt, arg|
       case opt
@@ -100,6 +106,10 @@ class CLI
 	  conf.progress_listener = VerboseProgressListener.new
 	when "--encoding"
 	  conf.input_encoding = arg
+	when "--draw-diagrams"
+	  conf.draw_diagrams = true
+	when "--dot-exe"
+	  conf.dot_exe = arg
       end
     end
     if ARGV.empty?
@@ -207,6 +217,12 @@ Where options include:
         Put the given text into the titles of generated HTML pages
   --encoding <name>
         The encoding of the source files to be parsed.
+  --draw-diagrams
+        Causes class/interface inheritance diagrams to be generated for each
+	package (requires that you have http://www.graphviz.org/).
+  --dot-exe <filename>
+        Specify the location of the 'dot' tool from Graphviz, if it is not
+        available via the standard PATH.
     END
   end
 
