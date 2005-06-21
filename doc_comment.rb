@@ -1,4 +1,5 @@
 
+require 'strscan'
 
 class CommentInput
   def initialize(text, lineno, type_resolver)
@@ -24,9 +25,9 @@ class DocCommentParser
   def parse(input)
     data = CommentData.new
     @config.begin_comment(data)
-    lines = input.text.split(/\n\r|\n|\r/)
+    lines = StringScanner.new(input.text)
     lineno = input.lineno
-    while text = lines.shift
+    while text = lines.scan(/[^\n\r]*(?:\n\r|\n|\r)?/)
       parse_line(input.derive(strip_stars(text), lineno))
       lineno += 1
     end
@@ -37,7 +38,7 @@ class DocCommentParser
   private
 
   def strip_stars(text)
-    text.sub(/\A\s*\**/, "").sub(/\s*\Z/, "")
+    text.sub(/\A\s*\**/, "").sub(/[ \t]*\Z/, "")
   end
 
   def parse_line(input)
@@ -257,7 +258,7 @@ class BlockParser
 	  inline_parser.parse(@data, input.derive(tag_data))
 	end
 	text = $'
-      elsif text =~ /\A.[^{]*/
+      elsif text =~ /\A.[^{]*/m
 	add_text($&)
 	text = $'
       else
