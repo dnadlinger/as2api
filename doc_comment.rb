@@ -1,6 +1,4 @@
 
-require 'strscan'
-
 class CommentInput
   def initialize(text, lineno, type_resolver)
     @text = text
@@ -25,9 +23,8 @@ class DocCommentParser
   def parse(input)
     data = CommentData.new
     @config.begin_comment(data)
-    lines = StringScanner.new(input.text)
     lineno = input.lineno
-    while text = lines.scan(/[^\n\r]*(?:\n\r|\n|\r)?/)
+    input.text.scan(/[^\n\r]*(?:\n\r|\n|\r)?/) do |text|
       parse_line(input.derive(strip_stars(text), lineno))
       lineno += 1
     end
