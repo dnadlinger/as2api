@@ -179,6 +179,9 @@ public function setName(name:String):Void {
 	<title>Supported JavaDoc Features</title>
 
 	<informaltable>
+	  <tgroup cols="2">
+	  <colspec colnum="1" colname="col1" colwidth="1*"/>
+          <colspec colnum="2" colname="col2" colwidth="3*"/>
 	  <thead>
 	    <row>
 	      <entry>Feature</entry>
@@ -214,6 +217,7 @@ public function setName(name:String):Void {
 	      <entry>Describe an exception thrown by a method</entry>
 	    </row>
 	  </tbody>
+	  </tgroup>
 	</informaltable>
       </section>
 
@@ -221,6 +225,9 @@ public function setName(name:String):Void {
 	<title>Unsupported JavaDoc Features</title>
 
 	<informaltable>
+	  <tgroup cols="2">
+	  <colspec colnum="1" colname="col1" colwidth="1*"/>
+          <colspec colnum="2" colname="col2" colwidth="3*"/>
 	  <thead>
 	    <row>
 	      <entry>Feature</entry>
@@ -289,6 +296,7 @@ public function setName(name:String):Void {
 	      <entry></entry>
 	    </row>
 	  </tbody>
+	  </tgroup>
 	</informaltable>
       </section>
 
@@ -296,6 +304,9 @@ public function setName(name:String):Void {
 	<title>Unsupported ActionScript Features</title>
 
 	<informaltable>
+	  <tgroup cols="2">
+	  <colspec colnum="1" colname="col1" colwidth="1*"/>
+          <colspec colnum="2" colname="col2" colwidth="3*"/>
 	  <thead>
 	    <row>
 	      <entry>Feature</entry>
@@ -312,6 +323,7 @@ public function setName(name:String):Void {
 	      <entry>attributes on types/members are not documented</entry>
 	    </row>
 	  </tbody>
+	  </tgroup>
 	</informaltable>
       </section>
 
