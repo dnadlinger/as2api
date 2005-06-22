@@ -180,43 +180,43 @@ public function setName(name:String):Void {
 
 	<informaltable>
 	  <tgroup cols="2">
-	  <colspec colnum="1" colname="col1" colwidth="1*"/>
-          <colspec colnum="2" colname="col2" colwidth="3*"/>
-	  <thead>
-	    <row>
-	      <entry>Feature</entry>
-	      <entry>Description</entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><link linkend="type_description">Type
-	      Description</link></entry>
-	      <entry>Describe a class or interface</entry>
-	    </row>
-	    <row>
-	      <entry><link linkend="method_description">Method
-	      Description</link></entry>
-	      <entry>Describe a method of a class or interface</entry>
-	    </row>
-	    <row>
-	      <entry><link linkend="param_tag"><literal>@param</literal></link></entry>
-	      <entry>Describe a method parameter</entry>
-	    </row>
-	    <row>
-	      <entry><link linkend="return_tag"><literal>@return</literal></link></entry>
-	      <entry>Describe the value returned by a method</entry>
-	    </row>
-	    <row>
-	      <entry><link linkend="see_tag"><literal>@see</literal></link></entry>
-	      <entry>Partially supported. Link to additional
-	      information.</entry>
-	    </row>
-	    <row>
-	      <entry><link linkend="throws_tag"><literal>@throws</literal></link></entry>
-	      <entry>Describe an exception thrown by a method</entry>
-	    </row>
-	  </tbody>
+	    <colspec colnum="1" colname="col1" colwidth="1*"/>
+	    <colspec colnum="2" colname="col2" colwidth="3*"/>
+	    <thead>
+	      <row>
+		<entry>Feature</entry>
+		<entry>Description</entry>
+	      </row>
+	    </thead>
+	    <tbody>
+	      <row>
+		<entry><link linkend="type_description">Type
+		Description</link></entry>
+		<entry>Describe a class or interface</entry>
+	      </row>
+	      <row>
+		<entry><link linkend="method_description">Method
+		Description</link></entry>
+		<entry>Describe a method of a class or interface</entry>
+	      </row>
+	      <row>
+		<entry><link linkend="param_tag"><literal>@param</literal></link></entry>
+		<entry>Describe a method parameter</entry>
+	      </row>
+	      <row>
+		<entry><link linkend="return_tag"><literal>@return</literal></link></entry>
+		<entry>Describe the value returned by a method</entry>
+	      </row>
+	      <row>
+		<entry><link linkend="see_tag"><literal>@see</literal></link></entry>
+		<entry>Partially supported. Link to additional
+		information.</entry>
+	      </row>
+	      <row>
+		<entry><link linkend="throws_tag"><literal>@throws</literal></link></entry>
+		<entry>Describe an exception thrown by a method</entry>
+	      </row>
+	    </tbody>
 	  </tgroup>
 	</informaltable>
       </section>
@@ -226,76 +226,76 @@ public function setName(name:String):Void {
 
 	<informaltable>
 	  <tgroup cols="2">
-	  <colspec colnum="1" colname="col1" colwidth="1*"/>
-          <colspec colnum="2" colname="col2" colwidth="3*"/>
-	  <thead>
-	    <row>
-	      <entry>Feature</entry>
-	      <entry>Commentary</entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><literal>@author</literal></entry>
-	      <entry></entry>
-	    </row>
-	    <row>
-	      <entry><literal>{@code}</literal></entry>
-	      <entry></entry>
-	    </row>
-	    <row>
-	      <entry><literal>{@docRoot}</literal></entry>
-	      <entry></entry>
-	    </row>
-	    <row>
-	      <entry><literal>@depricated</literal></entry>
-	      <entry></entry>
-	    </row>
-	    <row>
-	      <entry><literal>@exception</literal></entry>
-	      <entry><literal>@throws</literal> is supported, but this synonym is not, yet</entry>
-	    </row>
-	    <row>
-	      <entry><literal>{@inheritDoc}</literal></entry>
-	      <entry></entry>
-	    </row>
-	    <row>
-	      <entry><literal>{@link}</literal></entry>
-	      <entry>To be implemented soon-ish</entry>
-	    </row>
-	    <row>
-	      <entry><literal>{@linkPlain}</literal></entry>
-	      <entry></entry>
-	    </row>
-	    <row>
-	      <entry><literal>{@literal}</literal></entry>
-	      <entry></entry>
-	    </row>
-	    <row>
-	      <entry><literal>@serial</literal></entry>
-	      <entry></entry>
-	    </row>
-	    <row>
-	      <entry><literal>@serialData</literal></entry>
-	      <entry></entry>
-	    </row>
-	    <row>
-	      <entry><literal>@serialField</literal></entry>
-	      <entry></entry>
-	    </row>
-	    <row>
-	      <entry><literal>@since</literal></entry>
-	      <entry></entry>
-	    </row>
-	    <row>
-	      <entry><literal>{@value}</literal></entry>
-	      <entry></entry>
-	    </row>
-	    <row>
-	      <entry><literal>@version</literal></entry>
-	      <entry></entry>
-	    </row>
-	  </tbody>
+	    <colspec colnum="1" colname="col1" colwidth="1*"/>
+	    <colspec colnum="2" colname="col2" colwidth="3*"/>
+	    <thead>
+	      <row>
+		<entry>Feature</entry>
+		<entry>Commentary</entry>
+	      </row>
+	    </thead>
+	    <tbody>
+	      <row>
+		<entry><literal>@author</literal></entry>
+		<entry></entry>
+	      </row>
+	      <row>
+		<entry><literal>{@code}</literal></entry>
+		<entry></entry>
+	      </row>
+	      <row>
+		<entry><literal>{@docRoot}</literal></entry>
+		<entry></entry>
+	      </row>
+	      <row>
+		<entry><literal>@depricated</literal></entry>
+		<entry></entry>
+	      </row>
+	      <row>
+		<entry><literal>@exception</literal></entry>
+		<entry><literal>@throws</literal> is supported, but this synonym is not, yet</entry>
+	      </row>
+	      <row>
+		<entry><literal>{@inheritDoc}</literal></entry>
+		<entry></entry>
+	      </row>
+	      <row>
+		<entry><literal>{@link}</literal></entry>
+		<entry>To be implemented soon-ish</entry>
+	      </row>
+	      <row>
+		<entry><literal>{@linkPlain}</literal></entry>
+		<entry></entry>
+	      </row>
+	      <row>
+		<entry><literal>{@literal}</literal></entry>
+		<entry></entry>
+	      </row>
+	      <row>
+		<entry><literal>@serial</literal></entry>
+		<entry></entry>
+	      </row>
+	      <row>
+		<entry><literal>@serialData</literal></entry>
+		<entry></entry>
+	      </row>
+	      <row>
+		<entry><literal>@serialField</literal></entry>
+		<entry></entry>
+	      </row>
+	      <row>
+		<entry><literal>@since</literal></entry>
+		<entry></entry>
+	      </row>
+	      <row>
+		<entry><literal>{@value}</literal></entry>
+		<entry></entry>
+	      </row>
+	      <row>
+		<entry><literal>@version</literal></entry>
+		<entry></entry>
+	      </row>
+	    </tbody>
 	  </tgroup>
 	</informaltable>
       </section>
@@ -305,24 +305,24 @@ public function setName(name:String):Void {
 
 	<informaltable>
 	  <tgroup cols="2">
-	  <colspec colnum="1" colname="col1" colwidth="1*"/>
-          <colspec colnum="2" colname="col2" colwidth="3*"/>
-	  <thead>
-	    <row>
-	      <entry>Feature</entry>
-	      <entry>Commentary</entry>
-	    </row>
-	  </thead>
-	  <tbody>
-	    <row>
-	      <entry><literal>#include "<replaceable>filename</replaceable>"</literal></entry>
-	      <entry>includes are ignored</entry>
-	    </row>
-	    <row>
-	      <entry><literal>[<replaceable>attributes</replaceable>]</literal></entry>
-	      <entry>attributes on types/members are not documented</entry>
-	    </row>
-	  </tbody>
+	    <colspec colnum="1" colname="col1" colwidth="1*"/>
+	    <colspec colnum="2" colname="col2" colwidth="3*"/>
+	    <thead>
+	      <row>
+		<entry>Feature</entry>
+		<entry>Commentary</entry>
+	      </row>
+	    </thead>
+	    <tbody>
+	      <row>
+		<entry><literal>#include "<replaceable>filename</replaceable>"</literal></entry>
+		<entry>includes are ignored</entry>
+	      </row>
+	      <row>
+		<entry><literal>[<replaceable>attributes</replaceable>]</literal></entry>
+		<entry>attributes on types/members are not documented</entry>
+	      </row>
+	    </tbody>
 	  </tgroup>
 	</informaltable>
       </section>
