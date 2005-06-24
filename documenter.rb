@@ -1,4 +1,5 @@
 
+require 'find'
 require 'parse/lexer'  # TODO: remove this requirement
 require 'parse/as_io'
 require 'api_loader'
@@ -35,7 +36,6 @@ end
 
 # lists the .as files in 'path', and it's subdirectories
 def each_source(path)
-  require 'find'
   path = path.sub(/\/+$/, "")
   Find.find(path) do |f|
     base = File.basename(f)
