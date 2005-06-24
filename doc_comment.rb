@@ -185,7 +185,7 @@ end
 
 # creates a LinkTag inline
 def create_link(input)
-  if input.text =~ /^([^ ]+(?:\([^\)]*\))?)\s*/
+  if input.text =~ /^([^\s]+(?:\([^\)]*\))?)\s*/
     target = $1
     text = $'
     # TODO: need a MemberProxy (and maybe Method+Field subclasses) with similar
