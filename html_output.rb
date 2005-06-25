@@ -409,7 +409,11 @@ class TypePage < BasicPage
       next unless document_member?(field)
       pcdata(", ") if index > 0
       html_code do
-	html_a("href"=>"#{href_prefix}#field_#{field.name}") do
+	if type.document?
+	  html_a("href"=>"#{href_prefix}#field_#{field.name}") do
+	    pcdata(field.name)
+	  end
+	else
 	  pcdata(field.name)
 	end
       end
