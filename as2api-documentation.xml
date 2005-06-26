@@ -216,6 +216,16 @@ public function setName(name:String):Void {
 		<entry><link linkend="throws_tag"><literal>@throws</literal></link></entry>
 		<entry>Describe an exception thrown by a method</entry>
 	      </row>
+	      <row>
+		<entry><link linkend="link_tag"><literal>{@link}</literal></link></entry>
+		<entry>Link to the documentation of another type or
+		type-member</entry>
+	      </row>
+	      <row>
+		<entry><link linkend="code_tag"><literal>{@code}</literal></link></entry>
+		<entry>A code example (automatically escapes HTML special
+		characters, like '&amp;'</entry>
+	      </row>
 	    </tbody>
 	  </tgroup>
 	</informaltable>
@@ -240,10 +250,6 @@ public function setName(name:String):Void {
 		<entry></entry>
 	      </row>
 	      <row>
-		<entry><literal>{@code}</literal></entry>
-		<entry></entry>
-	      </row>
-	      <row>
 		<entry><literal>{@docRoot}</literal></entry>
 		<entry></entry>
 	      </row>
@@ -258,10 +264,6 @@ public function setName(name:String):Void {
 	      <row>
 		<entry><literal>{@inheritDoc}</literal></entry>
 		<entry></entry>
-	      </row>
-	      <row>
-		<entry><literal>{@link}</literal></entry>
-		<entry>To be implemented soon-ish</entry>
 	      </row>
 	      <row>
 		<entry><literal>{@linkPlain}</literal></entry>
@@ -440,6 +442,9 @@ public function get(key:String):String {
  * turned into links to other classes/methods as they should be.
  *
  * <emphasis role="strong">@see "some stuff"</emphasis>
+ * <emphasis role="strong">@see some.OtherClass</emphasis>
+ * <emphasis role="strong">@see some.OtherClass#field_name</emphasis>
+ * <emphasis role="strong">@see some.OtherClass#method_name()</emphasis>
  */
 class somepackage.ThisClass {
     // ...
@@ -452,7 +457,7 @@ class somepackage.ThisClass {
 
 	<para><remark>TODO</remark></para>
 	<example>
-	  <title>Class Related information</title>
+	  <title>Exceptions Thrown by a Method</title>
 	  <programlisting>/**
  * Causes this message to be sent
  *
@@ -460,6 +465,39 @@ class somepackage.ThisClass {
  *         the underlying communications medium</emphasis>
  */
 public function send():Void {
+    // ...
+}</programlisting>
+	</example>
+      </section>
+
+      <section id="link_tag">
+	<title>Linking to Other Parts of the API Documentation</title>
+
+	<para><remark>TODO</remark></para>
+	<example>
+	  <title>Linking to Other Parts of the API</title>
+	  <programlisting>/**
+ * Causes this message to be sent to the <emphasis role="strong">{@link OtherClass}</emphasis>
+ * instance, where it will be dealt with by <emphasis role="strong">{@link OtherClass#recieve()}</emphasis>.
+ * We remember the destination in our <emphasis role="strong">{@link #reciever}</emphasis> field.
+ */
+public function send():Void {
+    // ...
+}</programlisting>
+	</example>
+      </section>
+
+      <section id="code_tag">
+	<title>Giving Code Examples</title>
+
+	<para><remark>TODO</remark></para>
+	<example>
+	  <title>Example Code</title>
+	  <programlisting>/**
+ * Generates an ending XML tag. For example, if passed <emphasis role="strong">{@code "p"}</emphasis>,
+ * the result will be <emphasis role="strong">{@code "&lt;/p&gt;"}</emphasis>
+ */
+public function endTag(name:String):String {
     // ...
 }</programlisting>
 	</example>
