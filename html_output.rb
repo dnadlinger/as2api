@@ -240,13 +240,15 @@ class Page
   end
 
   def link_type(type, qualified=false)
-    href = link_for_type(type)
+    attrs = {}
     if type.instance_of?(ASInterface)
-      attr_class = "interface_name"
-      attr_title = "Interface #{type.qualified_name}"
-    else
-      attr_class = "class_name"
-      attr_title = "Class #{type.qualified_name}"
+      attrs["class"] = "interface_name"
+      attrs["title"] = "Interface #{type.qualified_name}"
+    elsif type.instance_of?(ASClass)
+      attrs["class"] = "class_name"
+      attrs["title"] = "Class #{type.qualified_name}"
+    elsif type == AS_VOID
+      attrs["class"] = "void_name"
     end
     if qualified
       content = type.qualified_name
@@ -254,12 +256,10 @@ class Page
       content = type.unqualified_name
     end
     if type.document?
-      html_a(content, {"href"=>href,
-		       "class"=>attr_class,
-		       "title"=>attr_title})
+      attrs["href"] = link_for_type(type)
+      html_a(content, attrs)
     else
-      html_span(content, {"class"=>attr_class,
-		          "title"=>attr_title})
+      html_span(content, attrs)
     end
   end
 
