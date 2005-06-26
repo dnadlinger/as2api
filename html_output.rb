@@ -258,7 +258,8 @@ class Page
 		       "class"=>attr_class,
 		       "title"=>attr_title})
     else
-      pcdata(content)
+      html_span(content, {"class"=>attr_class,
+		          "title"=>attr_title})
     end
   end
 
@@ -802,18 +803,10 @@ class TypePage < BasicPage
   end
 
   def link_type_proxy(type_proxy, qualified=false)
-    if type_proxy.resolved? && type_proxy.resolved_type.document?
+    if type_proxy.resolved?
       link_type(type_proxy.resolved_type, qualified)
     else
-      if type_proxy.resolved?
-	if type_proxy.resolved_type.instance_of?(ASInterface)
-	  html_span(type_proxy.local_name, {"class"=>"interface_name"})
-	else
-	  html_span(type_proxy.local_name, {"class"=>"class_name"})
-	end
-      else
-	html_span(type_proxy.local_name, {"class"=>"unresolved_type_name"})
-      end
+      html_span(type_proxy.local_name, {"class"=>"unresolved_type_name"})
     end
   end
 
