@@ -140,6 +140,14 @@ class LinkTag
   attr_accessor :target, :member, :text
 end
 
+class CodeTag
+  def initialize(text)
+    @text = text
+  end
+
+  attr_accessor :text
+end
+
 
 class BlockTag
   def initialize
@@ -208,6 +216,7 @@ def create_link(input)
 end
 
 
+# handle {@link ...} in comments
 class LinkInlineParser < InlineParser
   def parse(block_data, input)
     link = create_link(input)
@@ -216,6 +225,13 @@ class LinkInlineParser < InlineParser
     else
       block_data.add_inline(link)
     end
+  end
+end
+
+# handle {@code ...} in comments
+class CodeInlineParser < InlineParser
+  def parse(block_data, input)
+    block_data.add_inline(CodeTag.new(input.text))
   end
 end
 
@@ -395,6 +411,7 @@ class ConfigBuilder
 
   def add_common_inlines(block_parser)
     block_parser.add_inline_parser("link", LinkInlineParser.new)
+    block_parser.add_inline_parser("code", CodeInlineParser.new)
   end
 
   def build_description_block_parser

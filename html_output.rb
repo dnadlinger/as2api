@@ -715,6 +715,10 @@ class TypePage < BasicPage
 	  pcdata(inline.member)
 	end
       end
+    elsif inline.is_a?(CodeTag)
+      html_code do
+	pcdata(inline.text)
+      end
     else
       html_em(inline.inspect)
     end
