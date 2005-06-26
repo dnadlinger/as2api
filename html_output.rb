@@ -180,7 +180,9 @@ class Page
     @io = nil  # to be set during the lifetime of generate() call
   end
 
-  attr_accessor :path_name, :base_name, :encoding, :doctype_id, :title, :title_extra
+  attr_accessor :path_name, :base_name, :encoding, :doctype_id, :title_extra
+
+  attr_writer :title
 
   def title
     if @title_extra
