@@ -4,6 +4,8 @@ docbook_stylesheet=/usr/share/sgml/docbook/stylesheet/xsl/nwalsh/fo/docbook.xsl
 java_home=~/opt/j2sdk1.4.2_05
 fop=~/incoming/fop-0.20.5/fop.sh
 as2api=ruby -w as2api.rb
+ruby_mswin32=/cygdrive/c/ruby/bin/ruby
+rubyscript2exe=${ruby_mswin32} -w ../rubyscript2exe.rb
 
 sources = documenter.rb doc_comment.rb html_output.rb \
           xmlwriter.rb xhtmlwriter.rb \
@@ -51,6 +53,9 @@ tgz: docs
 	cp --parents ${dist_files} ${dist_dir}
 	tar czvf ${tgz_name} ${dist_dir}
 	rm -r ${dist_dir}
+
+as2api.exe: ${sources}
+	${rubyscript2exe} as2api.rb
 
 zip: docs
 	mkdir -p ${w32_dist_dir}
