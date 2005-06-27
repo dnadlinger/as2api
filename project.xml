@@ -1,0 +1,321 @@
+<?xml version="1.0"?>
+
+<project id="as2api" xmlns="http://www.badgers-in-foil.co.uk/projects/">
+  <title>as2api</title>
+  <homepage url="http://www.badgers-in-foil.co.uk/projects/as2api"/>
+  <shortdesc>'JavaDoc' for ActionScript 2</shortdesc>
+  <keywords>
+    <keyword>API documentation</keyword>
+    <keyword>Application Programming Interface</keyword>
+    <keyword>Documenter</keyword>
+    <keyword>AS2</keyword>
+    <keyword>Macromedia</keyword>
+    <keyword>Flash</keyword>
+    <keyword>Action Script</keyword>
+    <keyword>Open Source</keyword>
+  </keywords>
+
+  <longdesc>
+    <para>This is a <ulink
+    url="http://java.sun.com/j2se/javadoc/">JavaDoc</ulink>-a-like for <ulink
+    url="http://www.macromedia.com/devnet/mx/flash/actionscript.html">ActionScript</ulink>
+    2.0.</para>
+
+    <para>It began it because there don't seem to be any complete, free
+    (<abbrev>GPL<alt>GNU General Public License</alt></abbrev> or simmilar),
+    <abbrev>API<alt>Application Programming Interface</alt></abbrev>
+    documentation tools, as of November 2004.</para>
+    
+    <para>The scripts are implemented in
+    <ulink url="http://www.ruby-lang.org/">Ruby<alt>The Ruby Programming Language</alt></ulink>,
+    and work under Windows, Mac OSX, and Linux.  An exe is provided for windows
+    users who don't want to install Ruby.</para>
+  </longdesc>
+
+  <status>
+    <para>If you already know JavaDoc, lots of stuff will work as expected.
+    Still to be done:</para>
+    <itemizedlist>
+      <listitem><para>Support more of the estandard JavaDoc
+      tags</para></listitem>
+      <listitem><para>Automatically pull any package.html contents into
+      package-summary page</para></listitem>
+      <listitem><para>Localisation</para></listitem>
+    </itemizedlist>
+  </status>
+
+  <section>
+    <title>Examples</title>
+    <variablelist>
+      <varlistentry>
+	<term><ulink url="examples/enflash-0.3/frameset.html">com.asusual.*</ulink></term>
+	<listitem><para>Documentation for the <ulink url="http://www.asual.com/enflash/">EnFlash framework, version 0.3</ulink>.</para></listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term><ulink url="examples/as2lib-0.9/frameset.html">com.as2lib.*</ulink></term>
+	<listitem><para>Documentation for <ulink url="http://www.as2lib.org/">As2lib framework, version 0.9</ulink>.</para></listitem>
+      </varlistentry>
+    </variablelist>
+  </section>
+
+  <section>
+    <title>Usage</title>
+
+    <section>
+      <title>Windows .exe Version</title>
+
+      <para>In the zip archive, you'll find the <filename>as2api</filename>
+      executable.  (This is a commandline application -- you can't run
+      it simply by double-clicking the icon.)  Run this, from the
+      directory that contains it, by entering:</para>
+
+      <screen>as2api --classpath <replaceable>source/dir</replaceable> <replaceable>com.example.*</replaceable></screen>
+
+      <para>See the section bellow describing the available command line
+      options.</para>
+    </section>
+
+    <section>
+      <title>Plain Ruby Scripts</title>
+
+      <para>To make use of the plain script files, you must have a copy of
+      <ulink url="http://www.ruby-lang.org/">Ruby</ulink> installed.  The
+      main script is <filename>as2api.rb</filename>.  Run this, from the
+      directory that contains it, by entering:</para>
+
+      <screen>ruby as2api.rb --classpath <replaceable>source/dir</replaceable> <replaceable>com.example.*</replaceable></screen>
+
+      <para>The script will create a directory called
+      <filename>apidoc</filename> within the current directory.</para>
+    </section>
+
+    <section>
+      <title>Command Line Options</title>
+
+      <para>The only mandatory command line option is a specification of which
+      packages are to be documented.  There are two ways to specify
+      packages:</para>
+
+      <variablelist>
+      	<varlistentry>
+	  <term>Exact package name</term>
+	  <listitem><para>Specifies that exactly those classes in the named
+	  package should be documented.  'Sub-packages' will be
+	  ignored.  e.g. <userinput>com.example.pkg</userinput></para></listitem>
+      	</varlistentry>
+      	<varlistentry>
+	  <term>Package name prefix</term>
+	  <listitem><para>Specifies the prefix on the names of packages to
+	  be documented.  e.g. <userinput>com.example.pkg.*</userinput></para></listitem>
+      	</varlistentry>
+      </variablelist>
+
+      <para>The following optional parameters are supported:</para>
+
+      <variablelist>
+      	<varlistentry>
+	  <term><option>--classpath <replaceable>path</replaceable></option></term>
+	  <listitem><para>A list of paths (delimited by ';' on windows and
+	  ':' on other platforms).  Each path will be searched for packages
+	  matching the given 'package spec' list.  If no classpath is
+	  specified, only the current directory is searched.</para></listitem>
+      	</varlistentry>
+
+      	<varlistentry>
+	  <term><option>--output-dir <replaceable>path</replaceable></option></term>
+	  <listitem><para>The directory into which generated HTML files will be
+	  placed (the directory will be created, if required.  If no output
+	  directory is specified the default <filename>apidocs</filename> is
+	  used.</para></listitem>
+      	</varlistentry>
+
+      	<varlistentry>
+	  <term><option>--progress</option></term>
+	  <listitem><para>Print feedback showing how far tasks have
+	  progressed.</para></listitem>
+      	</varlistentry>
+
+      	<varlistentry>
+	  <term><option>--title <replaceable>text</replaceable></option></term>
+	  <listitem><para>Put the given text into the titles of generated HTML
+	  pages.</para></listitem>
+      	</varlistentry>
+
+      	<varlistentry>
+	  <term><option>--encoding <replaceable>name</replaceable></option></term>
+	  <listitem><para>The encoding of the source files to be
+	  parsed.</para></listitem>
+      	</varlistentry>
+
+      	<varlistentry>
+	  <term><option>--draw-diagrams</option></term>
+	  <listitem><para>Causes class/interface inheritance diagrams to be
+	  generated for each package (requires that you have
+	  <ulink url="http://www.graphviz.org/">Graphviz<alt>Graph Visualization Software</alt></ulink>).</para>
+	  </listitem>
+      	</varlistentry>
+
+      	<varlistentry>
+	  <term><option>--dot-exe <replaceable>filename</replaceable></option></term>
+	  <listitem><para>Specify the location of the <command>dot</command>
+	  tool from Graphviz, if it is not available via the standard
+	  PATH.</para></listitem>
+      	</varlistentry>
+      </variablelist>
+    </section>
+  </section>
+
+  <releases freshmeatname="as2api">
+    <release id="0.1" date="2004-11-21">
+      <downloads>
+	<dl file="as2api-allinone-w32-0.1.zip">Windows all-in-one .exe</dl>
+	<dl file="as2api-0.1.tar.gz">Plain Ruby scripts</dl>
+      </downloads>
+      <changelog>
+	<change>Output looks vaguely like JavaDoc if you squint</change>
+      </changelog>
+    </release>
+
+    <release id="0.2" date="2004-12-07">
+      <downloads>
+	<dl file="as2api-allinone-w32-0.2.zip">Windows all-in-one GUI .exe</dl>
+	<dl file="as2api-0.2.tar.gz">Plain Ruby scripts</dl>
+      </downloads>
+      <changelog>
+      	<change>GUI for Windows</change>
+      	<change>Frameset navigation pages now generated</change>
+	<change>Method and field indexes contain links to methods and fields
+	inherited from super-types</change>
+	<change>Support <literal>get</literal> and <literal>set</literal>
+	implicit property access functions</change>
+	<change>Notice constructor functions as such, and present differently
+	in documenation</change>
+      	<change>Sort lists alphabetically, in various spots</change>
+      	<change>Tiny Ruby 1.6 compatability fix</change>
+	<change>Hack to derive package-name from source path, when no package
+	is specified in the source file</change>
+	<change>Don't give error for <literal>intrinsic</literal>
+	keyword</change>
+      	<change>Don't treat <literal>is</literal> as a keyword</change>
+	<change>Ignore [attributes] preceeding types and type-members, rather
+	than producing a parse error</change>
+      	<change>Generate documentation for fields as well as methods</change>
+	<change>Ignore <literal>#import</literal> keyword (allow parsing to
+	continue, rather than cause a parse error)</change>
+	<change>Fix known causes of parse errors due to missing
+	semicolons</change>
+      </changelog>
+    </release>
+
+    <release id="0.3" date="2005-??-??">
+      <downloads>
+	<dl file="as2api-0.3.tar.gz">Plain Ruby scripts</dl>
+	<dl file="as2api-allinone-w32-0.3.zip">Windows .exe</dl>
+      </downloads>
+
+      <changelog>
+	<change>Threw away windows GUI again (may return in some later
+	release)</change>
+	<change>Vastly improved command-line interface</change>
+	<change>Package documentation may include class/interface inheritance
+	diagrams if the <literal>--draw-diagrams</literal> option is
+	used</change>
+	<change>Documentation now includes an alphabetical index of types,
+	members and packages</change>
+	<change>Private class members are now excluded from generated
+	docs</change>
+	<change>Implemented <literal>{@link ...}</literal> tag handling</change>
+	<change>The <literal>@see ...</literal> tag will now generate links to
+	types/members, per JavaDoc</change>
+	<change>Implemented <literal>{@code ...}</literal> tag handling</change>
+	<change>Added 'Specified By' section to method description, showing
+	which interface defines the method</change>
+	<change>Types that aren't being documented may still be processed.
+	e.g. you can now see the stuff you inherit from
+	<literal>MovieClip</literal> without having to generate docs for
+	<literal>MovieClip</literal> itself (as long as the MM classes are in
+	the classpath)</change>
+	<change>The encoding of input files may be specified</change>
+	<change>It is no longer necessary to copy the CSS into the output
+	directory by hand</change>
+	<change>It's possible to supply some text to appear in HTML page
+	titles</change>
+	<change>Too many XHTML compliance bugfixes to list</change>
+	<change>HTML in doc-comments will now stay as HTML in output, without
+	<literal>&lt;</literal> being encoded as <literal>&amp;lt;</literal>,
+	etc.</change>
+      </changelog>
+    </release>
+  </releases>
+
+  <section>
+    <title>Code</title>
+
+    <para>The code is viewable at,</para>
+
+    <para><literal>http://svn.badgers-in-foil.co.uk/viewcvs.cgi/as2api/trunk/as2api/</literal></para>
+
+    <para>(Not linked, to avoid ViewCVS straining the server, but feel free to
+    cut'n'paste'n'browse around.)</para>
+  </section>
+
+  <mailinglists>
+    <list name="as2api-dev">
+      <listdesc>Direct all comments to the as2api development mailing
+      list</listdesc>
+      <listinfo url="http://lists.badgers-in-foil.co.uk/mailman/listinfo/as2api-dev"/>
+    </list>
+  </mailinglists>
+
+  <related>
+    <relation kind="Other ActionScript 2 API documentation generators">
+      <relatedproject name="AS2docGenerator">
+        <homepage url="http://as2docgenerator.berlios.de/"/>
+      </relatedproject>
+      <relatedproject name="BLDoc">
+        <homepage url="http://www.blinex.com/products/bldoc/"/>
+      </relatedproject>
+      <relatedproject name="ActionDoc">
+        <homepage url="http://www.jellyvision.com/actiondoc/"/>
+      </relatedproject>
+      <relatedproject name="ASDocGen">
+        <homepage url="http://www.asdocgen.org/"/>
+      </relatedproject>
+      <relatedproject name="VisDoc">
+        <homepage url="http://visiblearea.com/visdoc/"/>
+      </relatedproject>
+      <relatedproject name="AS2Doc">
+        <homepage url="http://www.as2doc.com/"/>
+      </relatedproject>
+      <relatedproject name="ASDT">
+        <homepage url="http://asdt.sourceforge.net/"/>
+      </relatedproject>
+      <relatedproject name="ASDocular">
+        <homepage url="http://www.senocular.com/projects/AS2Docular/"/>
+      </relatedproject>
+      <relatedproject name="Acid">
+        <homepage url="http://icube.freezope.org/acid/"/>
+      </relatedproject>
+    </relation>
+
+    <relation kind="Directory Categories">
+      <relatedproject name="Documentation Systems, on osflash.org">
+        <homepage url="http://osflash.org/doku.php?id=open_source_flash_projects#documentation_systems"/>
+      </relatedproject>
+      <relatedproject name="General Flash Software, on dmoz.org">
+        <homepage url="http://dmoz.org/Computers/Multimedia/Software/Macromedia_Flash/Software/"/>
+      </relatedproject>
+    </relation>
+
+    <relation kind="The Daddy">
+      <relatedproject name="Javadoc Tool Homepage">
+        <homepage url="http://java.sun.com/j2se/javadoc/"/>
+      </relatedproject>
+    </relation>
+  </related>
+</project>
+
+<!--
+vim:shiftwidth=2:softtabstop=2
+-->
