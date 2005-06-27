@@ -56,6 +56,11 @@
 	<term><ulink url="examples/as2lib-0.9/frameset.html">com.as2lib.*</ulink></term>
 	<listitem><para>Documentation for <ulink url="http://www.as2lib.org/">As2lib framework, version 0.9</ulink>.</para></listitem>
       </varlistentry>
+
+      <varlistentry>
+	<term><ulink url="examples/oregano_1.2.0beta3/frameset.html">org.omus.*</ulink></term>
+	<listitem><para>Documentation for <ulink url="http://www.v-i-a.net/blog/archives/000024.html">Oregano Multiuser Server client, version 1.2beta3</ulink>.</para></listitem>
+      </varlistentry>
     </variablelist>
   </section>
 

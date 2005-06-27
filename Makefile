@@ -39,11 +39,11 @@ web-dist: tgz zip
 		  --draw-diagrams \
 		  --title "enflash 0.3" \
 		  com.asual.*
-	${as2api} --classpath ${mx_classes}:examples/Oregano_1.2.0beta1/ \
-	          --output projects/as2api/examples/oregano_1.2.0beta1/ \
+	${as2api} --classpath ${mx_classes}:examples/Oregano_client-1.2.0beta3/\
+	          --output projects/as2api/examples/oregano_1.2.0beta3/ \
 		  --draw-diagrams \
 		  --encoding utf-8 \
-		  --title "Oregano 1.2.0beta1" \
+		  --title "Oregano Client 1.2.0 beta3" \
 		  org.omus.*
 	cd projects/as2api && xsltproc ../../../www/project_page.xsl ../../project.xml > index.html
 	cp ../www/bif.css projects/as2api
