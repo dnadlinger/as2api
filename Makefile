@@ -10,7 +10,7 @@ sources = documenter.rb doc_comment.rb html_output.rb \
           parse/lexer.rb parse/parser.rb parse/as_io.rb \
 	  api_loader.rb api_model.rb \
           as2api.rb ui/cli.rb
-docs_pdf=as2api-documentation.pdf
+doc_pdf=as2api-documentation.pdf
 dist_files = ${sources} ${doc_pdf}
 mx_classes=examples/flash_mx_2004_7.2/Classes
 
@@ -48,7 +48,7 @@ web-dist: tgz zip
 
 tgz: docs
 	mkdir -p ${dist_dir}
-	cp --parents ${dist_files} ${doc_pdf} ${dist_dir}
+	cp --parents ${dist_files} ${dist_dir}
 	tar czvf ${tgz_name} ${dist_dir}
 	rm -r ${dist_dir}
 
