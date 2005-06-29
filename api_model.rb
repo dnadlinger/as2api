@@ -284,6 +284,18 @@ class ASMethod < ASMember
       return as_method unless as_method.nil?
     end
   end
+
+  def inherited_comment
+    raise "method #{name.inspect} has a comment of its own" unless comment.nil?
+    containing_type.each_ancestor do |as_class|
+      as_method = as_class.get_method_called(name)
+      return as_method unless as_method.nil? || as_method.comment.nil?
+    end
+    containing_type.each_implemented_interface do |as_interface|
+      as_method = as_interface.get_method_called(name)
+      return as_method unless as_method.nil? || as_method.comment.nil?
+    end
+  end
 end
 
 # A field member, which may appear in an ASClass, but not an ASInterface

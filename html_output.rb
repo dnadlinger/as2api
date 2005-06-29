@@ -40,6 +40,16 @@ h4 {
 	padding-left: 3em;
 }
 
+p.inherited_docs {
+	margin-bottom: 0;
+	font-weight: bolder;
+	-moz-opacity: 0.5;
+	font-size: smaller;
+}
+p.inherited_docs+p {
+	margin-top: 0;
+}
+
 .alt_row {
 	background-color: #eeeeee;
 }
@@ -555,6 +565,17 @@ class TypePage < BasicPage
 	    end
 	  end
 	else
+	  documented_method = method.inherited_comment
+	  unless documented_method.nil?
+	    comment_data = documented_method.comment
+	    html_p("class"=>"inherited_docs") do
+	      pcdata("Description copied from ")
+	      link_type(documented_method.containing_type)
+	    end
+	    html_p do
+	      output_doccomment_blocktag(comment_data[0])
+	    end
+	  end
 	  method_info_from_supertype(method)
 	end
       end
