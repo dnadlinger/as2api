@@ -569,6 +569,10 @@ class TypePage < BasicPage
 	document_specified_by(spec_method)
       end
     end
+    overridden_method = method.overrides
+    unless overridden_method.nil?
+      document_overridden(overridden_method)
+    end
   end
 
   def type_hierachy(type)
@@ -664,6 +668,15 @@ class TypePage < BasicPage
 
   def document_specified_by(method)
     html_h4("Specified By")
+    html_p("class"=>"extra_info") do
+      link_method(method)
+      pcdata(" in ")
+      link_type(method.containing_type, true)
+    end
+  end
+
+  def document_overridden(method)
+    html_h4("Overrides")
     html_p("class"=>"extra_info") do
       link_method(method)
       pcdata(" in ")

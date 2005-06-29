@@ -277,6 +277,13 @@ class ASMethod < ASMember
     end
     nil
   end
+
+  def overrides
+    containing_type.each_ancestor do |as_class|
+      as_method = as_class.get_method_called(name)
+      return as_method unless as_method.nil?
+    end
+  end
 end
 
 # A field member, which may appear in an ASClass, but not an ASInterface
