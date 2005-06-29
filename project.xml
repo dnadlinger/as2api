@@ -217,6 +217,7 @@
       <downloads>
 	<dl file="as2api-0.3.tar.gz">Plain Ruby scripts</dl>
 	<dl file="as2api-allinone-w32-0.3.zip">Windows .exe</dl>
+	<dl file="as2api-allinone-osx-0.3.sit">OSX program</dl>
       </downloads>
 
       <changelog>
