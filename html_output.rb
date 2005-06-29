@@ -245,8 +245,7 @@ class Page
     base_path(type.qualified_name.gsub(/\./, "/")+".html")
   end
 
-  def link_type(type, qualified=false)
-    attrs = {}
+  def link_type(type, qualified=false, attrs={})
     if type.instance_of?(ASInterface)
       attrs["class"] = "interface_name"
       attrs["title"] = "Interface #{type.qualified_name}"
@@ -1154,7 +1153,7 @@ class PackageFramePage < Page
 	    interfaces.each do |type|
 	  
 	      html_li do
-		html_a(type.unqualified_name, {"href"=>type.unqualified_name+".html", "target"=>"type_frame", "title"=>type.qualified_name})
+		link_type(type, false, {"target"=>"type_frame"})
 	      end
 	    end
 	  end
@@ -1167,7 +1166,7 @@ class PackageFramePage < Page
 	    classes.each do |type|
 	  
 	      html_li do
-		html_a(type.unqualified_name, {"href"=>type.unqualified_name+".html", "target"=>"type_frame", "title"=>type.qualified_name})
+		link_type(type, false, {"target"=>"type_frame"})
 	      end
 	    end
 	  end
@@ -1297,7 +1296,7 @@ class AllTypesFramePage < Page
 	    if type.document?
 	      href = type.qualified_name.gsub(/\./, "/") + ".html"
 	      html_li do
-		html_a(type.unqualified_name, {"href"=>href, "title"=>type.qualified_name, "target"=>"type_frame"})
+		link_type(type, false, {"target"=>"type_frame"})
 	      end
 	    end
 	  end
