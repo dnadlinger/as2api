@@ -550,24 +550,23 @@ class TypePage < BasicPage
 	    if comment_has_exceptions?(comment_data)
 	      document_exceptions(comment_data)
 	    end
-	    if method.containing_type.is_a?(ASClass)
-	      spec_method = method.specified_by
-	      unless spec_method.nil?
-		document_specified_by(spec_method)
-	      end
-	    end
+	    method_info_from_supertype(method)
 	    if comment_has_seealso?(comment_data)
 	      document_seealso(comment_data)
 	    end
 	  end
 	else
-	  if method.containing_type.is_a?(ASClass)
-	    spec_method = method.specified_by
-	    unless spec_method.nil?
-	      document_specified_by(spec_method)
-	    end
-	  end
+	  method_info_from_supertype(method)
 	end
+      end
+    end
+  end
+
+  def method_info_from_supertype(method)
+    if method.containing_type.is_a?(ASClass)
+      spec_method = method.specified_by
+      unless spec_method.nil?
+	document_specified_by(spec_method)
       end
     end
   end
