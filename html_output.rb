@@ -234,6 +234,10 @@ class Page
 		       "type"=>"text/css",
 		       "href"=>base_path("style.css"))
       html_meta("name"=>"generator", "content"=>PROJECT_PAGE)
+      unless encoding.nil?
+        html_meta("http-equiv"=>"Content-Type",
+	          "content"=>"text/html; charset=#{encoding}")
+      end
     end
   end
 
