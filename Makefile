@@ -6,6 +6,7 @@ fop=~/incoming/fop-0.20.5/fop.sh
 as2api=ruby -w as2api.rb
 ruby_mswin32=/cygdrive/c/ruby/bin/ruby
 rubyscript2exe=${ruby_mswin32} -w ../rubyscript2exe.rb
+stuff=~/incoming/stuffit520.611linux-i386/bin/stuff
 
 sources = documenter.rb doc_comment.rb html_output.rb \
           xmlwriter.rb xhtmlwriter.rb \
@@ -22,12 +23,14 @@ dist_dir = as2api-${version}
 tgz_name = ${dist_dir}.tar.gz
 w32_dist_dir = as2api-allinone-w32-${version}
 zip_name = ${w32_dist_dir}.zip
+osx_dist_dir = as2api-allinone-osx-${version}
+sit_name = ${osx_dist_dir}.sit
 
-dist: tgz zip
+dist: tgz zip sit
 
-web-dist: tgz zip
+web-dist: tgz zip sit
 	mkdir -p projects/as2api/releases
-	cp ${tgz_name} ${zip_name} projects/as2api/releases
+	cp ${tgz_name} ${zip_name} ${sit_name} projects/as2api/releases
 	mkdir -p projects/as2api/examples
 	${as2api} --classpath ${mx_classes}:examples/as2lib_0.9/src \
 	          --output projects/as2api/examples/as2lib-0.9 \
@@ -63,11 +66,18 @@ zip: docs
 	zip -r ${zip_name} ${w32_dist_dir}
 	rm -r ${w32_dist_dir}
 
+sit: ${sit_name}
+
+${sit_name}: docs as2api_darwin
+	mkdir -p ${osx_dist_dir}
+	cp as2api_darwin ${doc_pdf} ${osx_dist_dir}
+	${stuff} --name=${sit_name} ${osx_dist_dir}
+
 test:
 	ruby -w ts.rb
 
 clean:
-	rm -rf ${tgz_name} ${zip_name} ${w32_dist_dir} ${dist_dir}
+	rm -rf ${tgz_name} ${zip_name} ${sit_name} ${w32_dist_dir} ${dist_dir}
 
 
 docs: ${doc_pdf}
