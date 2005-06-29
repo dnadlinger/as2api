@@ -531,8 +531,8 @@ class TypePage < BasicPage
       html_a("name"=>"method_#{method.name}")
       html_h3(method.name)
       method_synopsis(method)
-      if method.comment
-	html_div("class"=>"method_info") do
+      html_div("class"=>"method_info") do
+	if method.comment
 	  comment_data = method.comment
 	  html_p do
 	    output_doccomment_blocktag(comment_data[0])
@@ -560,12 +560,10 @@ class TypePage < BasicPage
 	      document_seealso(comment_data)
 	    end
 	  end
-	end
-      else
-	if method.containing_type.is_a?(ASClass)
-	  spec_method = method.specified_by
-	  unless spec_method.nil?
-	    html_div("class"=>"method_info") do
+	else
+	  if method.containing_type.is_a?(ASClass)
+	    spec_method = method.specified_by
+	    unless spec_method.nil?
 	      document_specified_by(spec_method)
 	    end
 	  end
