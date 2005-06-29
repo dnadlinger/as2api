@@ -163,18 +163,6 @@ def document_member?(member)
 end
 
 
-# accessability; make a link to skip over the (navigation) elements produced
-# by the given block
-def skip_nav(out)
-  out.html_div do
-    out.html_a("", {"href"=>"#skip_nav", "title"=>"Skip navigation"})
-  end
-  yield
-  out.html_div do
-    out.html_a("", {"name"=>"skip_nav"})
-  end
-end
-
 PROJECT_PAGE = "http://www.badgers-in-foil.co.uk/projects/as2api/"
 
 class Page
@@ -304,8 +292,13 @@ end
 class BasicPage < Page
   def generate_content
     html_body do
-      skip_nav(self) do
-	navigation
+      # accessability; make a link to skip over the initial navigation elements
+      html_div do
+	html_a("", {"href"=>"#skip_nav", "title"=>"Skip navigation"})
+      end
+      navigation
+      html_div do
+	html_a("", {"name"=>"skip_nav"})
       end
       generate_body_content
       navigation
