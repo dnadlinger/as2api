@@ -268,7 +268,11 @@ class Page
 
 
   def link_for_method(method)
-    return "#{link_for_type(method.containing_type)}#method_#{method.name}"
+    if @type == method.containing_type
+      "#method_#{method.name}"
+    else
+      "#{link_for_type(method.containing_type)}#method_#{method.name}"
+    end
   end
 
   def link_method(method)
@@ -290,6 +294,11 @@ class Page
 end
 
 class BasicPage < Page
+  def initialize(base_name, path_name=nil)
+    super(base_name, path_name)
+    @type = nil
+  end
+
   def generate_content
     html_body do
       # accessability; make a link to skip over the initial navigation elements
@@ -437,9 +446,7 @@ class TypePage < BasicPage
 	html_p do
 	  html_code do
 	    pcdata("new ")
-	      html_a("href"=>"#method_#{type.constructor.name}") do
-		pcdata(type.constructor.name+"()")
-	      end
+	    link_method(type.constructor)
 	  end
 	end
       end
@@ -469,13 +476,7 @@ class TypePage < BasicPage
     methods.each_with_index do |method, index|
       known_method_names << method.name
       pcdata(", ") if index > 0
-      if type.document?
-	html_a("href"=>"#{href_prefix}#method_#{method.name}") do
-	  pcdata(method.name+"()")
-	end
-      else
-	pcdata(method.name+"()")
-      end
+      link_method(method)
     end
   end
 
