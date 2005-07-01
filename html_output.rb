@@ -266,6 +266,32 @@ class Page
     end
   end
 
+  def signature_for_method(method)
+    sig = ""
+    if method.access.is_static
+      sig << "static "
+    end
+    unless method.access.visibility.nil?
+      sig << "#{method.access.visibility.body} "
+    end
+    sig << "function "
+    sig << method.name
+    sig << "("
+    method.arguments.each_with_index do |arg, index|
+      sig << ", " if index > 0
+      sig << arg.name
+      if arg.arg_type
+	sig << ":"
+	sig << arg.arg_type.name
+      end
+    end
+    sig << ")"
+    if method.return_type
+      sig << ":"
+      sig << method.return_type.name
+    end
+    sig
+  end
 
   def link_for_method(method)
     if @type == method.containing_type
@@ -276,14 +302,17 @@ class Page
   end
 
   def link_method(method)
+    sig = signature_for_method(method)
     if method.containing_type.document?
-      html_a("href"=>link_for_method(method)) do
+      html_a("href"=>link_for_method(method), "title"=>sig) do
 	pcdata(method.name)
 	pcdata("()")
       end
     else
-      pcdata(method.name)
-      pcdata("()")
+      html_span("title"=>sig) do
+	pcdata(method.name)
+	pcdata("()")
+      end
     end
   end
 
