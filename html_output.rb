@@ -266,6 +266,14 @@ class Page
     end
   end
 
+  def link_type_proxy(type_proxy, qualified=false)
+    if type_proxy.resolved?
+      link_type(type_proxy.resolved_type, qualified)
+    else
+      html_span(type_proxy.local_name, {"class"=>"unresolved_type_name"})
+    end
+  end
+
   def signature_for_method(method)
     sig = ""
     if method.access.is_static
@@ -347,6 +355,70 @@ class BasicPage < Page
   def generate_footer
     html_div("class"=>"footer") do
       html_a("as2api", {"href"=>PROJECT_PAGE, "title"=>"ActionScript 2 API Documentation Generator"})
+    end
+  end
+
+  def output_doccomment_blocktag(block)
+    block.each_inline do |inline|
+      output_doccomment_inlinetag(inline)
+    end
+  end
+
+  def output_doccomment_inlinetag(inline)
+    if inline.is_a?(String)
+      passthrough(inline)  # allow HTML through unabused (though I wish it were
+                           # easy to require it be valid XHTML)
+    elsif inline.is_a?(LinkTag)
+      if inline.target && inline.member
+	if inline.target.resolved?
+	  href = link_for_type(inline.target.resolved_type)
+	  if inline.member =~ /\(/
+	    target = "#method_#{$`}"
+	  else
+	    target = "#field_#{inline.member}"
+	  end
+	  href << target
+	  html_a("href"=>href) do
+	    pcdata("#{inline.target.name}.#{inline.member}")
+	  end
+	else
+	  pcdata("#{inline.target.name}##{inline.member}")
+	end
+      elsif inline.target
+	link_type_proxy(inline.target)
+      else
+	if inline.member =~ /\(/
+	  target = "#method_#{$`}"
+	else
+	  target = "#field_#{inline.member}"
+	end
+	html_a("href"=>target) do
+	  pcdata(inline.member)
+	end
+      end
+    elsif inline.is_a?(CodeTag)
+      html_code do
+	pcdata(inline.text)
+      end
+    else
+      html_em(inline.inspect)
+    end
+  end
+
+  def output_doccomment_initial_sentence(block)
+    block.each_inline do |inline|
+      if inline.is_a?(String)
+	if inline =~ /[\.:]\s+[A-Z]/ ||
+	   inline =~ /[\.:]\s+\Z/ ||
+	   inline =~ /<\/?[Pp]\b/
+	  output_doccomment_inlinetag($`)
+	  return
+	else
+	  output_doccomment_inlinetag(inline)
+	end
+      else
+	output_doccomment_inlinetag(inline)
+      end
     end
   end
 end
@@ -736,53 +808,6 @@ class TypePage < BasicPage
     return comment_has_method_additional_info?(comment_data) || !spec_method.nil?
   end
 
-  def output_doccomment_blocktag(block)
-    block.each_inline do |inline|
-      output_doccomment_inlinetag(inline)
-    end
-  end
-
-  def output_doccomment_inlinetag(inline)
-    if inline.is_a?(String)
-      passthrough(inline)  # allow HTML through unabused (though I wish it were
-                           # easy to require it be valid XHTML)
-    elsif inline.is_a?(LinkTag)
-      if inline.target && inline.member
-	if inline.target.resolved?
-	  href = link_for_type(inline.target.resolved_type)
-	  if inline.member =~ /\(/
-	    target = "#method_#{$`}"
-	  else
-	    target = "#field_#{inline.member}"
-	  end
-	  href << target
-	  html_a("href"=>href) do
-	    pcdata("#{inline.target.name}.#{inline.member}")
-	  end
-	else
-	  pcdata("#{inline.target.name}##{inline.member}")
-	end
-      elsif inline.target
-	link_type_proxy(inline.target)
-      else
-	if inline.member =~ /\(/
-	  target = "#method_#{$`}"
-	else
-	  target = "#field_#{inline.member}"
-	end
-	html_a("href"=>target) do
-	  pcdata(inline.member)
-	end
-      end
-    elsif inline.is_a?(CodeTag)
-      html_code do
-	pcdata(inline.text)
-      end
-    else
-      html_em(inline.inspect)
-    end
-  end
-
   def method_synopsis(method)
     html_code("class"=>"method_synopsis") do
       if method.access.is_static
@@ -862,14 +887,6 @@ class TypePage < BasicPage
 	  pcdata("[Write Only]")
 	end
       end
-    end
-  end
-
-  def link_type_proxy(type_proxy, qualified=false)
-    if type_proxy.resolved?
-      link_type(type_proxy.resolved_type, qualified)
-    else
-      html_span(type_proxy.local_name, {"class"=>"unresolved_type_name"})
     end
   end
 
@@ -983,7 +1000,7 @@ class PackageIndexPage < BasicPage
 	interfaces.sort!
 	html_table("class"=>"summary_list", "summary"=>"") do
 	  html_tr do
-	    html_th("Interface Summary")
+	    html_th("Interface Summary", {"colspan"=>"2"})
 	  end
 	  interfaces.each do |type|
 	    html_tr do
@@ -991,9 +1008,11 @@ class PackageIndexPage < BasicPage
 	      html_td do
 		html_a(type.unqualified_name, {"href"=>type.unqualified_name+".html"})
 	      end
-	      #html_td do
-		# TODO: package description
-	      #end
+	      html_td do
+		if type.comment
+		  output_doccomment_initial_sentence(type.comment[0])
+		end
+	      end
 	    end
 	  end
 	end
@@ -1003,7 +1022,7 @@ class PackageIndexPage < BasicPage
 	classes.sort!
 	html_table("class"=>"summary_list", "summary"=>"") do
 	  html_tr do
-	    html_th("Class Summary")
+	    html_th("Class Summary", {"colspan", "2"})
 	  end
 	  classes.each do |type|
 	    html_tr do
@@ -1011,9 +1030,11 @@ class PackageIndexPage < BasicPage
 	      html_td do
 		html_a(type.unqualified_name, {"href"=>type.unqualified_name+".html"})
 	      end
-	      #html_td do
-		# TODO: package description
-	      #end
+	      html_td do
+		if type.comment
+		  output_doccomment_initial_sentence(type.comment[0])
+		end
+	      end
 	    end
 	  end
 	end
