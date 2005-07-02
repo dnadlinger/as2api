@@ -267,12 +267,11 @@ class Page
   end
 
   def link_type(type, qualified=false, attrs={})
+    attrs["title"] = type_description_for(type)
     if type.instance_of?(ASInterface)
       attrs["class"] = "interface_name"
-      attrs["title"] = "Interface #{type.qualified_name}"
     elsif type.instance_of?(ASClass)
       attrs["class"] = "class_name"
-      attrs["title"] = "Class #{type.qualified_name}"
     elsif type == AS_VOID
       attrs["class"] = "void_name"
     end
@@ -463,11 +462,7 @@ class TypePage < BasicPage
   attr_accessor :prev_type, :next_type
 
   def generate_body_content
-      if @type.instance_of?(ASClass)
-	html_h1("Class "+@type.qualified_name)
-      elsif @type.instance_of?(ASInterface)
-	html_h1("Interface "+@type.qualified_name)
-      end
+      html_h1(type_description_for(@type))
 
       type_hierachy(@type)
 
@@ -1034,6 +1029,13 @@ def package_link_for(package, page)
   package_dir_for(package) + "/" + page
 end
 
+def type_description_for(as_type)
+  if as_type.instance_of?(ASClass)
+    "Class #{@type.qualified_name}"
+  elsif as_type.instance_of?(ASInterface)
+    "Interface #{@type.qualified_name}"
+  end
+end
 
 
 class PackageIndexPage < BasicPage
