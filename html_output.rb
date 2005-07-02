@@ -1059,9 +1059,9 @@ end
 
 def type_description_for(as_type)
   if as_type.instance_of?(ASClass)
-    "Class #{@type.qualified_name}"
+    "Class #{as_type.qualified_name}"
   elsif as_type.instance_of?(ASInterface)
-    "Interface #{@type.qualified_name}"
+    "Interface #{as_type.qualified_name}"
   end
 end
 
