@@ -1,4 +1,6 @@
 
+require 'strscan'
+
 module ActionScript
 module Parse
 
@@ -245,7 +247,7 @@ class ASLexer
   private
 
   def ASLexer.make_match(match)
-    Regexp.new("\\A#{match}")
+    Regexp.new(match)
   end
 
   h =		"[0-9a-fA-F]"
@@ -288,7 +290,6 @@ class ASLexer
 
     add_match(match) do |lex, match, io|
       lex.emit(ActionScript::Parse.const_get(class_name).new(io.lineno))
-      match.post_match
     end
   end
 
@@ -300,12 +301,10 @@ class ASLexer
     # TODO: whitespace tokens don't span lines, which might not be the expected
     #       behaviour
     lex.emit(WhitespaceToken.new(match[0], io.lineno))
-    match.post_match
   end
 
   add_match(SINGLE_LINE_COMMENT) do |lex, match, io|
     lex.emit(SingleLineCommentToken.new(match[1], io.lineno))
-    match.post_match
   end
 
   add_match(OMULTI_LINE_COMMENT) do |lex, match, io|
@@ -318,7 +317,7 @@ class ASLexer
     end
     comment << $`
     lex.emit(MultiLineCommentToken.new(comment, lineno))
-    $'
+    match.string = $'
   end
 
   Keywords.each do |keyword|
@@ -335,7 +334,6 @@ class ASLexer
 
   add_match(ident) do |lex, match, io|
     lex.emit(IdentifierToken.new(match[0], io.lineno))
-    match.post_match
   end
 
   add_match(STRING_START1) do |lex, match, io|
@@ -348,7 +346,7 @@ class ASLexer
     end
     str << $1
     lex.emit(StringToken.new(str, lineno))
-    $'
+    match.string = $'
   end
 
   add_match(STRING_START2) do |lex, match, io|
@@ -361,12 +359,11 @@ class ASLexer
     end
     str << $1
     lex.emit(StringToken.new(str, lineno))
-    $'
+    match.string = $'
   end
 
   add_match(num) do |lex, match, io|
     lex.emit(NumberToken.new(match[0], io.lineno))
-    match.post_match
   end
 
   def check_fill
@@ -376,14 +373,14 @@ class ASLexer
   end
 
   def fill
-    line = @io.readline
-    while line.size>0
+    line = StringScanner.new(@io.readline)
+    until line.eos?
       matched = false
       @@matches.each do |token_match|
 	re, action = token_match
-	match = re.match(line)
+	match = line.scan(re)
 	if match
-	  line = action.call(self, match, @io)
+	  action.call(self, line, @io)
 	  matched = true
 	  break
 	end
