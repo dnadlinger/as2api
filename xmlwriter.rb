@@ -25,6 +25,7 @@ class XMLWriter
     @io.print(text)
     unless attrs.nil?
       attrs.each do |key, val|
+      	raise "#{key.inspect}=#{val.inspect}" if key.nil? || val.nil?
 	@io.print(' ')
 	@io.print(key)
 	@io.print('="')
