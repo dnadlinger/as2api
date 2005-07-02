@@ -393,6 +393,7 @@ class GlobalTypeAggregator
       package = ASPackage.new(package_name)
       @packages[package_name] = package
     end
+    type.package = package
     package.add_type(type)
   end
 
