@@ -533,7 +533,7 @@ class TypePage < BasicPage
   end
 
   def link_up
-    yield "Package #{@type.package_name}", "package-summary.html"
+    yield package_description_for(@type.package), "package-summary.html"
   end
 
   def link_prev
@@ -1025,6 +1025,10 @@ def package_display_name_for(package)
   package.name
 end
 
+def package_description_for(package)
+  "Package #{package_display_name_for(package)}"
+end
+
 def package_link_for(package, page)
   return page if package.name == ""
   package_dir_for(package) + "/" + page
@@ -1038,7 +1042,7 @@ class PackageIndexPage < BasicPage
     dir = package_dir_for(package)
     super("package-summary", dir)
     @package = package
-    @title = "Package #{package_display_name_for(@package)} API Documentation"
+    @title = "#{package_description_for(@package)} API Documentation"
     @conf = conf
     @prev_package = nil
     @next_package = nil
@@ -1047,7 +1051,7 @@ class PackageIndexPage < BasicPage
   attr_accessor :prev_package, :next_package
 
   def generate_body_content
-      html_h1("Package "+package_display_name_for(@package))
+      html_h1(package_description_for(@package))
       interfaces = @package.interfaces
       unless interfaces.empty?
 	interfaces.sort!
@@ -1118,12 +1122,12 @@ class PackageIndexPage < BasicPage
   end
   def link_prev
     if @prev_package
-      yield "Package #{package_display_name_for(@prev_package)}", base_path(package_link_for(@prev_package, "package-summary.html"))
+      yield package_description_for(@prev_package), base_path(package_link_for(@prev_package, "package-summary.html"))
     end
   end
   def link_next
     if @next_package
-      yield "Package #{package_display_name_for(@next_package)}", base_path(package_link_for(@next_package, "package-summary.html"))
+      yield package_description_for(@next_package), base_path(package_link_for(@next_package, "package-summary.html"))
     end
   end
 
@@ -1264,7 +1268,7 @@ class PackageFramePage < Page
     dir = package_dir_for(package)
     super("package-frame", dir)
     @package = package
-    @title = "Package #{package_display_name_for(@package)} API Naviation"
+    @title = "#{package_description_for(@package)} API Naviation"
     @doctype_id = :transitional
   end
 
