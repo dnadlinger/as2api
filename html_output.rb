@@ -1040,8 +1040,8 @@ class PackageIndexPage < BasicPage
     @package = package
     @title = "Package #{package_display_name_for(@package)} API Documentation"
     @conf = conf
-    @prev_package
-    @next_package
+    @prev_package = nil
+    @next_package = nil
   end
 
   attr_accessor :prev_package, :next_package
