@@ -12,7 +12,7 @@ def stylesheet(output_dir)
 
   write_file(output_dir, name) do |out|
     out.print <<-HERE
-h1, h2, h3, h4 th {
+h1, h2, h3, h4, caption {
 	font-family: sans-serif;
 }
 
@@ -76,13 +76,15 @@ table.summary_list {
 	width: 100%;
 	margin-bottom: 1em;
 }
-table.summary_list th {
-	background-color: #CCCCFF;
-	font-size: larger;
-}
-table.summary_list td, table.summary_list th {
+table.summary_list td, table.summary_list caption {
 	border: 2px solid grey;
 	padding: .2em;
+}
+table.summary_list caption {
+	background-color: #CCCCFF;
+	border-bottom: 0;
+	font-size: larger;
+	font-weight: bolder;
 }
 ul.navigation_list {
 	padding-left: 0;
@@ -1050,9 +1052,7 @@ class PackageIndexPage < BasicPage
       unless interfaces.empty?
 	interfaces.sort!
 	html_table("class"=>"summary_list", "summary"=>"") do
-	  html_tr do
-	    html_th("Interface Summary", {"colspan"=>"2"})
-	  end
+	  html_caption("Interface Summary")
 	  interfaces.each do |type|
 	    html_tr do
 	
@@ -1072,9 +1072,7 @@ class PackageIndexPage < BasicPage
       unless classes.empty?
 	classes.sort!
 	html_table("class"=>"summary_list", "summary"=>"") do
-	  html_tr do
-	    html_th("Class Summary", {"colspan", "2"})
-	  end
+	  html_caption("Class Summary")
 	  classes.each do |type|
 	    html_tr do
 	
@@ -1316,9 +1314,7 @@ class OverviewPage < BasicPage
   def generate_body_content
       html_h1("API Overview")
       html_table("class"=>"summary_list", "summary"=>"") do
-	html_tr do
-	  html_th("Packages")
-	end
+	html_caption("Packages")
 	packages = @type_agregator.packages.sort
 	packages.each do |package|
 	  html_tr do
