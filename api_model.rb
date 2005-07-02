@@ -291,9 +291,11 @@ class ASMethod < ASMember
       as_method = as_class.get_method_called(name)
       return as_method unless as_method.nil? || as_method.comment.nil?
     end
-    containing_type.each_implemented_interface do |as_interface|
-      as_method = as_interface.get_method_called(name)
-      return as_method unless as_method.nil? || as_method.comment.nil?
+    if containing_type.is_a?(ASClass)
+      containing_type.each_implemented_interface do |as_interface|
+        as_method = as_interface.get_method_called(name)
+        return as_method unless as_method.nil? || as_method.comment.nil?
+      end
     end
   end
 end
