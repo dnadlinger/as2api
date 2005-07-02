@@ -346,6 +346,42 @@ class Page
     end
   end
 
+  def signature_for_field(field)
+    sig = ""
+    if field.access.is_static
+      sig << "static "
+    end
+    unless field.access.visibility.nil?
+      sig << "#{field.access.visibility.body} "
+    end
+    sig << field.name
+    if field.field_type
+      sig << ":"
+      sig << field.field_type.name
+    end
+  end
+
+  def link_for_field(field)
+    if @type == field.containing_type
+      "#field_#{field.name}"
+    else
+      "#{link_for_type(field.containing_type)}#field_#{field.name}"
+    end
+  end
+
+  def link_field(field)
+    sig = signature_for_field(field)
+    if field.containing_type.document?
+      html_a("href"=>link_for_field(field), "title"=>sig) do
+	pcdata(field.name)
+      end
+    else
+      html_span("title"=>sig) do
+	pcdata(field.name)
+      end
+    end
+  end
+
   def base_path(file)
     return file if @path_name.nil?
     ((".."+File::SEPARATOR) * @path_name.split(File::SEPARATOR).length) + file
@@ -571,15 +607,7 @@ class TypePage < BasicPage
     fields.each do |field|
       next unless document_member?(field)
       pcdata(", ") if index > 0
-      html_code do
-	if type.document?
-	  html_a("href"=>"#{href_prefix}#field_#{field.name}") do
-	    pcdata(field.name)
-	  end
-	else
-	  pcdata(field.name)
-	end
-      end
+      link_field(field)
       index += 1
     end
   end
@@ -1513,10 +1541,7 @@ end
 
 class FieldIndexTerm < MemberIndexTerm
   def link(out)
-    href_prefix = out.link_for_type(@astype)
-    out.html_a("href"=>"#{href_prefix}#field_#{@asmember.name}") do
-      out.pcdata(@asmember.name)
-    end
+    out.link_field(@asmember)
     out.pcdata(" field in ")
     out.link_type(@astype, true)
   end
