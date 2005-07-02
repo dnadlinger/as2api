@@ -267,7 +267,8 @@ class Page
   end
 
   def link_type(type, qualified=false, attrs={})
-    attrs["title"] = type_description_for(type)
+    desc = type_description_for(type)
+    attrs["title"] = desc unless desc.nil?
     if type.instance_of?(ASInterface)
       attrs["class"] = "interface_name"
     elsif type.instance_of?(ASClass)
@@ -359,6 +360,7 @@ class Page
       sig << ":"
       sig << field.field_type.name
     end
+    sig
   end
 
   def link_for_field(field)
