@@ -247,7 +247,7 @@ class ASLexer
   private
 
   def ASLexer.make_match(match)
-    Regexp.new(match)
+    match.gsub("/", "\\/").gsub("\n", "\\n")
   end
 
   h =		"[0-9a-fA-F]"
@@ -372,24 +372,25 @@ class ASLexer
     end
   end
 
-  def fill
-    line = StringScanner.new(@io.readline)
-    until line.eos?
-      matched = false
-      @@matches.each do |token_match|
-	re, action = token_match
-	match = line.scan(re)
-	if match
-	  action.call(self, line, @io)
-	  matched = true
-	  break
-	end
-      end
-      unless matched
-        parse_error(line)
-      end
+  def self.build_lexer
+    text = <<-EOS
+      def fill
+        line = StringScanner.new(@io.readline)
+        until line.eos?
+    EOS
+    @@matches.each_with_index do |token_match, index|
+      re, action = token_match
+      text << "if line.scan(/#{re}/)\n"
+      text << "  @@matches[#{index}][1].call(self, line, @io)\n"
+      text << "  next\n"
+      text << "end\n"
     end
+    text << "        end\n      end\n"
+    puts text
+    class_eval(text)
   end
+
+  self.build_lexer
 
   public
   def emit(token)
