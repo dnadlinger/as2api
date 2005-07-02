@@ -228,9 +228,7 @@ class Page
   def generate_head
     html_head do
       html_title(title) unless title.nil?
-      html_link("rel"=>"stylesheet",
-		       "type"=>"text/css",
-		       "href"=>base_path("style.css"))
+      generate_links
       html_meta("name"=>"generator", "content"=>PROJECT_PAGE)
       unless encoding.nil?
         html_meta("http-equiv"=>"Content-Type",
@@ -238,6 +236,29 @@ class Page
       end
     end
   end
+
+  def generate_links
+    html_link("rel"=>"stylesheet",
+             "type"=>"text/css",
+	     "href"=>base_path("style.css"))
+    link_top do |title, href|
+      html_link("rel"=>"top", "title"=>title, "href"=>href)
+    end
+    link_up do |title, href|
+      html_link("rel"=>"up", "title"=>title, "href"=>href)
+    end
+    link_prev do |title, href|
+      html_link("rel"=>"prev", "title"=>title, "href"=>href)
+    end
+    link_next do |title, href|
+      html_link("rel"=>"next", "title"=>title, "href"=>href)
+    end
+  end
+
+  def link_top; end
+  def link_up; end
+  def link_prev; end
+  def link_next; end
 
   def link_for_type(type)
     base_path(type.qualified_name.gsub(/\./, "/")+".html")
@@ -433,7 +454,11 @@ class TypePage < BasicPage
       @encoding = "utf-8"
     end
     @title = type.qualified_name
+    @prev_type = nil
+    @next_type = nil
   end
+
+  attr_accessor :prev_type, :next_type
 
   def generate_body_content
       if @type.instance_of?(ASClass)
@@ -498,6 +523,28 @@ class TypePage < BasicPage
       html_li do
 	html_a("Index", {"href"=>base_path("index-files/index.html")})
       end
+    end
+  end
+
+  def link_top
+    yield "Overview", base_path("overview-summary.html")
+  end
+
+  def link_up
+    yield "Package #{@type.package_name}", "package-summary.html"
+  end
+
+  def link_prev
+    if @prev_type
+      kind = @prev_type.is_a?(ASInterface) ? "Interface" : "Class"
+      yield "#{kind} #{@prev_type.qualified_name}", link_for_type(@prev_type)
+    end
+  end
+
+  def link_next
+    if @next_type
+      kind = @next_type.is_a?(ASInterface) ? "Interface" : "Class"
+      yield "#{kind} #{@next_type.qualified_name}", link_for_type(@next_type)
     end
   end
 
@@ -991,7 +1038,11 @@ class PackageIndexPage < BasicPage
     @package = package
     @title = "Package #{package_display_name_for(@package)} API Documentation"
     @conf = conf
+    @prev_package
+    @next_package
   end
+
+  attr_accessor :prev_package, :next_package
 
   def generate_body_content
       html_h1("Package "+package_display_name_for(@package))
@@ -1061,6 +1112,20 @@ class PackageIndexPage < BasicPage
       html_li do
 	html_a("Index", {"href"=>base_path("index-files/index.html")})
       end
+    end
+  end
+
+  def link_top
+    yield "Overview", base_path("overview-summary.html")
+  end
+  def link_prev
+    if @prev_package
+      yield "Package #{package_display_name_for(@prev_package)}", base_path(package_link_for(@prev_package, "package-summary.html"))
+    end
+  end
+  def link_next
+    if @next_package
+      yield "Package #{package_display_name_for(@next_package)}", base_path(package_link_for(@next_package, "package-summary.html"))
     end
   end
 
@@ -1513,6 +1578,9 @@ class IndexPage < BasicPage
     end
   end
 
+  def link_top
+    yield "Overview", base_path("overview-summary.html")
+  end
 end
 
 def make_page_list(conf, type_agregator)
@@ -1524,15 +1592,36 @@ def make_page_list(conf, type_agregator)
   list << AllTypesFramePage.new(type_agregator)
 
   # packages..
+  last_package = nil
+  last_pkg_index = nil
   type_agregator.each_package do |package|
-    list << PackageIndexPage.new(conf, package)
+    pkg_index = PackageIndexPage.new(conf, package)
+    list << pkg_index
     list << PackageFramePage.new(package)
+
+    if last_package
+      pkg_index.prev_package = last_package
+      last_pkg_index.next_package = package
+    end
+    last_package = package
+    last_pkg_index = pkg_index
   end
 
   # types..
+  last_type = nil
+  last_type_page = nil
   type_agregator.each_type do |type|
     if type.document?
-      list << TypePage.new(type)
+      type_page = TypePage.new(type)
+      list << type_page
+
+      if last_type
+	type_page.prev_type = last_type
+	last_type_page.next_type = type
+      end
+
+      last_type = type
+      last_type_page = type_page
     end
   end
 
