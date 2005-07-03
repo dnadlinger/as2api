@@ -6,81 +6,36 @@ class TC_ActionScriptLexer < Test::Unit::TestCase
   include ActionScript::Parse
 
   def test_simple_string
-    simple_lex("'test'") do |tok|
-      assert_instance_of(StringToken, tok)
-      assert_equal("test", tok.body)
-    end
-    simple_lex("\"test\"") do |tok|
-      assert_instance_of(StringToken, tok)
-      assert_equal("test", tok.body)
-    end
-    simple_lex("\"'\"") do |tok|
-      assert_instance_of(StringToken, tok)
-      assert_equal("'", tok.body)
-    end
-    simple_lex('"\\"\"') do |tok|
-      assert_instance_of(StringToken, tok)
-      assert_equal('"', tok.body)
-    end
+    assert_lex_to("'test'", StringToken.new("test", 1))
+    assert_lex_to("\"test\"", StringToken.new("test", 1))
+    assert_lex_to("\"'\"", StringToken.new("'", 1))
+    assert_lex_to('"\\"\"', StringToken.new('"', 1))
   end
 
   def test_identfier
-    simple_lex("foo") do |tok|
-      assert_instance_of(IdentifierToken, tok)
-      assert_equal("foo", tok.body)
-    end
+    assert_lex_to("foo", IdentifierToken.new("foo", 1))
     # check keyword at start of identifier doesn't confuse lexer
-    simple_lex("getfoo") do |tok|
-      assert_instance_of(IdentifierToken, tok)
-      assert_equal("getfoo", tok.body)
-    end
-    simple_lex("BAR") do |tok|
-      assert_instance_of(IdentifierToken, tok)
-      assert_equal("BAR", tok.body)
-    end
+    assert_lex_to("getfoo", IdentifierToken.new("getfoo", 1))
+    assert_lex_to("BAR", IdentifierToken.new("BAR", 1))
     # 'dollar' and underscore are allowed
-    simple_lex("$foo") do |tok|
-      assert_instance_of(IdentifierToken, tok)
-      assert_equal("$foo", tok.body)
-    end
-    simple_lex("bar$") do |tok|
-      assert_instance_of(IdentifierToken, tok)
-      assert_equal("bar$", tok.body)
-    end
-    simple_lex("_x") do |tok|
-      assert_instance_of(IdentifierToken, tok)
-      assert_equal("_x", tok.body)
-    end
-    simple_lex("z_") do |tok|
-      assert_instance_of(IdentifierToken, tok)
-      assert_equal("z_", tok.body)
-    end
+    assert_lex_to("$foo", IdentifierToken.new("$foo", 1))
+    assert_lex_to("bar$", IdentifierToken.new("bar$", 1))
+    assert_lex_to("_x", IdentifierToken.new("_x", 1))
+    assert_lex_to("z_", IdentifierToken.new("z_", 1))
   end
 
   def test_number
-    simple_lex("1") do |tok|
-      assert_instance_of(NumberToken, tok)
-      assert_equal("1", tok.body)
-    end
+    assert_lex_to("1", NumberToken.new("1", 1))
   end
 
   def test_single_line_comment
-    simple_lex("// foo ") do |tok|
-      assert_instance_of(SingleLineCommentToken, tok)
-      assert_equal(" foo ", tok.body)
-    end
+    assert_lex_to("// foo ", SingleLineCommentToken.new(" foo ", 1))
     # 'single line' comments shouldn't eat the whole body of a Mac-format file
-    simple_lex("//foo\r") do |tok|
-      assert_instance_of(SingleLineCommentToken, tok)
-      assert_equal("foo", tok.body)
-    end
+    assert_lex_to("//foo\r", SingleLineCommentToken.new("foo", 1))
   end
 
   def test_multiline_comment
-    simple_lex("/* hide!/* */") do |tok|
-      assert_instance_of(MultiLineCommentToken, tok)
-      assert_equal(" hide!/* ", tok.body)
-    end
+    assert_lex_to("/* hide!/* */", MultiLineCommentToken.new(" hide!/* ", 1))
   end
 
   def test_comma; assert_simple_token(",", CommaToken) end
@@ -115,6 +70,17 @@ class TC_ActionScriptLexer < Test::Unit::TestCase
     input = StrIO.new(text)
     lex = ASLexer.new(input)
     yield lex.get_next
+    assert_nil(lex.get_next)
+  end
+
+  def assert_lex_to(text, *tokens)
+    input = StrIO.new(text)
+    lex = ASLexer.new(input)
+    tokens.each do |expected|
+      tok = lex.get_next
+      assert_equal(expected.class, tok.class)
+      assert_equal(expected.body, tok.body)
+    end
     assert_nil(lex.get_next)
   end
 
