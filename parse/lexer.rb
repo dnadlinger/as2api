@@ -386,7 +386,6 @@ class ASLexer
       text << "end\n"
     end
     text << "        end\n      end\n"
-    puts text
     class_eval(text)
   end
 
