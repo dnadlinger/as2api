@@ -31,7 +31,8 @@ class TC_ActionScriptLexer < Test::Unit::TestCase
   def test_single_line_comment
     assert_lex_to("// foo ", SingleLineCommentToken.new(" foo ", 1))
     # 'single line' comments shouldn't eat the whole body of a Mac-format file
-    assert_lex_to("//foo\r", SingleLineCommentToken.new("foo", 1))
+    assert_lex_to("//foo\r", SingleLineCommentToken.new("foo", 1),
+                             WhitespaceToken.new("\r", 1))
   end
 
   def test_multiline_comment
