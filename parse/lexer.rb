@@ -288,8 +288,8 @@ class ASLexer
     EOE
     ActionScript::Parse.const_set(class_name, the_class)
 
-    add_match(match) do |lex, match, io|
-      lex.emit(ActionScript::Parse.const_get(class_name).new(io.lineno))
+    add_match(match) do |match, io|
+      ActionScript::Parse.const_get(class_name).new(io.lineno)
     end
   end
 
@@ -297,17 +297,17 @@ class ASLexer
     make_simple_token(name.capitalize, name, "#{name}\\b")
   end
 
-  add_match(WHITESPACE) do |lex, match, io|
+  add_match(WHITESPACE) do |match, io|
     # TODO: whitespace tokens don't span lines, which might not be the expected
     #       behaviour
-    lex.emit(WhitespaceToken.new(match[0], io.lineno))
+    WhitespaceToken.new(match[0], io.lineno)
   end
 
-  add_match(SINGLE_LINE_COMMENT) do |lex, match, io|
-    lex.emit(SingleLineCommentToken.new(match[1], io.lineno))
+  add_match(SINGLE_LINE_COMMENT) do |match, io|
+    SingleLineCommentToken.new(match[1], io.lineno)
   end
 
-  add_match(OMULTI_LINE_COMMENT) do |lex, match, io|
+  add_match(OMULTI_LINE_COMMENT) do |match, io|
     lineno = io.lineno
     line = match.post_match
     comment = ''
@@ -316,8 +316,8 @@ class ASLexer
       line = io.readline;
     end
     comment << $`
-    lex.emit(MultiLineCommentToken.new(comment, lineno))
     match.string = $'
+    MultiLineCommentToken.new(comment, lineno)
   end
 
   Keywords.each do |keyword|
@@ -332,11 +332,11 @@ class ASLexer
     make_punctuation_token(*punct)
   end
 
-  add_match(ident) do |lex, match, io|
-    lex.emit(IdentifierToken.new(match[0], io.lineno))
+  add_match(ident) do |match, io|
+    IdentifierToken.new(match[0], io.lineno)
   end
 
-  add_match(STRING_START1) do |lex, match, io|
+  add_match(STRING_START1) do |match, io|
     lineno = io.lineno
     line = match.post_match
     str = ''
@@ -345,11 +345,11 @@ class ASLexer
       line = io.readline;
     end
     str << $1
-    lex.emit(StringToken.new(str, lineno))
     match.string = $'
+    StringToken.new(str, lineno)
   end
 
-  add_match(STRING_START2) do |lex, match, io|
+  add_match(STRING_START2) do |match, io|
     lineno = io.lineno
     line = match.post_match
     str = ''
@@ -358,12 +358,12 @@ class ASLexer
       line = io.readline;
     end
     str << $1
-    lex.emit(StringToken.new(str, lineno))
     match.string = $'
+    StringToken.new(str, lineno)
   end
 
-  add_match(num) do |lex, match, io|
-    lex.emit(NumberToken.new(match[0], io.lineno))
+  add_match(num) do |match, io|
+    NumberToken.new(match[0], io.lineno)
   end
 
   def check_fill
@@ -381,7 +381,7 @@ class ASLexer
     @@matches.each_with_index do |token_match, index|
       re, action = token_match
       text << "if line.scan(/#{re}/)\n"
-      text << "  @@matches[#{index}][1].call(self, line, @io)\n"
+      text << "  emit(@@matches[#{index}][1].call(line, @io))\n"
       text << "  next\n"
       text << "end\n"
     end
