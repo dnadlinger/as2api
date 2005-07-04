@@ -385,7 +385,12 @@ class ASLexer
       text << "  next\n"
       text << "end\n"
     end
-    text << "        end\n      end\n"
+    text << <<-EOS
+          # no previous regexp matched,
+          parse_error(line.rest)
+        end
+      end
+    EOS
     class_eval(text)
   end
 

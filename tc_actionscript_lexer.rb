@@ -5,6 +5,14 @@ class TC_ActionScriptLexer < Test::Unit::TestCase
 
   include ActionScript::Parse
 
+  def test_lex_error
+    begin
+      assert_lex_to("@")
+      flunk("should be exception on invalid input")
+    rescue
+    end
+  end
+
   def test_simple_string
     assert_lex_to("'test'", StringToken.new("test", 1))
     assert_lex_to("\"test\"", StringToken.new("test", 1))
