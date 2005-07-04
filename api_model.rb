@@ -25,11 +25,22 @@ class ASType
     @comment = nil
     @type_resolver = nil
     @import_manager = nil
-    @input_filename = nil
+    @input_file = nil
     @document = true
   end
 
-  attr_accessor :package, :extends, :comment, :source_utf8, :type_resolver, :import_manager, :input_filename, :intrinsic, :constructor
+  attr_accessor :package, :extends, :comment, :source_utf8, :type_resolver, :import_manager, :intrinsic, :constructor
+
+  def input_filename
+    @input_file.suffix
+  end
+
+  def input_file=(file)
+    @input_file = file
+    sourcepath_location = file
+  end
+
+  attr_reader :input_file
 
   def add_method(method)
     @methods << method

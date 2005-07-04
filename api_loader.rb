@@ -25,8 +25,7 @@ def parse_file(file)
     begin
       is_utf8 = detect_bom?(io)
       type = simple_parse(io)
-      type.input_filename = file.suffix
-      type.sourcepath_location(File.dirname(file.suffix))
+      type.input_file = file
       type.source_utf8 = is_utf8
       return type
     rescue =>e

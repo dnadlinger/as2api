@@ -10,7 +10,8 @@ Conf = Struct.new(:output_dir,
 		  :progress_listener,
 		  :input_encoding,
 		  :draw_diagrams,
-		  :dot_exe)
+		  :dot_exe,
+		  :sources)
 
 SourceFile = Struct.new(:prefix, :suffix)
 
@@ -82,7 +83,8 @@ class CLI
       [ "--progress",         GetoptLong::NO_ARGUMENT ],
       [ "--encoding",         GetoptLong::REQUIRED_ARGUMENT ],
       [ "--draw-diagrams",    GetoptLong::NO_ARGUMENT ],
-      [ "--dot-exe",          GetoptLong::REQUIRED_ARGUMENT ]
+      [ "--dot-exe",          GetoptLong::REQUIRED_ARGUMENT ],
+      [ "--sources",          GetoptLong::NO_ARGUMENT ]
     )
 
     conf = Conf.new
@@ -110,6 +112,8 @@ class CLI
 	  conf.draw_diagrams = true
 	when "--dot-exe"
 	  conf.dot_exe = arg
+	when "--sources"
+	  conf.sources = true
       end
     end
     if ARGV.empty?
@@ -158,8 +162,7 @@ class CLI
       begin
 	is_utf8 = detect_bom?(io)
 	type = simple_parse(io)
-	type.input_filename = file.suffix
-	type.sourcepath_location(File.dirname(file.suffix))
+	type.input_file = file
 	type.source_utf8 = is_utf8
 	type_agregator.add_type(type)
       rescue =>e
@@ -223,6 +226,8 @@ Where options include:
   --dot-exe <filename>
         Specify the location of the 'dot' tool from Graphviz, if it is not
         available via the standard PATH.
+  --sources
+        Generate an HTML page for the source code of each input file
     END
   end
 

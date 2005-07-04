@@ -121,6 +121,20 @@ table.exceptions td, table.arguments td {
 .diagram {
 	text-align: center;
 }
+
+
+/* Source highlighting rules */
+
+.lineno {
+  color: gray;
+  background-color:lightgray;
+  border-right: 1px solid gray;
+  margin-right: .5em;
+}
+.comment { color: green; }
+.comment.doc { color: 4466ff; }
+.str_const, .num_const { color: blue; }
+.key { font-weight: bolder; color: purple; }
     HERE
   end
 end
@@ -391,8 +405,9 @@ class Page
 end
 
 class BasicPage < Page
-  def initialize(base_name, path_name=nil)
+  def initialize(conf, base_name, path_name=nil)
     super(base_name, path_name)
+    @conf = conf
     @type = nil
   end
 
@@ -485,9 +500,9 @@ end
 
 class TypePage < BasicPage
 
-  def initialize(type)
+  def initialize(conf, type)
     dir = type.package_name.gsub(/\./, "/")
-    super(type.unqualified_name, dir)
+    super(conf, type.unqualified_name, dir)
     @type = type
     if @type.source_utf8
       @encoding = "utf-8"
@@ -554,6 +569,11 @@ class TypePage < BasicPage
       end
       html_li do
 	html_span("Class", {"class"=>"nav_current"})
+      end
+      if @conf.sources
+	html_li do
+	  html_a("Source", {"href"=>@type.unqualified_name+".as.html"})
+	end
       end
       html_li do
 	html_a("Index", {"href"=>base_path("index-files/index.html")})
@@ -1072,10 +1092,9 @@ class PackageIndexPage < BasicPage
 
   def initialize(conf, package)
     dir = package_dir_for(package)
-    super("package-summary", dir)
+    super(conf, "package-summary", dir)
     @package = package
     @title = "#{package_description_for(@package)} API Documentation"
-    @conf = conf
     @prev_package = nil
     @next_package = nil
   end
@@ -1142,6 +1161,11 @@ class PackageIndexPage < BasicPage
       end
       html_li do
 	html_span("Class")
+      end
+      if @conf.sources
+	html_li do
+	  html_span("Source")
+	end
       end
       html_li do
 	html_a("Index", {"href"=>base_path("index-files/index.html")})
@@ -1341,8 +1365,8 @@ class PackageFramePage < Page
 end
 
 class OverviewPage < BasicPage
-  def initialize(type_agregator)
-    super("overview-summary")
+  def initialize(conf, type_agregator)
+    super(conf, "overview-summary")
     @type_agregator = type_agregator
     @title = "API Overview"
   end
@@ -1377,6 +1401,11 @@ class OverviewPage < BasicPage
       end
       html_li do
 	html_span("Class")
+      end
+      if @conf.sources
+	html_li do
+	  html_span("Source")
+	end
       end
       html_li do
 	html_a("Index", {"href"=>"index-files/index.html"})
@@ -1550,8 +1579,8 @@ class FieldIndexTerm < MemberIndexTerm
 end
 
 class IndexPage < BasicPage
-  def initialize(type_agregator)
-    super("index", "index-files")
+  def initialize(conf, type_agregator)
+    super(conf, "index", "index-files")
     @type_agregator = type_agregator
     @title = "Alphabetical Index"
   end
@@ -1601,8 +1630,187 @@ class IndexPage < BasicPage
       html_li do
 	html_span("Class")
       end
+      if @conf.sources
+	html_li do
+	  html_span("Source")
+	end
+      end
       html_li do
 	html_span("Index", {"class"=>"nav_current"})
+      end
+    end
+  end
+
+  def link_top
+    yield "Overview", base_path("overview-summary.html")
+  end
+end
+
+
+class SourcePage < BasicPage
+
+  def initialize(conf, type)
+    dir = type.package_name.gsub(/\./, "/")
+    super(conf, type.unqualified_name+".as", dir)
+    @type = type
+  end
+
+  def generate_body_content
+    html_pre do
+      file = @type.input_file
+      parse(File.join(file.prefix, file.suffix))
+    end
+  end
+
+  def parse(file)
+    File.open(File.join(file)) do |io|
+      begin
+	is_utf8 = detect_bom?(io)
+	as_io = ASIO.new(io)
+	lex = ActionScript::Parse::SkipASLexer.new(HighlightASLexer.new(self, as_io))
+	parse = HighlightASParser.new(lex)
+	parse.handler = ActionScript::Parse::ASHandler.new
+	parse.parse_compilation_unit
+      rescue =>e
+	$stderr.puts "#{file}: #{e.message}\n#{e.backtrace.join("\n")}"
+      end
+    end
+  end
+
+  class HighlightASParser < ActionScript::Parse::ASParser
+
+  end
+
+  Keywords = [
+    ActionScript::Parse::AsToken,
+    ActionScript::Parse::BreakToken,
+    ActionScript::Parse::CaseToken,
+    ActionScript::Parse::CatchToken,
+    ActionScript::Parse::ClassToken,
+    ActionScript::Parse::ConstToken,
+    ActionScript::Parse::ContinueToken,
+    ActionScript::Parse::DefaultToken,
+    ActionScript::Parse::DynamicToken,
+    ActionScript::Parse::DeleteToken,
+    ActionScript::Parse::DoToken,
+    ActionScript::Parse::ElseToken,
+    ActionScript::Parse::ExtendsToken,
+    ActionScript::Parse::FalseToken,
+    ActionScript::Parse::FinallyToken,
+    ActionScript::Parse::ForToken,
+    ActionScript::Parse::FunctionToken,
+    ActionScript::Parse::IfToken,
+    ActionScript::Parse::ImplementsToken,
+    ActionScript::Parse::ImportToken,
+    ActionScript::Parse::InToken,
+    ActionScript::Parse::InstanceofToken,
+    ActionScript::Parse::InterfaceToken,
+    ActionScript::Parse::IntrinsicToken,
+    ActionScript::Parse::NewToken,
+    ActionScript::Parse::NullToken,
+    ActionScript::Parse::PackageToken,
+    ActionScript::Parse::PrivateToken,
+    ActionScript::Parse::PublicToken,
+    ActionScript::Parse::ReturnToken,
+    ActionScript::Parse::StaticToken,
+    ActionScript::Parse::SuperToken,
+    ActionScript::Parse::SwitchToken,
+    ActionScript::Parse::ThisToken,
+    ActionScript::Parse::ThrowToken,
+    ActionScript::Parse::TrueToken,
+    ActionScript::Parse::TryToken,
+    ActionScript::Parse::TypeofToken,
+    ActionScript::Parse::UseToken,
+    ActionScript::Parse::VarToken,
+    ActionScript::Parse::VoidToken,
+    ActionScript::Parse::WhileToken,
+    ActionScript::Parse::WithToken
+  ]
+
+  class HighlightASLexer < ActionScript::Parse::ASLexer
+    def initialize(out, io)
+      super(io)
+      @lineno = 0
+      @out = out
+    end
+
+    def get_next
+      tok = super
+      out(tok)
+      tok
+    end
+
+    def out(tok)
+      mark_lineno if @lineno == 0
+      if Keywords.include?(tok.class)
+	pp_tok(tok, "key")
+	return
+      end
+      
+      case tok
+	when ActionScript::Parse::MultiLineCommentToken
+	  if tok.body[0] == "*"[0]
+	    pp_tok(tok, "comment doc")
+	  else
+	    pp_tok(tok, "comment")
+	  end
+	when ActionScript::Parse::SingleLineCommentToken
+	  pp_tok(tok, "comment")
+	when ActionScript::Parse::StringToken
+	  pp_tok(tok, "str_const")
+	when ActionScript::Parse::NumberToken
+	  pp_tok(tok, "num_const")
+	else
+	  p_tok(tok)
+      end
+    end
+
+    def pp_tok(tok, clazz)
+      @out.html_span("class"=>clazz) do
+	p_tok(tok)
+      end
+    end
+    def p_tok(tok)
+      txt = StringScanner.new(tok.to_s)
+      until txt.eos?
+	if match = txt.scan_until(/\r\n|\n|\r/)
+	  p_str(match)
+	  mark_lineno
+	else
+	  p_str(txt.rest)
+	  txt.terminate
+	end
+      end
+    end
+
+    def mark_lineno
+      @lineno += 1
+      @out.html_span("id"=>@lineno.to_s, "class"=>"lineno") do
+	@out.pcdata("%6d  " % [@lineno])
+      end
+    end
+
+    def p_str(str)
+      @out.pcdata(str)
+    end
+  end
+
+  def navigation
+    html_ul("class"=>"main_nav") do
+      html_li do
+	html_a("Overview", {"href"=>base_path("overview-summary.html")})
+      end
+      html_li do
+	html_a("Package", {"href"=>"package-summary.html"})
+      end
+      html_li do
+	html_a("Class", {"href"=>@type.unqualified_name+".html"})
+      end
+      html_li do
+	html_span("Source", {"class"=>"nav_current"})
+      end
+      html_li do
+	html_a("Index", {"href"=>base_path("index-files/index.html")})
       end
     end
   end
@@ -1616,7 +1824,7 @@ def make_page_list(conf, type_agregator)
   list = []
 
   list << FramesetPage.new()
-  list << OverviewPage.new(type_agregator)
+  list << OverviewPage.new(conf, type_agregator)
   list << OverviewFramePage.new(type_agregator)
   list << AllTypesFramePage.new(type_agregator)
 
@@ -1641,8 +1849,9 @@ def make_page_list(conf, type_agregator)
   last_type_page = nil
   type_agregator.each_type do |type|
     if type.document?
-      type_page = TypePage.new(type)
+      type_page = TypePage.new(conf, type)
       list << type_page
+      list << SourcePage.new(conf, type) if conf.sources
 
       if last_type
 	type_page.prev_type = last_type
@@ -1654,7 +1863,7 @@ def make_page_list(conf, type_agregator)
     end
   end
 
-  list << IndexPage.new(type_agregator)
+  list << IndexPage.new(conf, type_agregator)
 
   list
 end
