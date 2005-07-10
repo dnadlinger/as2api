@@ -692,7 +692,7 @@ class TypePage < BasicPage
   end
 
   def document_field(field)
-    html_a("name"=>"field_#{field.name}")
+    html_a("", "name"=>"field_#{field.name}")
     html_h3(field.name)
     html_div("class"=>"field_details") do
       field_synopsis(field)
@@ -726,7 +726,7 @@ class TypePage < BasicPage
     css_class = "method_details"
     css_class << " alt_row" if alt_row
     html_div("class"=>css_class) do
-      html_a("name"=>"method_#{method.name}")
+      html_a("", "name"=>"method_#{method.name}")
       html_h3(method.name)
       method_synopsis(method)
       html_div("class"=>"method_info") do
