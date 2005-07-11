@@ -2,6 +2,7 @@
 require 'documenter'
 require 'getoptlong'
 require 'html_output'
+require 'set'
 
 Conf = Struct.new(:output_dir,
                   :classpath,
@@ -149,10 +150,18 @@ class CLI
 
   def find_sources
     result = []
+    ignored_packages = Set.new
     @conf.classpath.each do |path|
       found_sources = false
       each_source(path) do |source|
-	result << SourceFile.new(path, source) if process_file?(source)
+	if process_file?(source)
+	  result << SourceFile.new(path, source)
+	else
+	  dirname = File.dirname(source)
+	  if ignored_packages.add?(dirname)
+	    warn("package #{dirname.gsub(/\//, '.').inspect} will not be documented")
+	  end
+	end
 	found_sources = true
       end
       unless found_sources
