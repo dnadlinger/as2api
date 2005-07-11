@@ -153,7 +153,7 @@ class CLI
     ignored_packages = Set.new
     @conf.classpath.each do |path|
       found_sources = false
-      each_source(path) do |source|
+      each_source(File.expand_path(path)) do |source|
 	if process_file?(source)
 	  result << SourceFile.new(path, source)
 	else
