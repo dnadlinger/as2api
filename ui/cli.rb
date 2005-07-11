@@ -150,8 +150,13 @@ class CLI
   def find_sources
     result = []
     @conf.classpath.each do |path|
+      found_sources = false
       each_source(path) do |source|
 	result << SourceFile.new(path, source) if process_file?(source)
+	found_sources = true
+      end
+      unless found_sources
+	warn("#{path.inspect} contains no ActionScript files")
       end
     end
     result
@@ -236,6 +241,9 @@ Where options include:
     exit(-1)
   end
 
+  def warn(msg)
+    $stderr.puts("warning: #{msg}")
+  end
 end
 
 
