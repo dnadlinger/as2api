@@ -37,7 +37,7 @@ class ASType
 
   def input_file=(file)
     @input_file = file
-    sourcepath_location = file
+    sourcepath_location(File.dirname(file.suffix))
   end
 
   attr_reader :input_file
