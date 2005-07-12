@@ -274,8 +274,8 @@ class ASLexer
   w =		"[ \t\r\n\f]*"
 
 
-  def self.add_match(match)
-    @@matches << [make_match(match), Proc.new]
+  def self.add_match(match, lex_meth_sym, tok_class_sym)
+    @@matches << [make_match(match), lex_meth_sym, tok_class_sym]
   end
 
   def self.make_simple_token(name, value, match)
@@ -288,26 +288,34 @@ class ASLexer
     EOE
     ActionScript::Parse.const_set(class_name, the_class)
 
-    add_match(match) do |match, io|
-      ActionScript::Parse.const_get(class_name).new(io.lineno)
-    end
+    add_match(match, :lex_simple_token, class_name.to_sym)
+  end
+
+  def lex_simple_token(class_sym, match, io)
+    ActionScript::Parse.const_get(class_sym).new(io.lineno)
   end
 
   def self.make_keyword_token(name)
     make_simple_token(name.capitalize, name, "#{name}\\b")
   end
 
-  add_match(WHITESPACE) do |match, io|
-    # TODO: whitespace tokens don't span lines, which might not be the expected
-    #       behaviour
-    WhitespaceToken.new(match[0], io.lineno)
+  # TODO: whitespace tokens don't span lines, which might not be the expected
+  #       behaviour
+  add_match(WHITESPACE, :lex_simplebody_token, :WhitespaceToken)
+
+  def lex_simplebody_token(class_sym, match, io)
+    ActionScript::Parse.const_get(class_sym).new(match[0], io.lineno)
   end
 
-  add_match(SINGLE_LINE_COMMENT) do |match, io|
+  add_match(SINGLE_LINE_COMMENT, :lex_singlelinecoomment_token, :SingleLineCommentToken)
+
+  def lex_singlelinecoomment_token(class_sym, match, io)
     SingleLineCommentToken.new(match[1], io.lineno)
   end
 
-  add_match(OMULTI_LINE_COMMENT) do |match, io|
+  add_match(OMULTI_LINE_COMMENT, :lex_multilinecomment_token, :MultiLineCommentToken)
+
+  def lex_multilinecomment_token(class_sym, match, io)
     lineno = io.lineno
     line = match.post_match
     comment = ''
@@ -332,39 +340,41 @@ class ASLexer
     make_punctuation_token(*punct)
   end
 
-  add_match(ident) do |match, io|
-    IdentifierToken.new(match[0], io.lineno)
-  end
+  add_match(ident, :lex_simplebody_token, :IdentifierToken)
 
-  add_match(STRING_START1) do |match, io|
+  add_match(STRING_START1, :lex_string1_token, :StringToken)
+
+  def lex_string1_token(class_sym, match, io)
     lineno = io.lineno
     line = match.post_match
     str = ''
-    until line =~ /\A#{STRING_END1}/o
+    until line =~ /#{STRING_END1}/o
       str << line
       line = io.readline;
+      raise "#{lineno}:unexpected EOF in string" if line.nil?
     end
     str << $1
     match.string = $'
     StringToken.new(str, lineno)
   end
 
-  add_match(STRING_START2) do |match, io|
+  add_match(STRING_START2, :lex_string2_token, :StringToken)
+
+  def lex_string2_token(class_sym, match, io)
     lineno = io.lineno
     line = match.post_match
     str = ''
-    until line =~ /\A#{STRING_END2}/o
+    until line =~ /#{STRING_END2}/o
       str << line
       line = io.readline;
+      raise "#{lineno}:unexpected EOF in string" if line.nil?
     end
     str << $1
     match.string = $'
     StringToken.new(str, lineno)
   end
 
-  add_match(num) do |match, io|
-    NumberToken.new(match[0], io.lineno)
-  end
+  add_match(num, :lex_simplebody_token, :NumberToken)
 
   def check_fill
     if @tokens.empty? && !@io.eof?
@@ -379,9 +389,9 @@ class ASLexer
         until line.eos?
     EOS
     @@matches.each_with_index do |token_match, index|
-      re, action = token_match
+      re, lex_method, tok_class = token_match
       text << "if line.scan(/#{re}/)\n"
-      text << "  emit(@@matches[#{index}][1].call(line, @io))\n"
+      text << "  emit(#{lex_method.to_s}(:#{tok_class.to_s}, line, @io))\n"
       text << "  next\n"
       text << "end\n"
     end
