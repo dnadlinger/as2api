@@ -1,5 +1,5 @@
 
-require 'parse/lexer'
+require 'parse/aslexer'
 require 'parse/parser'
 require 'api_model'
 require 'doc_comment'
