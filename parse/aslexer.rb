@@ -4,24 +4,6 @@ require 'parse/lexer'
 module ActionScript
 module Parse
 
-# TODO Create an EOFToken (so that we can report its line number)
-
-class ASToken
-  def initialize(body, lineno)
-    @body = body
-    @lineno = lineno
-  end
-  def body
-    @body
-  end
-  def lineno
-    @lineno
-  end
-  def to_s
-    @body
-  end
-end
-
 class CommentToken < ASToken
 end
 
