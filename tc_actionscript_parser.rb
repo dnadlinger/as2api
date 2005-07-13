@@ -1,5 +1,5 @@
 require 'test/unit'
-require 'parse/lexer'
+require 'parse/aslexer'
 require 'parse/parser'
 
 class TC_ActionScriptParser < Test::Unit::TestCase
