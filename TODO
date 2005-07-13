@@ -31,3 +31,5 @@
 
  - Handling of hex integer constants appears to be broken -- '0xff' gets
    treated as IntegerToken<0>, IdentifierToken<xff> (I think).
+
+ - API changes a la http://www.jdiff.org/
