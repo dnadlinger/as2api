@@ -50,15 +50,21 @@ class ASParser
 
   def parse_compilation_unit
     @handler.compilation_unit_start
-    parse_imports
+    parse_imports_and_attributes
     parse_type_definition
     @handler.compilation_unit_end
   end
 
 
-  def parse_imports
-    while lookahead?(ImportToken)
-      parse_import
+  def parse_imports_and_attributes
+    while true
+      if lookahead?(ImportToken)
+        parse_import
+      elsif lookahead?(LBracketToken)
+	eat_attribute
+      else
+	break
+      end
     end
   end
 
@@ -86,7 +92,6 @@ class ASParser
   end
 
   def parse_type_definition
-    parse_attribute_list
     if lookahead?(ClassToken) || lookahead?(DynamicToken) || lookahead?(IntrinsicToken)
       type = parse_class_or_intrinsic_definition
     elsif lookahead?(InterfaceToken)

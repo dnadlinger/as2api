@@ -13,6 +13,12 @@ class TC_ActionScriptParser < Test::Unit::TestCase
     end
   end
 
+  def test_imports_and_attributes
+    simple_parse("[foo=bar]\nimport foo;[bar=foo]\nclass Foo {}") do |parse|
+      parse.parse_compilation_unit
+    end
+  end
+
   def test_access_modifier
     simple_parse("") do |parse|
       access = parse.parse_access_modifier
