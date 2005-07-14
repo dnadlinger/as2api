@@ -1,6 +1,7 @@
 require 'test/unit'
 require 'parse/aslexer'
 require 'parse/parser'
+require 'stringio'
 
 class TC_ActionScriptParser < Test::Unit::TestCase
 
@@ -61,33 +62,11 @@ class TC_ActionScriptParser < Test::Unit::TestCase
 
  private
   def simple_parse(text)
-    input = StrIO.new(text)
+    input = StringIO.new(text)
     lex = SkipASLexer.new(ASLexer.new(input))
     parse = ASParser.new(lex)
     parse.handler = ASHandler.new
     yield parse
     assert_nil(lex.get_next)
-  end
-end
-
-# Simple IO-like object the readsfrom a String, rather than a file
-# TODO: handle multiple lines
-class StrIO
-  def initialize(data)
-    @data = data
-  end
-
-  def readline
-    dat = @data
-    @data = nil
-    dat
-  end
-
-  def eof?
-    @data.nil?
-  end
-
-  def lineno
-    1
   end
 end
