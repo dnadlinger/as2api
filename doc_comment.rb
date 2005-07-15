@@ -1,53 +1,5 @@
 
-class CommentInput
-  def initialize(text, lineno, type_resolver)
-    @text = text
-    @lineno = lineno
-    @type_resolver = type_resolver
-  end
-
-  attr_accessor :text, :lineno, :type_resolver
-
-  def derive(text, lineno=nil)
-    lineno = @lineno if lineno.nil?
-    return CommentInput.new(text, lineno, @type_resolver)
-  end
-end
-
-
-class DocCommentParser
-  def initialize(config)
-    @config = config
-  end
-
-  def parse(input)
-    data = CommentData.new
-    @config.begin_comment(data)
-    lineno = input.lineno
-    input.text.scan(/[^\n\r]*(?:\n\r|\n|\r)?/) do |text|
-      parse_line(input.derive(strip_stars(text), lineno))
-      lineno += 1
-    end
-    @config.end_comment
-    return data
-  end
-
-  private
-
-  def strip_stars(text)
-    text.sub(/\A\s*\**/, "").sub(/[ \t]*\Z/, "")
-  end
-
-  def parse_line(input)
-    if input.text =~ /^\s*@([a-zA-Z]+)\s*/
-      @config.begin_block($1)
-      @config.parse(input.derive($'))
-    else
-      @config.parse(input)
-    end
-  end
-end
-
+require 'parse/doccomment_parser'
 
 class CommentData
   def initialize
@@ -69,64 +21,87 @@ class CommentData
   end
 end
 
+class OurDocCommentHandler < ActionScript::Parse::DocCommentHandler
+  def initialize(comment_data, handler_config, type_resolver)
+    @comment_data = comment_data
+    @handler_config = handler_config
+    @type_resolver = type_resolver
+  end
+
+  def comment_start(lineno)
+    @block_handler = @handler_config.initial_block_handler
+    @inline_handler = nil
+    beginning_of_block(lineno)
+  end
+
+  def comment_end
+    end_of_block
+  end
+
+  def text(text)
+    if @inline_handler
+      @inline_handler.text(text)
+    else
+      @block_handler.text(text)
+    end
+  end
+
+  def start_paragraph_tag(tag)
+    end_of_block
+    @block_handler = @handler_config.handler_for(tag)
+    beginning_of_block(tag.lineno)
+  end
+
+  def start_inline_tag(tag)
+    @inline_handler = @block_handler.handler_for(tag)
+    @inline_handler.start(@type_resolver, tag.lineno)
+  end
+
+  def end_inline_tag
+    @block_handler.add_inline(@inline_handler.end)
+    @inline_handler = nil
+  end
+
+  private
+
+  def beginning_of_block(lineno)
+    @block_handler.begin_block(@type_resolver, lineno)
+  end
+
+  def end_of_block
+    block = @block_handler.end_block
+    @comment_data.add_block(block) unless block.nil?
+  end
+end
 
 class DocCommentParserConfig
   def initialize
+    @initial_block_handler = nil
     @block_handlers = {}
   end
 
-  def begin_comment(comment_data)
-    @comment_data = comment_data
-    @block = @description_block_handler
-    beginning_of_block
-  end
+  attr_accessor :initial_block_handler
 
   def add_block_parser(name, handler)
     @block_handlers[name] = handler
     handler.handler = self
   end
 
-  def description_handler=(handler)
-    @description_block_handler = handler
-  end
-
-  def end_comment
-    end_of_block
-  end
-
-  def begin_block(kind)
-    end_of_block
-    @block = handler_for(kind)
-    beginning_of_block
-  end
-
-  def parse(text)
-    @block.parse_line(text)
-  end
-
-  def parse_error(msg)
-    $stderr.puts(msg)
-  end
-
-  private
-
   def handler_for(kind)
-    handler = @block_handlers[kind]
+    handler = @block_handlers[kind.body]
     if handler.nil?
-      parse_error("Unknown block tag @#{kind}")
+      parse_error("#{kind.lineno}: Unknown block tag @#{kind.body}")
       handler = NIL_HANDLER
     end
     handler
   end
 
-  def beginning_of_block
-    @block.begin_block
+  private
+
+  def parse_error(msg)
+    $stderr.puts(msg)
   end
 
-  def end_of_block
-    data = @block.end_block
-    @comment_data.add_block(data) unless data.nil?
-  end
 end
 
 
@@ -155,13 +130,23 @@ class BlockTag
   end
 
   def add_inline(inline)
-    @inlines << inline
+    # coalesce multiple consecutive strings,
+    last_inline = @inlines.last
+    if inline.is_a?(String) && last_inline.is_a?(String)
+      last_inline << inline
+    else
+      @inlines << inline
+    end
   end
 
   def each_inline
     @inlines.each do |inline|
       yield inline
     end
+  end
+
+  def inlines
+    @inlines
   end
 end
 
@@ -185,15 +170,21 @@ end
 
 
 class InlineParser
-  def parse(block_data, inpu)
-    raise "implement me"
+  def start(type_resolver, lineno)
+    @type_resolver = type_resolver
+    @lineno = lineno
+    @text = ""
+  end
+
+  def text(text)
+    @text << text.to_s
   end
 end
 
 
 # creates a LinkTag inline
-def create_link(input)
-  if input.text =~ /^([^\s]+(?:\([^\)]*\))?)\s*/
+def create_link(type_resolver, text, lineno)
+  if text =~ /^\s*([^\s]+(?:\([^\)]*\))?)\s*/
     target = $1
     text = $'
     # TODO: need a MemberProxy (and maybe Method+Field subclasses) with similar
@@ -208,7 +199,7 @@ def create_link(input)
     if type_name == ""
       type_proxy = nil
     else
-      type_proxy = input.type_resolver.resolve(type_name, input.lineno)
+      type_proxy = type_resolver.resolve(type_name, lineno)
     end
     return LinkTag.new(type_proxy, member_name, text)
   end
@@ -218,21 +209,19 @@ end
 
 # handle {@link ...} in comments
 class LinkInlineParser < InlineParser
-  def parse(block_data, input)
-    link = create_link(input)
+  def end
+    link = create_link(@type_resolver, @text, @lineno)
     if link.nil?
-      block_data.add_inline("{@link #{input.text}}")
+      "{@link #{@text}}"
     else
-      block_data.add_inline(link)
+      link
     end
   end
 end
 
 # handle {@code ...} in comments
 class CodeInlineParser < InlineParser
-  def parse(block_data, input)
-    block_data.add_inline(CodeTag.new(input.text))
-  end
+  def end; CodeTag.new(@text); end
 end
 
 
@@ -244,7 +233,9 @@ class BlockParser
 
   attr_accessor :handler
 
-  def begin_block
+  def begin_block(type_resolver, lineno)
+    @type_resolver = type_resolver
+    @lineno = lineno
   end
 
   def parse_line(text)
@@ -256,6 +247,18 @@ class BlockParser
 
   def add_inline_parser(tag_name, parser)
     @inline_parsers[tag_name] = parser
+  end
+
+  def handler_for(tag)
+    inline_parser = @inline_parsers[tag.body]
+  end
+
+  def text(text)
+    add_text(text.to_s)
+  end
+
+  def add_inline(tag)
+    @data.add_inline(tag)
   end
 
   def parse_inlines(input)
@@ -281,6 +284,7 @@ class BlockParser
   end
 
   def add_text(text)
+    raise "#{self.class.name} has no @data" unless @data
     @data.add_inline(text)
   end
 end
@@ -290,7 +294,8 @@ NIL_HANDLER = BlockParser.new
 
 
 class ParamParser < BlockParser
-  def begin_block
+  def begin_block(type_resolver, lineno)
+    super(type_resolver, lineno)
     @data = ParamBlockTag.new
   end
 
@@ -306,23 +311,27 @@ end
 
 
 class ThrowsParser < BlockParser
-  def begin_block
+  def begin_block(type_resolver, lineno)
+    super(type_resolver, lineno)
     @data = ThrowsBlockTag.new
   end
 
-  def parse_line(input)
-    if @data.exception_type.nil?
-      input.text =~ /\A\s*([^\s]+)\s+/
-      @data.exception_type = input.type_resolver.resolve($1)
-      input = input.derive($')
-    end
-    parse_inlines(input)
+  def end_block
+      first_inline = @data.inlines[0]
+      if first_inline =~ /\A\s*([^\s]+)\s+/
+	@data.inlines[0] = $'
+        @data.exception_type = @type_resolver.resolve($1)
+	@data
+      else
+	nil
+      end
   end
 end
 
 
 class ReturnParser < BlockParser
-  def begin_block
+  def begin_block(type_resolver, lineno)
+    super(type_resolver, lineno)
     @data = ReturnBlockTag.new
   end
   def parse_line(input)
@@ -332,43 +341,33 @@ end
 
 
 class DescriptionParser < BlockParser
-  def begin_block
+  def begin_block(type_resolver, lineno)
+    super(type_resolver, lineno)
     @data = BlockTag.new
-  end
-  def parse_line(input)
-    parse_inlines(input)
   end
 end
 
 
 class SeeParser < BlockParser
-  def begin_block
-    @data = nil
+  def begin_block(type_resolver, lineno)
+    super(type_resolver, lineno)
+    @data = SeeBlockTag.new
   end
 
-  def parse_line(input)
-    if @data.nil?
-      @data = SeeBlockTag.new
-      input.text =~ /\A\s*/
+  def end_block
+      @data.inlines.first =~ /\A\s*/
       case $'
 	when /['"]/
 	  # plain, 'string'-like see entry
-	  @data.add_inline(input.text)
 	when /</
 	  # HTML entry
-	  @data.add_inline(input.text)
 	else
 	  # 'link' entry
-	  link = create_link(input)
-	  if link.nil?
-	    @data.add_inline(input.text)
-	  else
-	    @data.add_inline(link)
+	  link = create_link(@type_resolver, @data.inlines.first, @lineno)
+	  unless link.nil?
+	    @data.inlines[0] = link
 	  end
       end
-    else
-      @data.add_inline(input.text)
-    end
   end
 end
 
@@ -405,7 +404,7 @@ class ConfigBuilder
   end
 
   def add_standard_block_parsers(config)
-    config.description_handler=build_description_block_parser
+    config.initial_block_handler = build_description_block_parser
     config.add_block_parser("see", build_see_block_parser)
   end
 

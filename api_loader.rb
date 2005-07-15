@@ -3,6 +3,8 @@ require 'parse/aslexer'
 require 'parse/parser'
 require 'api_model'
 require 'doc_comment'
+require 'parse/doccomment_lexer'
+require 'stringio'
 
 # We used to just define the class again to add this attribute, but I want
 # to be compatable with Ruby1.6, which doesn' allow 'class ModName::ClassName'
@@ -100,9 +102,9 @@ end
 class DocASHandler < ActionScript::Parse::ASHandler
   def initialize
     parse_conf_build = ConfigBuilder.new
-    @method_comment_parser = DocCommentParser.new(parse_conf_build.build_method_config)
-    @field_comment_parser = DocCommentParser.new(parse_conf_build.build_field_config)
-    @type_comment_parser = DocCommentParser.new(parse_conf_build.build_type_config)
+    @method_comment_config = parse_conf_build.build_method_config
+    @field_comment_config = parse_conf_build.build_field_config
+    @type_comment_config = parse_conf_build.build_type_config
   end
 
   def compilation_unit_start
@@ -124,8 +126,7 @@ class DocASHandler < ActionScript::Parse::ASHandler
     @defined_type = ASClass.new(name)
     @type_resolver = LocalTypeResolver.new(@defined_type)
     if @doc_comment
-      input = create_comment_parser_input(@doc_comment)
-      @defined_type.comment = @type_comment_parser.parse(input)
+      @defined_type.comment = parse_comment(@type_comment_config, @doc_comment)
     end
     @defined_type.dynamic = dynamic
     if super_name
@@ -149,8 +150,7 @@ class DocASHandler < ActionScript::Parse::ASHandler
     @defined_type = ASInterface.new(name)
     @type_resolver = LocalTypeResolver.new(@defined_type)
     if @doc_comment
-      input = create_comment_parser_input(@doc_comment)
-      @defined_type.comment = @type_comment_parser.parse(input)
+      @defined_type.comment = parse_comment(@type_comment_config, @doc_comment)
     end
     if super_name
       @defined_type.extends = @type_resolver.resolve(super_name)
@@ -181,8 +181,7 @@ class DocASHandler < ActionScript::Parse::ASHandler
       field.field_type = @type_resolver.resolve(type)
     end
     if @doc_comment
-      input = create_comment_parser_input(@doc_comment)
-      field.comment = @field_comment_parser.parse(input)
+      field.comment = parse_comment(@field_comment_config, @doc_comment)
     end
     @defined_type.add_field(field)
   end
@@ -218,8 +217,7 @@ class DocASHandler < ActionScript::Parse::ASHandler
       method.add_arg(argument)
     end
     if @doc_comment
-      input = create_comment_parser_input(@doc_comment)
-      method.comment = @method_comment_parser.parse(input)
+      method.comment = parse_comment(@method_comment_config, @doc_comment)
     end
     method
   end
@@ -249,8 +247,19 @@ class DocASHandler < ActionScript::Parse::ASHandler
     end
   end
 
-  def create_comment_parser_input(comment_token)
-    CommentInput.new(comment_token.body, comment_token.lineno, @type_resolver)
+  def parse_comment(config, comment_token)
+    comment_data = CommentData.new
+
+    input = StringIO.new(comment_token.body)
+    input.lineno = comment_token.lineno
+    lexer = ActionScript::Parse::DocCommentLexer.new(input)
+    parser = ActionScript::Parse::DocCommentParser.new(lexer)
+    handler = OurDocCommentHandler.new(comment_data, config, @type_resolver)
+    parser.handler = handler
+
+    parser.parse_comment
+
+    comment_data
   end
 end
 
