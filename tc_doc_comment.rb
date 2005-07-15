@@ -45,4 +45,16 @@ class TC_DocComment < Test::Unit::TestCase
     doc.parse(text)
     assert("blat\nping", doc.describe_exception("foo.Bar"))
   end
+
+  def test_package_html
+    [
+      "<html><body>test</body></html>",
+      "<body>te<b>st</b></body>"
+    ].each do |text|
+      PackageHTML.process(text) do |element|
+	a = REXML::XPath.match(element, "descendant::text()").join
+        assert_equal("test", a)
+      end
+    end
+  end
 end
