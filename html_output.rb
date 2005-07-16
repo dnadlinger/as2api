@@ -472,8 +472,17 @@ class BasicPage < Page
 	end
       end
     elsif inline.is_a?(CodeTag)
-      html_code do
-	pcdata(inline.text)
+      input = StringIO.new(inline.text)
+      highlight = CodeHighlighter.new
+      highlight.number_lines = false
+      if inline.text =~ /[\n\r]/
+	html_pre do
+	  highlight.highlight(input, self)
+	end
+      else
+	html_code do
+	  highlight.highlight(input, self)
+	end
       end
     else
       html_em(inline.inspect)
@@ -1646,40 +1655,13 @@ class IndexPage < BasicPage
   end
 end
 
+class CodeHighlighter
 
-class SourcePage < BasicPage
-
-  def initialize(conf, type)
-    dir = type.package_name.gsub(/\./, "/")
-    super(conf, type.unqualified_name+".as", dir)
-    @type = type
+  def initialize
+    @number_lines = true
   end
 
-  def generate_body_content
-    html_pre do
-      file = @type.input_file
-      parse(File.join(file.prefix, file.suffix))
-    end
-  end
-
-  def parse(file)
-    File.open(File.join(file)) do |io|
-      begin
-	is_utf8 = detect_bom?(io)
-	as_io = ASIO.new(io)
-	lex = ActionScript::Parse::SkipASLexer.new(HighlightASLexer.new(self, as_io))
-	parse = HighlightASParser.new(lex)
-	parse.handler = ActionScript::Parse::ASHandler.new
-	parse.parse_compilation_unit
-      rescue =>e
-	$stderr.puts "#{file}: #{e.message}\n#{e.backtrace.join("\n")}"
-      end
-    end
-  end
-
-  class HighlightASParser < ActionScript::Parse::ASParser
-
-  end
+  attr_accessor :number_lines
 
   Keywords = [
     ActionScript::Parse::AsToken,
@@ -1734,6 +1716,8 @@ class SourcePage < BasicPage
       @out = out
     end
 
+    attr_accessor :number_lines
+
     def get_next
       tok = super
       out(tok)
@@ -1741,7 +1725,7 @@ class SourcePage < BasicPage
     end
 
     def out(tok)
-      mark_lineno if @lineno == 0
+      mark_lineno if @number_lines && @lineno == 0
       if Keywords.include?(tok.class)
 	pp_tok(tok, "key")
 	return
@@ -1771,15 +1755,19 @@ class SourcePage < BasicPage
       end
     end
     def p_tok(tok)
-      txt = StringScanner.new(tok.to_s)
-      until txt.eos?
-	if match = txt.scan_until(/\r\n|\n|\r/)
-	  p_str(match)
-	  mark_lineno
-	else
-	  p_str(txt.rest)
-	  txt.terminate
+      if @number_lines
+	txt = StringScanner.new(tok.to_s)
+	until txt.eos?
+	  if match = txt.scan_until(/\r\n|\n|\r/)
+	    p_str(match)
+	    mark_lineno
+	  else
+	    p_str(txt.rest)
+	    txt.terminate
+	  end
 	end
+      else
+	p_str(tok.to_s)
       end
     end
 
@@ -1794,6 +1782,42 @@ class SourcePage < BasicPage
       @out.pcdata(str)
     end
   end
+
+  def highlight(input, output)
+    lex = HighlightASLexer.new(output, input)
+    lex.number_lines = @number_lines
+    while lex.get_next; end
+  end
+end
+
+class SourcePage < BasicPage
+
+  def initialize(conf, type)
+    dir = type.package_name.gsub(/\./, "/")
+    super(conf, type.unqualified_name+".as", dir)
+    @type = type
+  end
+
+  def generate_body_content
+    html_pre do
+      file = @type.input_file
+      parse(File.join(file.prefix, file.suffix))
+    end
+  end
+
+  def parse(file)
+    File.open(File.join(file)) do |io|
+      begin
+	is_utf8 = detect_bom?(io)
+	as_io = ASIO.new(io)
+	highlight = CodeHighlighter.new
+	highlight.highlight(as_io, self)
+      rescue =>e
+	$stderr.puts "#{file}: #{e.message}\n#{e.backtrace.join("\n")}"
+      end
+    end
+  end
+
 
   def navigation
     html_ul("class"=>"main_nav") do
