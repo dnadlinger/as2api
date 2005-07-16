@@ -289,8 +289,11 @@ class BlockParser
   end
 end
 
+class NilBlockParser < BlockParser
+  def add_text(text); end
+end
 
-NIL_HANDLER = BlockParser.new
+NIL_HANDLER = NilBlockParser.new
 
 
 class ParamParser < BlockParser
