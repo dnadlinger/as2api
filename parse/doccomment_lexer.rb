@@ -30,15 +30,15 @@ end
 
 class DocCommentLexer < AbstractLexer
   def lex_simple_token(class_sym, match, io)
-    ActionScript::Parse.const_get(class_sym).new(io.lineno)
+    ActionScript::Parse.const_get(class_sym).new(io.lineno-1)
   end
 
   def lex_simplebody_token(class_sym, match, io)
-    ActionScript::Parse.const_get(class_sym).new(match[0], io.lineno)
+    ActionScript::Parse.const_get(class_sym).new(match[0], io.lineno-1)
   end
 
   def lex_simplecapture_token(class_sym, match, io)
-    ActionScript::Parse.const_get(class_sym).new(match[1], io.lineno)
+    ActionScript::Parse.const_get(class_sym).new(match[1], io.lineno-1)
   end
 end
 

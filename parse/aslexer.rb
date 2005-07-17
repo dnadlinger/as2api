@@ -221,19 +221,19 @@ class ASLexer < AbstractLexer
 
 
   def lex_simple_token(class_sym, match, io)
-    ActionScript::Parse.const_get(class_sym).new(io.lineno)
+    ActionScript::Parse.const_get(class_sym).new(io.lineno-1)
   end
 
   def lex_simplebody_token(class_sym, match, io)
-    ActionScript::Parse.const_get(class_sym).new(match[0], io.lineno)
+    ActionScript::Parse.const_get(class_sym).new(match[0], io.lineno-1)
   end
 
   def lex_singlelinecoomment_token(class_sym, match, io)
-    SingleLineCommentToken.new(match[1], io.lineno)
+    SingleLineCommentToken.new(match[1], io.lineno-1)
   end
 
   def lex_multilinecomment_token(class_sym, match, io)
-    lineno = io.lineno
+    lineno = io.lineno-1
     line = match.post_match
     comment = ''
     until line =~ /\*\//o
@@ -246,7 +246,7 @@ class ASLexer < AbstractLexer
   end
 
   def lex_string1_token(class_sym, match, io)
-    lineno = io.lineno
+    lineno = io.lineno-1
     line = match.post_match
     str = ''
     until line =~ /#{STRING_END1}/o
@@ -260,7 +260,7 @@ class ASLexer < AbstractLexer
   end
 
   def lex_string2_token(class_sym, match, io)
-    lineno = io.lineno
+    lineno = io.lineno-1
     line = match.post_match
     str = ''
     until line =~ /#{STRING_END2}/o
