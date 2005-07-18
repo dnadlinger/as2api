@@ -561,11 +561,29 @@ class TypePage < BasicPage
 	end
       end
       
-      field_index_list(@type) if @type.fields? && @type.inherited_fields?
-      method_index_list(@type) if @type.methods?
+      field_index_list(@type) if has_or_inherits_documentable_fields?(@type)
+      method_index_list(@type) if has_or_inherits_documentable_methods?(@type)
       constructor_detail(@type) if @type.constructor? && document_member?(@type.constructor)
-      field_detail_list(@type) if @type.fields?
-      method_detail_list(@type) if @type.methods?
+      field_detail_list(@type) if has_documentable_fields?(@type)
+      method_detail_list(@type) if has_documentable_methods?(@type)
+  end
+
+  def has_or_inherits_documentable_fields?(astype)
+    return true if has_documentable_fields?(astype)
+    astype.each_ancestor do |ancestor|
+      return true if has_documentable_fields?(ancestor)
+    end
+
+    false
+  end
+
+  def has_or_inherits_documentable_methods?(astype)
+    return true if has_documentable_methods?(astype)
+    astype.each_ancestor do |ancestor|
+      return true if has_documentable_methods?(ancestor)
+    end
+
+    false
   end
 
   def navigation
@@ -618,7 +636,7 @@ class TypePage < BasicPage
       list_fields(type)
       if type.has_ancestor?
 	type.each_ancestor do |type|
-	  if type.fields?
+	  if has_documentable_fields?(type)
 	    html_h4 do
 	      pcdata("Inherited from ")
 	      link_type(type)
@@ -630,6 +648,15 @@ class TypePage < BasicPage
 	end
       end
     end
+  end
+
+  def has_documentable_fields?(astype)
+    return false if astype.is_a?(ASInterface)
+    astype.each_field do |asfield|
+      return true if document_member?(asfield)
+    end
+
+    false
   end
 
   def list_fields(type, href_prefix="")
@@ -658,7 +685,7 @@ class TypePage < BasicPage
       list_methods(type, known_method_names)
       if type.has_ancestor?
 	type.each_ancestor do |type|
-	  if type.methods?
+	  if has_documentable_methods?(type)
 	    html_h4 do
 	      pcdata("Inherited from ")
 	      link_type(type)
@@ -670,6 +697,14 @@ class TypePage < BasicPage
 	end
       end
     end
+  end
+
+  def has_documentable_methods?(astype)
+    astype.methods.each do |asmethod|
+      return true if document_member?(asmethod)
+    end
+
+    false
   end
 
   def list_methods(type, known_method_names, href_prefix="")
