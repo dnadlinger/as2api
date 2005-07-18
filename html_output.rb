@@ -685,7 +685,7 @@ class TypePage < BasicPage
       list_methods(type, known_method_names)
       if type.has_ancestor?
 	type.each_ancestor do |type|
-	  if has_documentable_methods?(type)
+	  if has_documentable_methods?(type, known_method_names)
 	    html_h4 do
 	      pcdata("Inherited from ")
 	      link_type(type)
@@ -699,9 +699,9 @@ class TypePage < BasicPage
     end
   end
 
-  def has_documentable_methods?(astype)
+  def has_documentable_methods?(astype, ignore_method_names=[])
     astype.methods.each do |asmethod|
-      return true if document_member?(asmethod)
+      return true if document_member?(asmethod) && !ignore_method_names.include?(asmethod.name)
     end
 
     false
