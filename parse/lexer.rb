@@ -86,6 +86,16 @@ class LexerBuilder
     @matches << [make_match(match), lex_meth_sym, tok_class_sym]
   end
 
+  def create_keytoken_class(name)
+    the_class = Class.new(ASToken)
+    the_class.class_eval <<-EOE
+    def initialize(lineno)
+      super("#{name}", lineno)
+    end
+    EOE
+    ActionScript::Parse.const_set("#{name.capitalize}Token".to_sym, the_class)
+  end
+
   def make_simple_token(name, value, match)
     class_name = "#{name}Token"
     the_class = Class.new(ASToken)
@@ -116,7 +126,11 @@ class LexerBuilder
     @matches.each_with_index do |token_match, index|
       re, lex_method, tok_class = token_match
       text << "if line.scan(/#{re}/)\n"
-      text << "  emit(#{lex_method.to_s}(:#{tok_class.to_s}, line, @io))\n"
+      if tok_class
+      	text << "  emit(#{lex_method.to_s}(:#{tok_class.to_s}, line, @io))\n"
+      else
+      	text << "  emit(#{lex_method.to_s}(line, @io))\n"
+      end
       text << "  next\n"
       text << "end\n"
     end

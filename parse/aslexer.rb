@@ -219,9 +219,22 @@ Punctuation = [
 
 class ASLexer < AbstractLexer
 
-
   def lex_simple_token(class_sym, match, io)
     ActionScript::Parse.const_get(class_sym).new(io.lineno-1)
+  end
+
+  def lex_key_or_ident_token(match, io)
+    body = match[0]
+    class_sym = @@keyword_tokens[body]
+    if class_sym
+      lex_simple_token(class_sym, match, io)
+    else
+      lex_simplebody_token(:IdentifierToken, match, io)
+    end
+  end
+
+  def self.keyword_tokens=(toks)
+    @@keyword_tokens = toks
   end
 
   def lex_simplebody_token(class_sym, match, io)
@@ -287,15 +300,19 @@ def self.build_lexer
 
   builder.add_match(OMULTI_LINE_COMMENT, :lex_multilinecomment_token, :MultiLineCommentToken)
 
+  keyword_tokens = {}
   Keywords.each do |keyword|
-    builder.make_keyword_token(keyword)
+    builder.create_keytoken_class(keyword)
+    keyword_tokens[keyword] = "#{keyword.capitalize}Token".to_sym
   end
+
+  ASLexer.keyword_tokens = keyword_tokens
 
   Punctuation.each do |punct|
     builder.make_punctuation_token(*punct)
   end
 
-  builder.add_match(IDENT, :lex_simplebody_token, :IdentifierToken)
+  builder.add_match(IDENT, :lex_key_or_ident_token, nil)
 
   builder.add_match(STRING_START1, :lex_string1_token, :StringToken)
 
