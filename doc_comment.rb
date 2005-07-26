@@ -326,13 +326,13 @@ class ParamParser < BlockParser
     @data = ParamBlockTag.new
   end
 
-  def parse_line(input)
-    if @data.param_name.nil?
-      input.text =~ /\s*([^\s]+)\s+/
+  def end_block
+    first_inline = @data.inlines[0]
+    if first_inline =~ /\s*([^\s]+)\s+/
+      @data.inlines[0] = $'
       @data.param_name = $1
-      input = input.derive($')
     end
-    parse_inlines(input)
+    @data
   end
 end
 
