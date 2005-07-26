@@ -411,6 +411,8 @@ class BasicPage < Page
     @type = nil
   end
 
+  def astype; @type; end
+
   def generate_content
     html_body do
       # accessability; make a link to skip over the initial navigation elements
@@ -473,6 +475,7 @@ class BasicPage < Page
       end
     elsif inline.is_a?(CodeTag)
       input = StringIO.new(inline.text)
+      input.lineno = inline.lineno
       highlight = CodeHighlighter.new
       highlight.number_lines = false
       if inline.text =~ /[\n\r]/
@@ -1819,9 +1822,13 @@ class CodeHighlighter
   end
 
   def highlight(input, output)
-    lex = HighlightASLexer.new(output, input)
-    lex.number_lines = @number_lines
-    while lex.get_next; end
+    begin
+      lex = HighlightASLexer.new(output, input)
+      lex.number_lines = @number_lines
+      while lex.get_next; end
+    rescue => e
+      $stderr.puts "#{output.astype.input_filename}:#{e.message}"
+    end
   end
 end
 

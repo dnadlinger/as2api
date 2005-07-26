@@ -58,7 +58,8 @@ class OurDocCommentHandler < ActionScript::Parse::DocCommentHandler
   end
 
   def end_inline_tag
-    @block_handler.add_inline(@inline_handler.end)
+    tag = @inline_handler.end
+    @block_handler.add_inline(tag) if tag
     @inline_handler = nil
   end
 
@@ -105,8 +106,17 @@ class DocCommentParserConfig
 end
 
 
-class LinkTag
-  def initialize(target, member, text)
+class Tag
+  def initialize(lineno)
+    @lineno = lineno
+  end
+
+  attr_accessor :lineno
+end
+
+class LinkTag < Tag
+  def initialize(lineno, target, member, text)
+    super(lineno)
     @target = target
     @member = member
     @text = text
@@ -115,8 +125,9 @@ class LinkTag
   attr_accessor :target, :member, :text
 end
 
-class CodeTag
-  def initialize(text)
+class CodeTag < Tag
+  def initialize(lineno, text)
+    super(lineno)
     @text = text
   end
 
@@ -201,7 +212,7 @@ def create_link(type_resolver, text, lineno)
     else
       type_proxy = type_resolver.resolve(type_name, lineno)
     end
-    return LinkTag.new(type_proxy, member_name, text)
+    return LinkTag.new(lineno, type_proxy, member_name, text)
   end
   return nil
 end
@@ -221,7 +232,7 @@ end
 
 # handle {@code ...} in comments
 class CodeInlineParser < InlineParser
-  def end; CodeTag.new(@text); end
+  def end; CodeTag.new(@lineno, @text); end
 end
 
 
@@ -251,6 +262,12 @@ class BlockParser
 
   def handler_for(tag)
     inline_parser = @inline_parsers[tag.body]
+    if inline_parser.nil?
+      $stderr.puts("#{tag.lineno}: Unknown inline tag #{tag.body.inspect} for #{self.class.name}")
+      NIL_INLINE_PARSER
+    else
+      inline_parser
+    end
   end
 
   def text(text)
@@ -291,10 +308,17 @@ end
 
 class NilBlockParser < BlockParser
   def add_text(text); end
+  def handler_for(tag); NIL_INLINE_PARSER; end
 end
 
 NIL_HANDLER = NilBlockParser.new
 
+
+class NilInlineParser < InlineParser
+  def end; nil; end
+end
+
+NIL_INLINE_PARSER = NilInlineParser.new
 
 class ParamParser < BlockParser
   def begin_block(type_resolver, lineno)
