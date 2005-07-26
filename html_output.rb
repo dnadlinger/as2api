@@ -497,9 +497,7 @@ class BasicPage < Page
   def output_doccomment_initial_sentence(block)
     block.each_inline do |inline|
       if inline.is_a?(String)
-	if inline =~ /[\.:]\s+[A-Z]/ ||
-	   inline =~ /[\.:]\s+\Z/ ||
-	   inline =~ /<\/?[Pp]\b/
+	if inline =~ /(?:[\.:]\s+[A-Z])|(?:[\.:]\s+\Z)|(?:<\/?[Pp]\b)/
 	  output_doccomment_inlinetag($`)
 	  return
 	else
