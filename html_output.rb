@@ -54,9 +54,19 @@ p.inherited_docs+p {
 	background-color: #eeeeee;
 }
 
+body {
+	/* make some space for the navigation */
+	padding-top: 2em;
+}
 .main_nav {
 	background-color: #EEEEFF;
-	padding: 4px;
+	position: fixed;
+	top: 0;
+	display: block;
+	width: 100%;
+	margin: 0;
+	padding: .5em;
+	border-top: .5em solid white;
 }
 .main_nav li {
 	font-family: sans-serif;
@@ -415,14 +425,6 @@ class BasicPage < Page
 
   def generate_content
     html_body do
-      # accessability; make a link to skip over the initial navigation elements
-      html_div do
-	html_a("", {"href"=>"#skip_nav", "title"=>"Skip navigation"})
-      end
-      navigation
-      html_div do
-	html_a("", {"name"=>"skip_nav"})
-      end
       generate_body_content
       navigation
       generate_footer
