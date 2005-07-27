@@ -62,6 +62,7 @@ body {
 	background-color: #EEEEFF;
 	position: fixed;
 	top: 0;
+	left: 0;
 	display: block;
 	width: 100%;
 	margin: 0;
