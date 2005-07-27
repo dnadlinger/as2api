@@ -36,6 +36,13 @@ class PackageGlobFilter
   end
 end
 
+# allows classes in the default (top-level) namespace
+class DefaultPackageFilter
+  def matches?(source_file)
+    source_file =~ /^[^\/]+$/
+  end
+end
+
 
 class VerboseProgressListener < NullProgressListener
   def parsing_sources(total_files)
@@ -136,6 +143,8 @@ class CLI
     case package_spec
       when /\.\*$/
 	PackageGlobFilter.new($`)
+      when /\(default\)/i
+	DefaultPackageFilter.new
       else
 	PackageFilter.new(package_spec)
     end
