@@ -104,7 +104,7 @@ Keywords = [
 #  "namespace",  # not a keyword in AS
   "new",
   "null",
-  "package",
+#  "package",    # can be an identifier is AS
   "private",
   "public",
   "return",

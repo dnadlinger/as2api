@@ -1729,7 +1729,6 @@ class CodeHighlighter
     ActionScript::Parse::IntrinsicToken,
     ActionScript::Parse::NewToken,
     ActionScript::Parse::NullToken,
-    ActionScript::Parse::PackageToken,
     ActionScript::Parse::PrivateToken,
     ActionScript::Parse::PublicToken,
     ActionScript::Parse::ReturnToken,
