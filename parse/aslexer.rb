@@ -7,7 +7,10 @@ module Parse
 class CommentToken < ASToken
 end
 
-class NumberToken < CommentToken
+class NumberToken < ASToken
+end
+
+class HexNumberToken < ASToken
 end
 
 class SingleLineCommentToken < CommentToken
@@ -214,6 +217,7 @@ Punctuation = [
   IDENT =	"#{nmstart}#{nmchar}*"
 #  name =	"#{nmchar}+"
   NUM	 =	"[0-9]+|[0-9]*\\.[0-9]+"
+  HEX_NUM =	"0x#{h}+"
 #  string =	"#{string1}|#{string2}"
   w =		"[ \t\r\n\f]*"
 
@@ -318,6 +322,7 @@ def self.build_lexer
 
   builder.add_match(STRING_START2, :lex_string2_token, :StringToken)
 
+  builder.add_match(HEX_NUM, :lex_simplebody_token, :HexNumberToken)
   builder.add_match(NUM, :lex_simplebody_token, :NumberToken)
 
   builder.build_lexer(ASLexer)
