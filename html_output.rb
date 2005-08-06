@@ -261,7 +261,14 @@ class Page
         html_meta("http-equiv"=>"Content-Type",
 	          "content"=>"text/html; charset=#{encoding}")
       end
+      extra_metadata.each do |key, val|
+	html_meta("name"=>key, "content"=>val)
+      end
     end
+  end
+
+  def extra_metadata
+    {}
   end
 
   def generate_links
@@ -1494,6 +1501,13 @@ class OverviewFramePage < Page
       end
   end
 
+  def extra_metadata
+    # this page isn't interesting
+    {
+      "robots" => "noindex"
+    }
+  end
+
 end
 
 
@@ -1543,6 +1557,13 @@ class AllTypesFramePage < Page
       end
   end
 
+  def extra_metadata
+    # this page isn't interesting
+    {
+      "robots" => "noindex"
+    }
+  end
+
 end
 
 
@@ -1572,6 +1593,13 @@ class FramesetPage < Page
 	end
       end
     end
+  end
+
+  def extra_metadata
+    # this page isn't interesting
+    {
+      "robots" => "noindex"
+    }
   end
 end
 
@@ -1631,6 +1659,13 @@ class IndexPage < BasicPage
     super(conf, "index", "index-files")
     @type_agregator = type_agregator
     @title = "Alphabetical Index"
+  end
+
+  def extra_metadata
+    # no point in search engines indexing our index,
+    {
+      "robots" => "noindex"
+    }
   end
 
   def create_index()
