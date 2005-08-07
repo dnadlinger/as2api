@@ -3,6 +3,7 @@ require 'xmlwriter'
 require 'xhtmlwriter'
 require 'doc_comment'
 require 'rexml/document'
+require 'set'
 
 def stylesheet(output_dir)
   name = "style.css"
@@ -1670,33 +1671,52 @@ class IndexPage < BasicPage
 
   def create_index()
     index = []
+    initials = Set.new
     # TODO: include packages
     @type_agregator.each_type do |astype|
       if astype.document?
 	index << TypeIndexTerm.new(astype)
+	initials << astype.unqualified_name.upcase[0]
 	astype.each_method do |asmethod|
 	  if document_member?(asmethod)
 	    index << MethodIndexTerm.new(astype, asmethod)
+	    initials << asmethod.name.upcase[0]
 	  end
 	end
 	if astype.is_a?(ASClass)
 	  astype.each_field do |asfield|
 	    if document_member?(asfield)
 	      index << FieldIndexTerm.new(astype, asfield)
+	      initials << asfield.name.upcase[0]
 	    end
 	  end
 	end
       end
     end
 
-    index.sort!
+    [index.sort!, initials]
   end
 
   def generate_body_content
-    index = create_index()
+    index, initials = create_index()
 
+    html_p do
+      initials.to_a.sort.each do |initial|
+	i = initial.chr
+	html_a(i, {"href"=>"##{i}"})
+	pcdata(" ")
+      end
+    end
+
+    last_initial = nil
     index.each do |element|
       html_p do
+	initial = element.term.upcase[0]
+	if initial != last_initial
+	  html_a("", {"name"=>initial.chr})
+	  html_h2(initial.chr)
+	  last_initial = initial
+	end
 	element.link(self)
       end
     end
