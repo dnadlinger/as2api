@@ -1710,13 +1710,15 @@ class IndexPage < BasicPage
 
     last_initial = nil
     index.each do |element|
-      html_p do
-	initial = element.term.upcase[0]
-	if initial != last_initial
+      initial = element.term.upcase[0]
+      if initial != last_initial
+	html_h2 do
 	  html_a("", {"name"=>initial.chr})
-	  html_h2(initial.chr)
-	  last_initial = initial
+	  pcdata(initial.chr)
 	end
+	last_initial = initial
+      end
+      html_p do
 	element.link(self)
       end
     end
