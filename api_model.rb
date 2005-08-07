@@ -396,6 +396,10 @@ class ASPackage
     @types << type
   end
 
+  def types
+    @types
+  end
+
   def each_type
     @types.each do |type|
       yield type

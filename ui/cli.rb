@@ -3,9 +3,12 @@ require 'documenter'
 require 'getoptlong'
 require 'html_output'
 require 'set'
+require 'api_diff'
+require 'html_diff_output'
 
 Conf = Struct.new(:output_dir,
                   :classpath,
+                  :oldrev_classpath,
 		  :package_filters,
 		  :title,
 		  :progress_listener,
@@ -87,6 +90,7 @@ class CLI
       [ "--help",       "-h", GetoptLong::NO_ARGUMENT ],
       [ "--output-dir", "-d", GetoptLong::REQUIRED_ARGUMENT ],
       [ "--classpath",        GetoptLong::REQUIRED_ARGUMENT ],
+      [ "--oldrev-classpath", GetoptLong::REQUIRED_ARGUMENT ],
       [ "--title",            GetoptLong::REQUIRED_ARGUMENT ],
       [ "--progress",         GetoptLong::NO_ARGUMENT ],
       [ "--encoding",         GetoptLong::REQUIRED_ARGUMENT ],
@@ -97,6 +101,7 @@ class CLI
 
     conf = Conf.new
     conf.classpath = []
+    conf.oldrev_classpath = []
     conf.package_filters = []
     conf.draw_diagrams = false
     conf.dot_exe = "dot"  #  i.e. assume 'dot' is in our PATH
@@ -107,6 +112,8 @@ class CLI
 	  conf.output_dir = File.expand_path(arg)
 	when "--classpath"
 	  conf.classpath.concat(arg.split(File::PATH_SEPARATOR))
+	when "--oldrev-classpath"
+	  conf.oldrev_classpath.concat(arg.split(File::PATH_SEPARATOR))
 	when "--title"
 	  conf.title = arg
 	when "--help"
@@ -157,10 +164,10 @@ class CLI
     false
   end
 
-  def find_sources
+  def find_sources(classpath)
     result = []
     ignored_packages = Set.new
-    @conf.classpath.each do |path|
+    classpath.each do |path|
       found_sources = false
       each_source(File.expand_path(path)) do |source|
 	if process_file?(source)
@@ -194,8 +201,8 @@ class CLI
     end
   end
 
-  def parse_all(files)
-    type_agregator = GlobalTypeAggregator.new(@conf.classpath)
+  def parse_all(files, classpath)
+    type_agregator = GlobalTypeAggregator.new(classpath)
     @conf.progress_listener.parsing_sources(files.length) do
       files.each_with_index do |file, index|
 	@conf.progress_listener.parse_source(index, file)
@@ -207,11 +214,22 @@ class CLI
 
   def main
     @conf = parse_opts
-    files = find_sources
+    files = find_sources(@conf.classpath)
     error("No source files matching specified packages") if files.empty?
-    type_agregator = parse_all(files)
+    type_agregator = parse_all(files, @conf.classpath)
     type_agregator.resolve_types
     document_types(@conf, type_agregator)
+
+    unless @conf.oldrev_classpath.empty?
+      old_files = find_sources(@conf.oldrev_classpath)
+      error("No source files matching specified packages in oldrev-classpath") if old_files.empty?
+      old_type_agregator = parse_all(old_files, @conf.oldrev_classpath)
+      old_type_agregator.resolve_types
+      diff = APIDiff.new
+      api_changes = diff.diff(old_type_agregator, type_agregator)
+
+      generate_diffs(@conf, api_changes)
+    end
   end
 
   def usage
