@@ -72,11 +72,12 @@
 	<wordasword>comment</wordasword> marker, for denoting text which
 	is not part of the executable program code.  There is the C++
 	style single-line comment,</para>
-	<programlisting><emphasis role="strong">//</emphasis> everything on the line after the two slashes is ignored</programlisting>
+	<programlisting><emphasis role="strong">//</emphasis> everything on the line after the two slashes
+<emphasis role="strong">//</emphasis> is ignored</programlisting>
 	<para>and the C style multi-line comment,</para>
 	<programlisting><emphasis role="strong">/*</emphasis> text between start and end markers is
-ignored, and the comment may continue across multiple lines
-in the source code <emphasis role="strong">*/</emphasis></programlisting>
+   ignored, and the comment may continue across
+   multiple lines in the source code <emphasis role="strong">*/</emphasis></programlisting>
       </section>
 
       <section>
@@ -111,14 +112,14 @@ in the source code <emphasis role="strong">*/</emphasis></programlisting>
 import "otherpackage.MyOtherClass";
 
 <emphasis role="strong">/**
- * Objects of this class are responsible for serving as an example
- * to others.
+ * Objects of this class are responsible for
+ * serving as an example to others.
  */</emphasis>
 class thispackage.MyFirstClass {
 
   <emphasis role="strong">/**
-   * When called, this method puts into motion a plan so cunning
-   * that words cannot describe it.
+   * When called, this method puts into motion a
+   * plan so cunning that words cannot describe it.
    */</emphasis>
   public function enactCunningPlan():Void {
       // TODO: implement cunning plan
@@ -341,12 +342,13 @@ public function setName(name:String):Void {
 	<example>
 	  <title>Class Description</title>
 	  <programlisting><emphasis role="strong">/**
- * An immutable, type-safe wrapper around the String value of the
- * user identifier.
- * The constructor will raise an exception if the given value is not
- * of the correct format, asserting that the GUI validation code has
- * done its job, and preventing invalid data being sent to the
- * backend.
+ * An immutable, type-safe wrapper around the
+ * String value of the user identifier.
+ * The constructor will raise an exception if
+ * the given value is not of the correct format,
+ * asserting that the GUI validation code has
+ * done its job, and preventing invalid data
+ * being sent to the backend.
  */</emphasis>
 class thispackage.UserId {
     // ...
@@ -367,11 +369,12 @@ class thispackage.UserId {
 	<example>
 	  <title>Method Description</title>
 	  <programlisting><emphasis role="strong">/**
- * Clears all data that has previously been collected in this
- * object, and returns it to its initial state.  Subclasses are
- * expected to override this method to clear any state of their
- * own, and use super() ensure that data defined by this class is
- * cleared too.
+ * Clears all data that has previously been
+ * collected in this object, and returns it to
+ * its initial state.  Subclasses are expected
+ * to override this method to clear any state of
+ * their own, and use super() ensure that data
+ * defined by this class is cleared too.
  */</emphasis>
 public function clear() {
     // ...
@@ -392,18 +395,22 @@ public function clear() {
 	<example>
 	  <title>Method Parameters</title>
 	  <programlisting>/**
- * For each value contained by this object, invoke the given
- * callback function, passing the value as an argument.
+ * For each value contained by this object, invoke
+ * the given callback function, passing the value
+ * as an argument.
  *
- * <emphasis role="strong">@param callback</emphasis> callback function to be invoked for each object.
- *        The function must accept one parameter (or two, if index
- *        is true).
- * <emphasis role="strong">@param index</emphasis> if true, each invocation of the callback function
- *        will be passed an additional second parameter giving the
- *        index of the current value (starting with 0 for the first
- *        value, 1 for the second, and so on).
+ * <emphasis role="strong">@param callback</emphasis> callback function to be invoked
+ *        for each object.  The function must accept
+ *        one parameter (or two, if index is true).
+ * <emphasis role="strong">@param index</emphasis> if true, each invocation of the
+ *        callback function will be passed an
+ *        additional second parameter giving the
+ *        index of the current value (starting with
+ *        0 for the first value, 1 for the second,
+ *        and so on).
  */
-public function each(callback:Function, index:Boolean):Void {
+public function each(callback:Function,
+                     index:Boolean):Void {
     // ...
 }</programlisting>
 	</example>
@@ -418,8 +425,8 @@ public function each(callback:Function, index:Boolean):Void {
 	  <programlisting>/**
  * Get the value corresponding to the given key
  *
- * <emphasis role="strong">@return</emphasis> either the value for the given key, or null if 
- *         there is no such mapping.
+ * <emphasis role="strong">@return</emphasis> either the value for the given key, or
+ *         null if there is no such mapping.
  */
 public function get(key:String):String {
     // ...
@@ -434,8 +441,9 @@ public function get(key:String):String {
 	<example>
 	  <title>Class Related information</title>
 	  <programlisting>/**
- * See-also tags will be copied to the output HTML, but are not actually
- * turned into links to other classes/methods as they should be.
+ * See-also tags will be copied to the output HTML,
+ * but are not actually turned into links to other
+ * classes/methods as they should be.
  *
  * <emphasis role="strong">@see "some stuff"</emphasis>
  * <emphasis role="strong">@see some.OtherClass</emphasis>
@@ -457,8 +465,8 @@ class somepackage.ThisClass {
 	  <programlisting>/**
  * Causes this message to be sent
  *
- * <emphasis role="strong">@throws MessagingException if there is a failure in
- *         the underlying communications medium</emphasis>
+ * <emphasis role="strong">@throws MessagingException if there is a failure
+ *         in the underlying communications medium</emphasis>
  */
 public function send():Void {
     // ...
@@ -473,9 +481,11 @@ public function send():Void {
 	<example>
 	  <title>Linking to Other Parts of the API</title>
 	  <programlisting>/**
- * Causes this message to be sent to the <emphasis role="strong">{@link OtherClass}</emphasis>
- * instance, where it will be dealt with by <emphasis role="strong">{@link OtherClass#recieve()}</emphasis>.
- * We remember the destination in our <emphasis role="strong">{@link #reciever}</emphasis> field.
+ * Causes this message to be sent to the
+ * <emphasis role="strong">{@link OtherClass}</emphasis> instance, where it will be
+ * dealt with by <emphasis role="strong">{@link OtherClass#recieve()}</emphasis>.  We
+ * remember the destination in our <emphasis role="strong">{@link #reciever}</emphasis>
+ * field.
  */
 public function send():Void {
     // ...
@@ -490,8 +500,9 @@ public function send():Void {
 	<example>
 	  <title>Example Code</title>
 	  <programlisting>/**
- * Generates an ending XML tag. For example, if passed <emphasis role="strong">{@code "p"}</emphasis>,
- * the result will be <emphasis role="strong">{@code "&lt;/p&gt;"}</emphasis>
+ * Generates an ending XML tag. For example, if
+ * passed <emphasis role="strong">{@code "p"}</emphasis>, the result will be
+ * <emphasis role="strong">{@code "&lt;/p&gt;"}</emphasis>
  */
 public function endTag(name:String):String {
     // ...
