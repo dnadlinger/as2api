@@ -249,9 +249,6 @@ class BlockParser
     @lineno = lineno
   end
 
-  def parse_line(text)
-  end
-
   def end_block
     @data
   end
@@ -276,28 +273,6 @@ class BlockParser
 
   def add_inline(tag)
     @data.add_inline(tag)
-  end
-
-  def parse_inlines(input)
-    text = input.text
-    while text.length > 0
-      if text =~ /\A\{@([^}\s]+)\s*([^}]*)\}/
-	tag_name = $1
-	tag_data = $2
-	inline_parser = @inline_parsers[tag_name]
-	if inline_parser.nil?
-	  add_text($&)
-	else
-	  inline_parser.parse(@data, input.derive(tag_data))
-	end
-	text = $'
-      elsif text =~ /\A.[^{]*/m
-	add_text($&)
-	text = $'
-      else
-	raise "#{input.lineno}: no match for #{text.inspect}"
-      end
-    end
   end
 
   def add_text(text)
@@ -360,9 +335,6 @@ class ReturnParser < BlockParser
   def begin_block(type_resolver, lineno)
     super(type_resolver, lineno)
     @data = ReturnBlockTag.new
-  end
-  def parse_line(input)
-    parse_inlines(input)
   end
 end
 
