@@ -893,6 +893,18 @@ class TypePage < BasicPage
 	  end
 	end
       end
+      # arg with magic name '..' or '...'?
+      vararg = comment_data.find_param(/\.{2,3}/)
+      if vararg
+	html_tr do
+	  html_td do
+	    html_code("...", {"title", "Variable length argument list"})
+	  end
+	  html_td do
+	    output_doccomment_blocktag(vararg)
+	  end
+	end
+      end
     end
   end
 

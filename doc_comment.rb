@@ -69,9 +69,9 @@ class CommentData
     each_block_of_type(SeeBlockTag) {|block| yield block }
   end
 
-  def find_param(param_name)
+  def find_param(param_match)
     each_block_of_type(ParamBlockTag) do |block|
-      return block if block.param_name == param_name
+      return block if param_match === block.param_name
     end
     return nil
   end
