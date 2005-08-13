@@ -26,10 +26,10 @@
 
     <itemizedlist>
       <listitem>
-	<para>A pre-compiled GUI app for MacOSX</para>
+	<para>A single-file, command-line executable for MacOSX</para>
       </listitem>
       <listitem>
-	<para>A pre-compiled GUI exe for Windows</para>
+	<para>A single-file, command-line exe for Windows</para>
       </listitem>
       <listitem>
 	<para>The source ruby scripts, runnable from the command-line
