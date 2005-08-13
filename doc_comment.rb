@@ -319,14 +319,14 @@ class ThrowsParser < BlockParser
   end
 
   def end_block
-      first_inline = @data.inlines[0]
-      if first_inline =~ /\A\s*([^\s]+)\s+/
-	@data.inlines[0] = $'
-        @data.exception_type = @type_resolver.resolve($1)
-	@data
-      else
-	nil
-      end
+    first_inline = @data.inlines[0]
+    if first_inline =~ /\A\s*([^\s]+)\s+/
+      @data.inlines[0] = $'
+      @data.exception_type = @type_resolver.resolve($1)
+      @data
+    else
+      nil
+    end
   end
 end
 
@@ -354,19 +354,19 @@ class SeeParser < BlockParser
   end
 
   def end_block
-      @data.inlines.first =~ /\A\s*/
-      case $'
-	when /['"]/
-	  # plain, 'string'-like see entry
-	when /</
-	  # HTML entry
-	else
-	  # 'link' entry
-	  link = create_link(@type_resolver, @data.inlines.first, @lineno)
-	  unless link.nil?
-	    @data.inlines[0] = link
-	  end
-      end
+    @data.inlines.first =~ /\A\s*/
+    case $'
+      when /['"]/
+	# plain, 'string'-like see entry
+      when /</
+	# HTML entry
+      else
+	# 'link' entry
+	link = create_link(@type_resolver, @data.inlines.first, @lineno)
+	unless link.nil?
+	  @data.inlines[0] = link
+	end
+    end
   end
 end
 
