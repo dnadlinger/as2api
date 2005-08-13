@@ -560,10 +560,10 @@ class TypePage < BasicPage
 	  html_p do
 	    output_doccomment_blocktag(comment_data[0])
 	  end
-	  if comment_has_seealso?(comment_data)
+	  if comment_data.has_seealso?
 	    html_h4("See Also")
 	    html_ul("class"=>"extra_info") do
-	      comment_each_seealso(comment_data) do |see_comment|
+	      comment_data.each_seealso do |see_comment|
 		html_li do
 		  output_doccomment_blocktag(see_comment)
 		end
@@ -756,8 +756,8 @@ class TypePage < BasicPage
 	html_div("class"=>"field_info") do
 	  comment_data = field.comment
 	  output_doccomment_blocktag(comment_data[0])
-	  if comment_has_field_additional_info?(comment_data)
-	    if comment_has_seealso?(comment_data)
+	  if comment_data.has_field_additional_info?
+	    if comment_data.has_seealso?
 	      document_seealso(comment_data)
 	    end
 	  end
@@ -795,17 +795,17 @@ class TypePage < BasicPage
 	    # TODO: assumes that params named in docs match formal arguments
 	    #       should really filter out those that don't match before this
 	    #       test
-	    if comment_has_params?(comment_data)
+	    if comment_data.has_params?
 	      document_parameters(method.arguments, comment_data)
 	    end
-	    if comment_has_return?(comment_data)
+	    if comment_data.has_return?
 	      document_return(comment_data)
 	    end
-	    if comment_has_exceptions?(comment_data)
+	    if comment_data.has_exceptions?
 	      document_exceptions(comment_data)
 	    end
 	    method_info_from_supertype(method)
-	    if comment_has_seealso?(comment_data)
+	    if comment_data.has_seealso?
 	      document_seealso(comment_data)
 	    end
 	  end
@@ -881,7 +881,7 @@ class TypePage < BasicPage
     html_h4("Parameters")
     html_table("class"=>"arguments extra_info", "summary"=>"") do
       arguments.each do |arg|
-	desc = comment_find_param(comment_data, arg.name)
+	desc = comment_data.find_param(arg.name)
 	if desc
 	  html_tr do
 	    html_td do
@@ -898,7 +898,7 @@ class TypePage < BasicPage
 
   def document_return(comment_data)
     html_h4("Return")
-    return_comment = comment_find_return(comment_data)
+    return_comment = comment_data.find_return
     html_p("class"=>"extra_info") do
       output_doccomment_blocktag(return_comment)
     end
@@ -907,7 +907,7 @@ class TypePage < BasicPage
   def document_exceptions(comment_data)
     html_h4("Throws")
     html_table("class"=>"exceptions extra_info", "summary"=>"") do
-      comment_each_exception(comment_data) do |exception_comment|
+      comment_data.each_exception do |exception_comment|
 	html_tr do
 	  html_td do
 	    link_type_proxy(exception_comment.exception_type)
@@ -923,7 +923,7 @@ class TypePage < BasicPage
   def document_seealso(comment_data)
     html_h4("See Also")
     html_ul("class"=>"extra_info") do
-      comment_each_seealso(comment_data) do |see_comment|
+      comment_data.each_seealso do |see_comment|
 	html_li do
 	  output_doccomment_blocktag(see_comment)
 	end
@@ -955,7 +955,7 @@ class TypePage < BasicPage
     else
       spec_method = nil
     end
-    return comment_has_method_additional_info?(comment_data) || !spec_method.nil?
+    return comment_data.has_method_additional_info? || !spec_method.nil?
   end
 
   def method_synopsis(method)
@@ -1038,80 +1038,6 @@ class TypePage < BasicPage
 	end
       end
     end
-  end
-
-
-  # TODO: All these comment_*() methods obviously want to belong to some new
-  #       class, as yet unwritten.
-
-  def comment_each_block_of_type(comment_data, type)
-    comment_data.each_block do |block|
-      yield block if block.is_a?(type)
-    end
-  end
-
-  def comment_has_blocktype?(comment_data, type)
-    comment_each_block_of_type(comment_data, type) do |block|
-      return true
-    end
-    return false
-  end
-
-  def comment_has_params?(comment_data)
-    return comment_has_blocktype?(comment_data, ParamBlockTag)
-  end
-
-  def comment_has_exceptions?(comment_data)
-    return comment_has_blocktype?(comment_data, ThrowsBlockTag)
-  end
-
-  def comment_has_seealso?(comment_data)
-    return comment_has_blocktype?(comment_data, SeeBlockTag)
-  end
-
-  def comment_has_return?(comment_data)
-    return comment_has_blocktype?(comment_data, ReturnBlockTag)
-  end
-
-  # Does the method comment include any info in addition to any basic
-  # description block?
-  def comment_has_method_additional_info?(comment_data)
-    return comment_has_params?(comment_data) ||
-	   comment_has_return?(comment_data) ||
-	   comment_has_exceptions?(comment_data) ||
-	   comment_has_seealso?(comment_data)
-  end
-
-  # Does the field comment include any info in addition to any basic description
-  # block?
-  def comment_has_field_additional_info?(comment_data)
-    return comment_has_seealso?(comment_data)
-  end
-
-  def comment_each_exception(comment_data)
-    comment_data.each_block do |block|
-      yield block if block.is_a?(ThrowsBlockTag)
-    end
-  end
-
-  def comment_each_seealso(comment_data)
-    comment_each_block_of_type(comment_data, SeeBlockTag) do |block|
-      yield block
-    end
-  end
-
-  def comment_find_param(comment_data, param_name)
-    comment_each_block_of_type(comment_data, ParamBlockTag) do |block|
-      return block if block.param_name == param_name
-    end
-    return nil
-  end
-
-  def comment_find_return(comment_data)
-    comment_each_block_of_type(comment_data, ReturnBlockTag) do |block|
-      return block
-    end
-    return nil
   end
 
 end

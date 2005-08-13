@@ -19,6 +19,69 @@ class CommentData
   def [](i)
     @blocks[i]
   end
+
+  def each_block_of_type(type)
+    each_block do |block|
+      yield block if block.is_a?(type)
+    end
+  end
+
+  def has_blocktype?(type)
+    each_block_of_type(type) do |block|
+      return true
+    end
+    return false
+  end
+
+  def has_params?
+    has_blocktype?(ParamBlockTag)
+  end
+
+  def has_exceptions?
+    has_blocktype?(ThrowsBlockTag)
+  end
+
+  def has_seealso?
+    has_blocktype?(SeeBlockTag)
+  end
+
+  def has_return?
+    has_blocktype?(ReturnBlockTag)
+  end
+
+  # Does the method comment include any info in addition to any basic
+  # description block?
+  def has_method_additional_info?
+    has_params? || has_return? || has_exceptions? || has_seealso?
+  end
+
+  # Does the field comment include any info in addition to any basic description
+  # block?
+  def has_field_additional_info?
+    has_seealso?
+  end
+
+  def each_exception
+    each_block_of_type(ThrowsBlockTag) {|block| yield block }
+  end
+
+  def each_seealso
+    each_block_of_type(SeeBlockTag) {|block| yield block }
+  end
+
+  def find_param(param_name)
+    each_block_of_type(ParamBlockTag) do |block|
+      return block if block.param_name == param_name
+    end
+    return nil
+  end
+
+  def find_return
+    each_block_of_type(ReturnBlockTag) do |block|
+      return block
+    end
+    return nil
+  end
 end
 
 class OurDocCommentHandler < ActionScript::Parse::DocCommentHandler
