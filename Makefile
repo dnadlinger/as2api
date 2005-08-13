@@ -1,6 +1,8 @@
 
 xsltproc=xsltproc
-docbook_stylesheet=/usr/share/sgml/docbook/stylesheet/xsl/nwalsh/fo/docbook.xsl
+docbook_home=/usr/share/sgml/docbook/stylesheet/xsl/nwalsh
+docbook_fo_stylesheet=${docbook_home}/fo/docbook.xsl
+docbook_man_stylesheet=${docbook_home}/manpages/docbook.xsl
 java_home=~/opt/j2sdk1.4.2_05
 fop=~/incoming/fop-0.20.5/fop.sh
 as2api=ruby -w as2api.rb
@@ -14,10 +16,10 @@ sources = documenter.rb doc_comment.rb html_output.rb \
 	  api_loader.rb api_model.rb \
           as2api.rb ui/cli.rb
 doc_pdf=as2api-documentation.pdf
-dist_files = ${sources} ${doc_pdf}
+dist_files = ${sources} ${doc_pdf} as2api.1
 mx_classes=examples/flash_mx_2004_7.2/Classes
 
-version = 0.3
+version = 0.4pre
 
 dist_dir = as2api-${version}
 tgz_name = ${dist_dir}.tar.gz
@@ -70,7 +72,7 @@ sit: ${sit_name}
 
 ${sit_name}: docs as2api_darwin
 	mkdir -p ${osx_dist_dir}
-	cp as2api_darwin ${doc_pdf} ${osx_dist_dir}
+	cp as2api_darwin ${doc_pdf} as2api.1 ${osx_dist_dir}
 	${stuff} --name=${sit_name} ${osx_dist_dir}
 
 test:
@@ -80,19 +82,22 @@ clean:
 	rm -rf ${tgz_name} ${zip_name} ${sit_name} ${w32_dist_dir} ${dist_dir}
 
 
-docs: ${doc_pdf}
+docs: ${doc_pdf} as2api.1
 
 
 as2api-documentation.fo: as2api-documentation.xml
 	${xsltproc} --stringparam shade.verbatim 1 \
 	            --stringparam fop.extensions 1 \
-		    ${docbook_stylesheet} \
+		    ${docbook_fo_stylesheet} \
 		    as2api-documentation.xml \
 				> as2api-documentation.fo
 
 ${doc_pdf}: as2api-documentation.fo
 	JAVA_HOME=${java_home} \
 	${fop} as2api-documentation.fo -pdf ${doc_pdf}
+
+as2api.1: as2api-documentation.xml
+	${xsltproc} ${docbook_man_stylesheet} as2api-documentation.xml
 
 # noddy check that running with --help option doesn't complain of missing
 # required files,
