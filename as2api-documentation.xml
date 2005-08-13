@@ -39,25 +39,182 @@
   </section>
 
   <section>
-    <title>Installing and running the software</title>
+    <title>Command-line Reference</title>
 
-    <section>
-      <title>MacOSX</title>
+    <refentry id="as2api">
+      <refmeta>
+	<refentrytitle>as2api</refentrytitle>
+	<manvolnum>1</manvolnum>
+      </refmeta>
 
-      <para><remark>TODO</remark></para>
-    </section>
+      <refnamediv>
+	<refname>as2api</refname>
+	<refpurpose>ActionScript 2 API reference documentation
+	generator</refpurpose>
+      </refnamediv>
 
-    <section>
-      <title>Windows</title>
+      <refsynopsisdiv>
+	<cmdsynopsis>
+	  <command>as2api</command>
+	  <arg>--help</arg>
+	  <arg>--output-dir <replaceable>path</replaceable></arg>
+	  <arg>--classpath <replaceable>path</replaceable></arg>
+	  <arg>--title <replaceable>title-text</replaceable></arg>
+	  <arg>--progress</arg>
+	  <arg>--encoding <replaceable>encoding-name</replaceable></arg>
+	  <arg>--draw-diagrams</arg>
+	  <arg>--dot-exe <replaceable>executable-path-and-name</replaceable></arg>
+	  <arg>--sources</arg>
+	  <arg rep="repeat" choice="plain"><replaceable>package-spec</replaceable></arg>
+	</cmdsynopsis>
+      </refsynopsisdiv>
 
-      <para><remark>TODO</remark></para>
-    </section>
+      <refsection id="options">
+	<title>Options</title>
+	
+	<para>Arguments can be given in any order.
+	<replaceable>package-spec</replaceable> is required.</para>
 
-    <section>
-      <title>Command-line</title>
+	<variablelist>
+	  <varlistentry>
+	    <term><option><replaceable>package-spec</replaceable></option></term>
+	    <listitem>
+	      <para>You must specify at least one package of types to be
+	      documented, and may specify multiple packages:</para>
 
-      <para><remark>TODO</remark></para>
-    </section>
+	      <informalexample>
+		<screen>as2api org.example.utils com.yoyodyne.app</screen>
+	      </informalexample>
+
+	      <para>If you want to document all packages who's names share a
+	      common prefix, you can avoid listing each package individually by
+	      giving the package prefix with the suffix '.*':</para>
+
+	      <informalexample>
+		<screen>as2api com.yoyodyne.gui.*</screen>
+	      </informalexample>
+	    </listitem>
+	  </varlistentry>
+
+	  <varlistentry>
+	    <term><option>--help</option></term>
+	    <term><option>-h</option></term>
+	    <listitem>
+	      <para>Causes the program to exit immidiately after showing some
+	      brief usage instructions.</para>
+	    </listitem>
+	  </varlistentry>
+
+	  <varlistentry>
+	    <term><option>--output-dir <replaceable>path</replaceable></option></term>
+	    <term><option>-d <replaceable>path</replaceable></option></term>
+	    <listitem>
+	      <para><replaceable>path</replaceable> specifies the location where
+	      the generated HTML files should be placed.  If unspecified, the
+	      default location will be <filename>apidocs</filename>, within
+	      the current directory.</para>
+
+	      <para>If <replaceable>path</replaceable> does not exist, it will
+	      be created.</para>
+	    </listitem>
+	  </varlistentry>
+
+	  <varlistentry>
+	    <term><option>--classpath <replaceable>path</replaceable></option></term>
+	    <listitem>
+	      <para>The <replaceable>path</replaceable> is a list of directories
+	      in which as2api should search for source code.  If no classpath is
+	      specified, as2api just searches within the current
+	      directory.  Items within the list should be seperated by the
+	      platform-dependant path seperator:</para>
+
+	      <variablelist>
+		<varlistentry>
+		  <term>Windows</term>
+
+		  <listitem>
+		    <para>--classpath <replaceable>dir1</replaceable>;<replaceable>dir2</replaceable></para>
+		  </listitem>
+		</varlistentry>
+
+		<varlistentry>
+		  <term>OSX</term>
+		  <term>Unix</term>
+
+		  <listitem>
+		    <para>--classpath <replaceable>dir1</replaceable>:<replaceable>dir2</replaceable></para>
+		  </listitem>
+		</varlistentry>
+	      </variablelist>
+
+	      <para>Note that if one of the directories in the classpath contains
+	      spaces, you will need to enclose the whole classpath in
+	      quotes:</para>
+
+	      <informalexample>
+		<screen>--classpath "C:\Documents and Settings\dave\as;<replaceable>dir2</replaceable>"</screen>
+	      </informalexample>
+	    </listitem>
+	  </varlistentry>
+
+	  <varlistentry>
+	    <term><option>--title <replaceable>title-text</replaceable></option></term>
+	    <listitem>
+	      <para>Some text to be included in the titles of generated pages
+	      (e.g. the name of the software project / library).</para>
+	    </listitem>
+	  </varlistentry>
+
+	  <varlistentry>
+	    <term><option>--progress</option></term>
+	    <listitem>
+	      <para>Causes some extra progress information to be shown as the
+	      program runs</para>
+	    </listitem>
+	  </varlistentry>
+
+	  <varlistentry>
+	    <term><option>--encoding <replaceable>encoding-name</replaceable></option></term>
+	    <listitem>
+	      <para>The encoding for the generated HTML files.  Note that this
+	      must match the encoding of all input source files; no transcoding
+	      is performed.  as2api cannot handle a mixture of file encodings in
+	      the set of source files to be proccessed.</para>
+	    </listitem>
+	  </varlistentry>
+
+	  <varlistentry>
+	    <term><option>--draw-diagrams</option></term>
+	    <listitem>
+	      <para>Enables the generation of inheritance diagrams on package
+	      overview pages.  This requires the external <command>dot</command>
+	      tool from the graphviz package.  If you have downloaded graphviz,
+	      but the tools are not available in the standard system PATH,
+	      you will need to specify the location of  <command>dot</command>
+	      by adding <option>--dot-exe</option> to the command line.</para>
+	    </listitem>
+	  </varlistentry>
+
+	  <varlistentry>
+	    <term><option>--dot-exe <replaceable>executable-path-and-name</replaceable></option></term>
+	    <listitem>
+	      <para>Explicitly names the <command>dot</command> executable to use,
+	      should this not be available in any of the standard locations on
+	      your system.</para>
+	    </listitem>
+	  </varlistentry>
+
+	  <varlistentry>
+	    <term><option>--sources</option></term>
+	    <listitem>
+	      <para>Enables the inclusion of a copy of the source code of each
+	      documented type in the generated HTML.  The source will be
+	      converted to an HTML file with 'syntax highlighting'.</para>
+	    </listitem>
+	  </varlistentry>
+	</variablelist>
+      </refsection>
+    </refentry>
   </section>
 
   <section>
@@ -512,178 +669,4 @@ public function endTag(name:String):String {
     </section>
   </section>
 
-  <refentry id="as2api">
-    <refmeta>
-      <refentrytitle>as2api</refentrytitle>
-      <manvolnum>1</manvolnum>
-    </refmeta>
-
-    <refnamediv>
-      <refname>as2api</refname>
-      <refpurpose>ActionScript 2 API reference documentation
-      generator</refpurpose>
-    </refnamediv>
-
-    <refsynopsisdiv>
-      <cmdsynopsis>
-	<command>as2api</command>
-	<arg>--help</arg>
-	<arg>--output-dir <replaceable>path</replaceable></arg>
-	<arg>--classpath <replaceable>path</replaceable></arg>
-	<arg>--title <replaceable>title-text</replaceable></arg>
-	<arg>--progress</arg>
-	<arg>--encoding <replaceable>encoding-name</replaceable></arg>
-	<arg>--draw-diagrams</arg>
-	<arg>--dot-exe <replaceable>executable-path-and-name</replaceable></arg>
-	<arg>--sources</arg>
-	<arg rep="repeat" choice="plain"><replaceable>package-spec</replaceable></arg>
-      </cmdsynopsis>
-    </refsynopsisdiv>
-
-    <refsection id="options">
-      <title>Options</title>
-      
-      <para>Arguments can be given in any order.
-      <replaceable>package-spec</replaceable> is required.</para>
-
-      <variablelist>
-	<varlistentry>
-	  <term><option><replaceable>package-spec</replaceable></option></term>
-	  <listitem>
-	    <para>You must specify at least one package of types to be
-	    documented, and may specify multiple packages:</para>
-
-	    <informalexample>
-	      <screen>as2api org.example.utils com.yoyodyne.app</screen>
-	    </informalexample>
-
-	    <para>If you want to document all packages who's names share a
-	    common prefix, you can avoid listing each package individually by
-	    giving the package prefix with the suffix '.*':</para>
-
-	    <informalexample>
-	      <screen>as2api com.yoyodyne.gui.*</screen>
-	    </informalexample>
-	  </listitem>
-	</varlistentry>
-
-	<varlistentry>
-	  <term><option>--help</option></term>
-	  <term><option>-h</option></term>
-	  <listitem>
-	    <para>Causes the program to exit immidiately after showing some
-	    brief usage instructions.</para>
-	  </listitem>
-	</varlistentry>
-
-	<varlistentry>
-	  <term><option>--output-dir <replaceable>path</replaceable></option></term>
-	  <term><option>-d <replaceable>path</replaceable></option></term>
-	  <listitem>
-	    <para><replaceable>path</replaceable> specifies the location where
-	    the generated HTML files should be placed.  If unspecified, the
-	    default location will be <filename>apidocs</filename>, within
-	    the current directory.</para>
-
-	    <para>If <replaceable>path</replaceable> does not exist, it will
-	    be created.</para>
-	  </listitem>
-	</varlistentry>
-
-	<varlistentry>
-	  <term><option>--classpath <replaceable>path</replaceable></option></term>
-	  <listitem>
-	    <para>The <replaceable>path</replaceable> is a list of directories
-	    in which as2api should search for source code.  If no classpath is
-	    specified, as2api just searches within the current
-	    directory.  Items within the list should be seperated by the
-	    platform-dependant path seperator:</para>
-
-	    <variablelist>
-	      <varlistentry>
-		<term>Windows</term>
-
-		<listitem>
-		  <para>--classpath <replaceable>dir1</replaceable>;<replaceable>dir2</replaceable></para>
-		</listitem>
-	      </varlistentry>
-
-	      <varlistentry>
-		<term>OSX</term>
-		<term>Unix</term>
-
-		<listitem>
-		  <para>--classpath <replaceable>dir1</replaceable>:<replaceable>dir2</replaceable></para>
-		</listitem>
-	      </varlistentry>
-	    </variablelist>
-
-	    <para>Note that if one of the directories in the classpath contains
-	    spaces, you will need to enclose the whole classpath in
-	    quotes:</para>
-
-	    <informalexample>
-	      <screen>--classpath "C:\Documents and Settings\dave\as;<replaceable>dir2</replaceable>"</screen>
-	    </informalexample>
-	  </listitem>
-	</varlistentry>
-
-	<varlistentry>
-	  <term><option>--title <replaceable>title-text</replaceable></option></term>
-	  <listitem>
-	    <para>Some text to be included in the titles of generated pages
-	    (e.g. the name of the software project / library).</para>
-	  </listitem>
-	</varlistentry>
-
-	<varlistentry>
-	  <term><option>--progress</option></term>
-	  <listitem>
-	    <para>Causes some extra progress information to be shown as the
-	    program runs</para>
-	  </listitem>
-	</varlistentry>
-
-	<varlistentry>
-	  <term><option>--encoding <replaceable>encoding-name</replaceable></option></term>
-	  <listitem>
-	    <para>The encoding for the generated HTML files.  Note that this
-	    must match the encoding of all input source files; no transcoding
-	    is performed.  as2api cannot handle a mixture of file encodings in
-	    the set of source files to be proccessed.</para>
-	  </listitem>
-	</varlistentry>
-
-	<varlistentry>
-	  <term><option>--draw-diagrams</option></term>
-	  <listitem>
-	    <para>Enables the generation of inheritance diagrams on package
-	    overview pages.  This requires the external <command>dot</command>
-	    tool from the graphviz package.  If you have downloaded graphviz,
-	    but the tools are not available in the standard system PATH,
-	    you will need to specify the location of  <command>dot</command>
-	    by adding <option>--dot-exe</option> to the command line.</para>
-	  </listitem>
-	</varlistentry>
-
-	<varlistentry>
-	  <term><option>--dot-exe <replaceable>executable-path-and-name</replaceable></option></term>
-	  <listitem>
-	    <para>Explicitly names the <command>dot</command> executable to use,
-	    should this not be available in any of the standard locations on
-	    your system.</para>
-	  </listitem>
-	</varlistentry>
-
-	<varlistentry>
-	  <term><option>--sources</option></term>
-	  <listitem>
-	    <para>Enables the inclusion of a copy of the source code of each
-	    documented type in the generated HTML.  The source will be
-	    converted to an HTML file with 'syntax highlighting'.</para>
-	  </listitem>
-	</varlistentry>
-      </variablelist>
-    </refsection>
-  </refentry>
 </article>
