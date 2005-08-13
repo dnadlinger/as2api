@@ -213,7 +213,7 @@ public function setName(name:String):Void {
 		information.</entry>
 	      </row>
 	      <row>
-		<entry><link linkend="throws_tag"><literal>@throws</literal></link></entry>
+		<entry><link linkend="throws_tag"><literal>@throws</literal>, <literal>@exception</literal></link></entry>
 		<entry>Describe an exception thrown by a method</entry>
 	      </row>
 	      <row>
@@ -256,10 +256,6 @@ public function setName(name:String):Void {
 	      <row>
 		<entry><literal>@depricated</literal></entry>
 		<entry></entry>
-	      </row>
-	      <row>
-		<entry><literal>@exception</literal></entry>
-		<entry><literal>@throws</literal> is supported, but this synonym is not, yet</entry>
 	      </row>
 	      <row>
 		<entry><literal>{@inheritDoc}</literal></entry>

@@ -444,6 +444,7 @@ class ConfigBuilder
     config.add_block_parser("param", build_param_block_parser)
     config.add_block_parser("return", build_return_block_parser)
     config.add_block_parser("throws", build_throws_block_parser)
+    config.add_block_parser("exception", build_throws_block_parser)
     return config
   end
 
