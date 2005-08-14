@@ -653,7 +653,19 @@ public function send():Void {
       <section id="code_tag">
 	<title>Giving Code Examples</title>
 
-	<para><remark>TODO</remark></para>
+	<para>The code tag is provided to allow example ActionScript source
+	code to be included in the documentation.  The advantage of
+	<literal>{@code}</literal> over simply using the HTML
+	<sgmltag class="starttag">code</sgmltag> tag is that you don't need to
+	worry about 'escaping' characters (like '&amp;', which are special in
+	HTML) within the example code.</para>
+
+	<para>In addition, as2api will apply 'syntax highlighting' to the
+	text within <literal>{@code}</literal>, which makes it look pretty.
+	The disadvantage of this is that you can expect to see problems if
+	you make certain classes of syntax error in the contents of the
+	tag (e.g. failing to close a string literal).</para>
+
 	<example>
 	  <title>Example Code</title>
 	  <programlisting>/**
@@ -662,6 +674,37 @@ public function send():Void {
  * <emphasis role="strong">{@code "&lt;/p&gt;"}</emphasis>
  */
 public function endTag(name:String):String {
+    // ...
+}</programlisting>
+	</example>
+
+        <para><literal>{@code}</literal> may span multiple lines, and when
+	this happens, the resulting documentation will include an HTML
+	<sgmltag class="starttag">pre</sgmltag> around the code so that its
+	formatting is preserved.</para>
+
+	<para>Larger ActionScript code examples may need to include braces
+	(the '{' and '}' characters), however the end of the
+	<literal>{@code}</literal> will be marked by the closing brace.
+	Nested braces <emphasis>are</emphasis> allowed within
+	<literal>{@code}</literal>, but each opening brace,
+	<emphasis>must</emphasis> have a matching closing brace.</para>
+
+	<example>
+	  <title>Complex, multi-line code</title>
+	  <programlisting>/**
+ * Returns the result of calling startTag(), the
+ * given bodyGenerator function and endTag(),
+ * concatenated together.  For example, one might
+ * pass an anonymous function:
+ * <emphasis role="strong">{@code
+ * out.element("head", function() {
+ *   return "some dynamicaly generated content";
+ * });
+ * }</emphasis>
+ */
+public function element(name:String,
+                    bodyGenerator:Function):String {
     // ...
 }</programlisting>
 	</example>
