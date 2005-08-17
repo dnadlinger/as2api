@@ -329,9 +329,112 @@ public function setName(name:String):Void {
     </section>
 
     <section>
-      <title>Syntax Reference</title>
+      <title>Syntax Overview</title>
 
-      <para><remark>TODO</remark></para>
+      <para>The javadoc-style syntax supported by as2api allows the contents
+      of javadoc comments to contain special javadoc 'tags' to add extra
+      meaning, and XHTML tags if extra formatting (e.g. tabulated information)
+      is required.</para>
+
+      <para>If the first non-whitespace characters on a line within a comment
+      are one or more asterisks (the '*' character), then everything upto and
+      including the initial asterisks on the line will be stripped before it
+      reaches the documentation.  This allows you to use the common comment
+      formatting idiom whereby the left-hand margin of the comment is marked
+      with a column of asterisks.</para>
+
+      <example>
+	<title>Initial Asterisks on Comment Lines </title>
+
+	<screen>/**
+ * This is an
+ * example
+ */</screen>
+
+	<para>The documentation will include the text <quote>This is an
+	example</quote>; the '*' characters before the words
+	<wordasword>This</wordasword> and <wordasword>example</wordasword>
+	will disappear.</para>
+      </example>
+
+      <para>Javadoc tags appear in two forms, <wordasword>block</wordasword>
+      tags, such as <literal>@throws</literal>, and
+      <wordasword>inline</wordasword> tags, such as
+      <literal>{@link}</literal>.</para>
+
+      <para>Tags that are allowed in some contexts may not be allowed in
+      others.  For instance <literal>@throws</literal> is allowed to appear
+      in the documentation of methods, but not in the documentation of
+      classes.  See the Syntax Reference below for the full details.</para>
+
+      <section>
+	<title>Block Tags</title>
+
+	<para>Documenation-comment is split into 'blocks'.  The first block is
+	always a general description of the API element to which the comment is
+	attached.  No special tag is required to denote this description block.
+	Further blocks are added to the comment with block-tags, which must
+	always appear at the beginning of a new line.</para>
+
+	<example>
+	  <title>Valid Block-Tag Usage</title>
+	  <screen>/**
+ * So then this is the
+ * description.
+ * @throws Error in all cases
+ */</screen>
+	</example>
+
+	<example>
+	  <title>Invalid Block-Tag Usage</title>
+	  <screen>/**
+ * So then this is the
+ * description.  @throws Error in all cases
+ */</screen>
+	</example>
+
+	<example>
+	  <title>Block-Tag With Newlines</title>
+	  <screen>/**
+ * So then this is the
+ * description.
+ * @throws Error in all cases
+ *
+ * text appearing here is still part of the 'throws'
+ * block
+ */</screen>
+	</example>
+      </section>
+
+      <section>
+	<title>Inline Tags</title>
+
+	<para>Inline tags can appear within the middle of a line of comment
+	text (unlike block-tags, which must always appear at the start of a
+	line).  Inline tags are always surrounded by curly braces (the '{' and
+	'}' characters) so that as2api can tell them appart from 'normal'
+	text.</para>
+      </section>
+
+      <section>
+	<title>XHTML Tags</title>
+
+	<example>
+	  <title>XHTML Markup in Comments</title>
+	  <screen><![CDATA[/**
+ * The allowed values are:
+ * <ul>
+ *   <li>0.1</li>
+ *   <li>0.01</li>
+ *   <li>-6.66</li>
+ * </ul>
+ */]]></screen>
+	</example>
+      </section>
+    </section>
+
+    <section>
+      <title>Syntax Reference</title>
 
       <section>
 	<title>Supported JavaDoc Features</title>
@@ -353,9 +456,9 @@ public function setName(name:String):Void {
 		<entry>Describe a class or interface</entry>
 	      </row>
 	      <row>
-		<entry><link linkend="method_description">Method
+		<entry><link linkend="member_description">Member
 		Description</link></entry>
-		<entry>Describe a method of a class or interface</entry>
+		<entry>Describe a field/method of a class or interface</entry>
 	      </row>
 	      <row>
 		<entry><link linkend="param_tag"><literal>@param</literal></link></entry>
@@ -518,13 +621,15 @@ class thispackage.UserId {
 	</formalpara>
       </section>
 
-      <section id="method_description">
-	<title>Method Description</title>
+      <section id="member_description">
+	<title>Member Description</title>
 
-	<para><remark>TODO</remark></para>
+	<para>A doc-comment immediately before a method or field is used as
+	the description of that member.  The text here will be added to this
+	members section in the type's API reference.</para>
 
 	<example>
-	  <title>Method Description</title>
+	  <title>Member Description</title>
 	  <programlisting><emphasis role="strong">/**
  * Clears all data that has previously been
  * collected in this object, and returns it to
@@ -538,6 +643,17 @@ public function clear() {
 }</programlisting>
 	</example>
 
+        <para>When implicit fields are created (using
+	<literal>function get foo()</literal> or
+	<literal>function set foo()</literal> methods), an entry will be
+	created for this in the 'Fields' section of the resulting documentation
+	(not in the 'Methods' section).  If both <literal>get</literal> and
+	<literal>set</literal> methods are defined for a field, as2api will
+	'pick' the doc-comment from one of them to use as documentation for the
+	resulting field.  If only one of <literal>get</literal> or
+	<literal>set</literal> are defined, the documentation will note
+	that the field is read-only or write-only, as appropriate.</para>
+
 	<formalpara>
 	  <title>May contain</title>
 	  <para><link linkend="param_tag">@param</link>, <link linkend="return_tag">@return</link>, <link linkend="see_tag">@see</link></para>
@@ -547,7 +663,18 @@ public function clear() {
       <section id="param_tag">
 	<title>Method Parameters</title>
 
-	<para><remark>TODO</remark></para>
+	<para>Within the doc-comment describing a method,
+	<literal>@param</literal> tags may be used to give a description
+	for each of the method's parameters.  Immidiately following the
+	<literal>@param</literal> must be the name of the parameter to
+	be described, with any text following this name being used as the
+	description.</para>
+
+	<para>Arguments named in <literal>@param</literal> tags must match
+	the names of the actual method arguments, or they will be skipped.
+	The special parameter name '...' may be used if the method can
+	accept a variable number of paramters (by inspecting it's
+	<literal>arguments</literal> array.</para>
 
 	<example>
 	  <title>Method Parameters</title>
@@ -565,6 +692,8 @@ public function clear() {
  *        index of the current value (starting with
  *        0 for the first value, 1 for the second,
  *        and so on).
+ * <emphasis role="strong">@param ...</emphasis> any additional arguments to be passed
+ *        to the callback function.
  */
 public function each(callback:Function,
                      index:Boolean):Void {
@@ -576,11 +705,18 @@ public function each(callback:Function,
       <section id="return_tag">
 	<title>Method Return Values</title>
 
-	<para><remark>TODO</remark></para>
+	<para>A description of the value returned by a method, where the method
+	description itself does not give this information succinctly
+	enough.</para>
+
 	<example>
 	  <title>Method Return Values</title>
 	  <programlisting>/**
  * Get the value corresponding to the given key
+ * by searching in the local cache first, then
+ * in the database on the LAN, and finally
+ * consulting a number of LDAP servers from
+ * around the wider internet.
  *
  * <emphasis role="strong">@return</emphasis> either the value for the given key, or
  *         null if there is no such mapping.
