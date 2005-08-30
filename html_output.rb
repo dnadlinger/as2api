@@ -1881,54 +1881,78 @@ class SourcePage < BasicPage
   end
 end
 
-def make_page_list(conf, type_agregator)
-  list = []
-
-  list << FramesetPage.new()
-  list << OverviewPage.new(conf, type_agregator)
-  list << OverviewFramePage.new(type_agregator)
-  list << AllTypesFramePage.new(type_agregator)
-
-  # packages..
-  last_package = nil
-  last_pkg_index = nil
-  type_agregator.each_package do |package|
-    pkg_index = PackageIndexPage.new(conf, package)
-    list << pkg_index
-    list << PackageFramePage.new(package)
-
-    if last_package
-      pkg_index.prev_package = last_package
-      last_pkg_index.next_package = package
-    end
-    last_package = package
-    last_pkg_index = pkg_index
+class PageListBuilder
+  def initialize(conf, type_agregator)
+    @conf = conf
+    @type_agregator = type_agregator
   end
 
-  # types..
-  last_type = nil
-  last_type_page = nil
-  type_agregator.each_type do |type|
-    if type.document?
-      type_page = TypePage.new(conf, type)
-      list << type_page
-      list << SourcePage.new(conf, type) if conf.sources
+  def build_page_list
+    list = []
+    list << OverviewPage.new(@conf, @type_agregator)
+    build_toplevel_frameset_pages(list)
+    build_all_package_pages(list)
+    build_all_type_pages(list)
+    build_all_index_pages(list)
+    list
+  end
 
-      if last_type
-	type_page.prev_type = last_type
-	last_type_page.next_type = type
+  protected
+
+  def build_toplevel_frameset_pages(list)
+    list << FramesetPage.new()
+    list << OverviewFramePage.new(@type_agregator)
+    list << AllTypesFramePage.new(@type_agregator)
+  end
+
+  def build_all_package_pages(list)
+    last_package = nil
+    last_pkg_index = nil
+    @type_agregator.each_package do |package|
+      pkg_index = PackageIndexPage.new(@conf, package)
+      list << pkg_index
+      build_package_frameset_pages(list)
+
+      if last_package
+	pkg_index.prev_package = last_package
+	last_pkg_index.next_package = package
       end
-
-      last_type = type
-      last_type_page = type_page
+      last_package = package
+      last_pkg_index = pkg_index
     end
   end
 
-  list << IndexPage.new(conf, type_agregator)
+  def build_toplevel_frameset_pages(list)
+    list << PackageFramePage.new(package)
+  end
 
-  list
+  def build_all_type_pages(list)
+    last_type = nil
+    last_type_page = nil
+    @type_agregator.each_type do |type|
+      if type.document?
+	type_page = TypePage.new(@conf, type)
+	list << type_page
+	list << SourcePage.new(@conf, type) if @conf.sources
+
+	if last_type
+	  type_page.prev_type = last_type
+	  last_type_page.next_type = type
+	end
+
+	last_type = type
+	last_type_page = type_page
+      end
+    end
+  end
+
+  def build_all_index_pages(list)
+    list << IndexPage.new(@conf, @type_agregator)
+  end
 end
 
+# creates the pages in the given list by calling each object's #generate_page()
+# method
 def create_all_pages(conf, list)
   conf.progress_listener.generating_pages(list.length) do
     list.each_with_index do |page, index|
@@ -1940,8 +1964,9 @@ def create_all_pages(conf, list)
   end
 end
 
+# main entry point into the documentation generation process
 def document_types(conf, type_agregator)
-  list = make_page_list(conf, type_agregator)
+  list = PageListBuilder.new(conf, type_agregator).build_page_list
   create_all_pages(conf, list)
   package_list(conf.output_dir, type_agregator)
   stylesheet(conf.output_dir)
