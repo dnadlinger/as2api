@@ -1911,7 +1911,7 @@ class PageListBuilder
     @type_agregator.each_package do |package|
       pkg_index = PackageIndexPage.new(@conf, package)
       list << pkg_index
-      build_package_frameset_pages(list)
+      build_package_frameset_pages(list, package)
 
       if last_package
 	pkg_index.prev_package = last_package
@@ -1922,7 +1922,7 @@ class PageListBuilder
     end
   end
 
-  def build_toplevel_frameset_pages(list)
+  def build_package_frameset_pages(list, package)
     list << PackageFramePage.new(package)
   end
 
