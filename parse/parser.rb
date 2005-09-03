@@ -194,7 +194,7 @@ class ASParser
 
   def parse_class_member_list
     until lookahead?(RBraceToken)
-      parse_class_member
+      parse_attributes_and_class_member
     end
   end
 
@@ -210,12 +210,16 @@ class ASParser
     end
   end
 
-  def parse_class_member
+  def parse_attributes_and_class_member
     speculate(SemicolonToken) do
       # skip spurious semicolons in class bodies
       return
     end
     parse_attribute_list
+    parse_class_member
+  end
+
+  def parse_class_member
     @handler.access_modifier(parse_access_modifier)
     if lookahead?(VarToken)
       parse_member_field
