@@ -1562,7 +1562,7 @@ class TypeIndexTerm < IndexTerm
   def link(out)
     out.link_type(@astype)
     out.pcdata(" in package ")
-    out.html_a(@astype.package_name, {"href"=>"../" + @astype.package_name.gsub(".", "/") + "/package-summary.html"})
+    out.html_a(package_display_name_for(@astype.package), {"href"=>"../" + @astype.package_name.gsub(".", "/") + "/package-summary.html"})
   end
 end
 
