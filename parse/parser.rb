@@ -249,17 +249,24 @@ class ASParser
 
   def parse_member_field
     expect(VarToken)
-    name = expect(IdentifierToken)
-    type = nil
-    if lookahead?(ColonToken)
-      type = parse_type_spec
-    end
-    @handler.start_member_field(name, type)
-    speculate(AssignToken) do
-      eat_field_initializer_expression
+    while true
+      name = expect(IdentifierToken)
+      type = nil
+      if lookahead?(ColonToken)
+        type = parse_type_spec
+      end
+      @handler.start_member_field(name, type)
+      speculate(AssignToken) do
+        eat_field_initializer_expression
+      end
+      @handler.end_member_field
+      if lookahead?(CommaToken)
+        expect(CommaToken)
+      else
+        break
+      end
     end
     expect(SemicolonToken)
-    @handler.end_member_field
   end
 
   def eat_field_initializer_expression

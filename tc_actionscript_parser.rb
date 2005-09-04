@@ -66,6 +66,14 @@ class TC_ActionScriptParser < Test::Unit::TestCase
     end
   end
 
+  def test_parse_multi_field
+    simple_parse("var foo:String,bar:Number;}") do |parse|
+      parse.parse_class_member_list
+      # consume '}' -- hack around private expect() by using send()
+      parse.send(:expect, ActionScript::Parse::RBraceToken)
+    end
+  end
+
  private
   def simple_parse(text)
     input = StringIO.new(text)
