@@ -193,6 +193,104 @@ end
 
 PROJECT_PAGE = "http://www.badgers-in-foil.co.uk/projects/as2api/"
 
+
+NavLink = Struct.new("NavLink", :href, :content, :title, :is_current)
+
+# superclass for a kind of object able to build a navigation link for
+# BasicPage instances.
+class NavLinkBuilder
+  def initialize(conf, content)
+    @conf, @content = conf, content
+  end
+
+  def build_for_page(page)
+    NavLink.new(href_on(page), @content, title_on(page), is_current?(page))
+  end
+end
+
+class OverviewNavLinkBuilder < NavLinkBuilder
+  def href_on(page); page.base_path("overview-summary.html"); end
+
+  def is_current?(page); page.is_a?(OverviewPage); end
+
+  def title_on(page)
+    if @conf.title
+      "Overview of #{@conf.title}"
+    else
+      "Overview of API"
+    end
+  end
+end
+
+class PackageNavLinkBuilder < NavLinkBuilder
+  def href_on(page)
+    if page.aspackage
+      "package-summary.html"
+    else
+      nil
+    end
+  end
+
+  def is_current?(page); page.is_a?(PackageIndexPage); end
+
+  def title_on(page)
+    if page.aspackage
+      "Overview of package #{package_display_name_for(page.aspackage)}"
+    else
+      nil
+    end
+  end
+end
+
+class TypeNavLinkBuilder < NavLinkBuilder
+  def href_on(page)
+    if page.astype
+      page.astype.unqualified_name+".html"
+    else
+      nil
+    end
+  end
+
+  def is_current?(page); page.is_a?(TypePage); end
+
+  def title_on(page)
+    if page.astype
+      "Detail of #{page.astype.qualified_name} API"
+    else
+      nil
+    end
+  end
+end
+
+class SourceNavLinkBuilder < NavLinkBuilder
+  def href_on(page)
+    if page.astype
+      page.astype.unqualified_name+".as.html"
+    else
+      nil
+    end
+  end
+
+  def is_current?(page); page.is_a?(SourcePage); end
+
+  def title_on(page)
+    if page.astype
+      "Source code of #{page.astype.qualified_name}"
+    else
+      nil
+    end
+  end
+end
+
+class IndexNavLinkBuilder < NavLinkBuilder
+  def href_on(page); page.base_path("index-files/index.html"); end
+
+  def is_current?(page) page.is_a?(IndexPage); end
+
+  def title_on(page); "Alpabetical index of types and members"; end
+end
+
+
 class Page
   include XHTMLWriter
 
@@ -428,14 +526,20 @@ class BasicPage < Page
     super(base_name, path_name)
     @conf = conf
     @type = nil
+    @package = nil
+    @navigation = nil
   end
 
+  attr_accessor :navigation
+
   def astype; @type; end
+
+  def aspackage; @package; end
 
   def generate_content
     html_body do
       generate_body_content
-      navigation
+      generate_navigation
       generate_footer
     end
   end
@@ -517,6 +621,31 @@ class BasicPage < Page
       end
     end
   end
+
+  def generate_navigation
+    html_ul("class"=>"main_nav") do
+      @navigation.each do |nav|
+	link = nav.build_for_page(self)
+	html_li do
+	  if link.is_current
+	    html_span(link.content, {"class"=>"nav_current"})
+	  else
+	    if link.href
+	      attrs = {"href"=>link.href}
+	      attrs["title"] = link.title if link.title
+	      html_a(link.content, attrs)
+	    else
+	      if link.title
+		html_span(link.content, {"title"=>link.title})
+	      else
+		html_span(link.content)
+	      end
+	    end
+	  end
+	end
+      end
+    end
+  end
 end
 
 class TypePage < BasicPage
@@ -525,6 +654,7 @@ class TypePage < BasicPage
     dir = type.package_name.gsub(/\./, "/")
     super(conf, type.unqualified_name, dir)
     @type = type
+    @package = type.package
     if @type.source_utf8
       @encoding = "utf-8"
     end
@@ -596,28 +726,6 @@ class TypePage < BasicPage
     end
 
     false
-  end
-
-  def navigation
-    html_ul("class"=>"main_nav") do
-      html_li do
-	html_a("Overview", {"href"=>base_path("overview-summary.html")})
-      end
-      html_li do
-	html_a("Package", {"href"=>"package-summary.html"})
-      end
-      html_li do
-	html_span("Class", {"class"=>"nav_current"})
-      end
-      if @conf.sources
-	html_li do
-	  html_a("Source", {"href"=>@type.unqualified_name+".as.html"})
-	end
-      end
-      html_li do
-	html_a("Index", {"href"=>base_path("index-files/index.html")})
-      end
-    end
   end
 
   def link_top
@@ -1145,28 +1253,6 @@ class PackageIndexPage < BasicPage
     end
   end
 
-  def navigation
-    html_ul("class"=>"main_nav") do
-      html_li do
-	html_a("Overview", {"href"=>base_path("overview-summary.html")})
-      end
-      html_li do
-	html_span("Package", {"class"=>"nav_current"})
-      end
-      html_li do
-	html_span("Class")
-      end
-      if @conf.sources
-	html_li do
-	  html_span("Source")
-	end
-      end
-      html_li do
-	html_a("Index", {"href"=>base_path("index-files/index.html")})
-      end
-    end
-  end
-
   def link_top
     yield "Overview", base_path("overview-summary.html")
   end
@@ -1384,29 +1470,6 @@ class OverviewPage < BasicPage
 	end
       end
   end
-
-  def navigation
-    html_ul("class"=>"main_nav") do
-      html_li do
-	html_span("Overview", {"class"=>"nav_current"})
-      end
-      html_li do
-	html_span("Package")
-      end
-      html_li do
-	html_span("Class")
-      end
-      if @conf.sources
-	html_li do
-	  html_span("Source")
-	end
-      end
-      html_li do
-	html_a("Index", {"href"=>"index-files/index.html"})
-      end
-    end
-  end
-
 end
 
 
@@ -1662,28 +1725,6 @@ class IndexPage < BasicPage
     end
   end
 
-  def navigation
-    html_ul("class"=>"main_nav") do
-      html_li do
-	html_a("Overview", {"href"=>base_path("overview-summary.html")})
-      end
-      html_li do
-	html_span("Package")
-      end
-      html_li do
-	html_span("Class")
-      end
-      if @conf.sources
-	html_li do
-	  html_span("Source")
-	end
-      end
-      html_li do
-	html_span("Index", {"class"=>"nav_current"})
-      end
-    end
-  end
-
   def link_top
     yield "Overview", base_path("overview-summary.html")
   end
@@ -1833,6 +1874,7 @@ class SourcePage < BasicPage
     dir = type.package_name.gsub(/\./, "/")
     super(conf, type.unqualified_name+".as", dir)
     @type = type
+    @package = type.package
   end
 
   def generate_body_content
@@ -1856,26 +1898,6 @@ class SourcePage < BasicPage
   end
 
 
-  def navigation
-    html_ul("class"=>"main_nav") do
-      html_li do
-	html_a("Overview", {"href"=>base_path("overview-summary.html")})
-      end
-      html_li do
-	html_a("Package", {"href"=>"package-summary.html"})
-      end
-      html_li do
-	html_a("Class", {"href"=>@type.unqualified_name+".html"})
-      end
-      html_li do
-	html_span("Source", {"class"=>"nav_current"})
-      end
-      html_li do
-	html_a("Index", {"href"=>base_path("index-files/index.html")})
-      end
-    end
-  end
-
   def link_top
     yield "Overview", base_path("overview-summary.html")
   end
@@ -1894,6 +1916,8 @@ class PageListBuilder
     build_all_package_pages(list)
     build_all_type_pages(list)
     build_all_index_pages(list)
+    nav = build_navigation_template
+    list.each { |page| page.navigation = nav if page.is_a?(BasicPage) }
     list
   end
 
@@ -1949,6 +1973,16 @@ class PageListBuilder
   def build_all_index_pages(list)
     list << IndexPage.new(@conf, @type_agregator)
   end
+
+  def build_navigation_template
+    elements = []
+    elements << OverviewNavLinkBuilder.new(@conf, "Overview")
+    elements << PackageNavLinkBuilder.new(@conf, "Package")
+    elements << TypeNavLinkBuilder.new(@conf, "Class")
+    elements << SourceNavLinkBuilder.new(@conf, "Source") if @conf.sources
+    elements << IndexNavLinkBuilder.new(@conf, "Index")
+    elements
+  end
 end
 
 # creates the pages in the given list by calling each object's #generate_page()
@@ -1972,5 +2006,5 @@ def document_types(conf, type_agregator)
   stylesheet(conf.output_dir)
 end
 
-# vim:softtabstop=2:shiftwidth=2
 
+# vim:softtabstop=2:shiftwidth=2
