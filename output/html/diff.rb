@@ -1,5 +1,4 @@
-
-require 'html_output'
+require 'output/html/html_framework'
 
 class BasicDiffPage < BasicPage
 

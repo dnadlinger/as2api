@@ -3,8 +3,8 @@ require 'documenter'
 require 'getoptlong'
 require 'html_output'
 require 'set'
-require 'api_diff'
-require 'html_diff_output'
+require 'output/html/driver'
+require 'output/html/diff'
 
 Conf = Struct.new(:output_dir,
                   :classpath,
