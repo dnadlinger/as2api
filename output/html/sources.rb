@@ -1,3 +1,6 @@
+
+require 'parse/aslexer'
+
 class SourceNavLinkBuilder < NavLinkBuilder
   def href_on(page)
     if page.astype
