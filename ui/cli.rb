@@ -1,7 +1,6 @@
 
 require 'documenter'
 require 'getoptlong'
-require 'html_output'
 require 'set'
 require 'output/html/driver'
 require 'output/html/diff'
