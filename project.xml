@@ -303,6 +303,9 @@
       <relatedproject name="Acid">
         <homepage url="http://icube.freezope.org/acid/"/>
       </relatedproject>
+      <relatedproject name="Pod-FromActionscript">
+        <homepage url="http://www.clotho.com/code/Pod-FromActionscript/"/>
+      </relatedproject>
     </relation>
 
     <relation kind="Directory Categories">
