@@ -109,6 +109,7 @@ def document_types(conf, type_agregator)
   create_all_pages(conf, list)
   package_list(conf.output_dir, type_agregator)
   stylesheet(conf.output_dir)
+  alternate_stylesheet(conf.output_dir)
 end
 
 

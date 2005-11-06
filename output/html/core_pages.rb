@@ -114,11 +114,15 @@ class TypePage < BasicPage
 	end
       end
       
-      field_index_list(@type) if has_or_inherits_documentable_fields?(@type)
-      method_index_list(@type) if has_or_inherits_documentable_methods?(@type)
+      html_div("class"=>"type_indexes") do
+        field_index_list(@type) if has_or_inherits_documentable_fields?(@type)
+        method_index_list(@type) if has_or_inherits_documentable_methods?(@type)
+      end
+      html_div("class"=>"type_details") do
       constructor_detail(@type) if @type.constructor? && document_member?(@type.constructor)
       field_detail_list(@type) if has_documentable_fields?(@type)
       method_detail_list(@type) if has_documentable_methods?(@type)
+      end
   end
 
   def has_or_inherits_documentable_fields?(astype)
@@ -172,7 +176,7 @@ class TypePage < BasicPage
 	      pcdata("Inherited from ")
 	      link_type(type)
 	    end
-	    html_p("class"=>"extra_info") do
+	    html_div("class"=>"extra_info") do
 	      list_fields(type, link_for_type(type))
 	    end
 	  end
@@ -205,7 +209,7 @@ class TypePage < BasicPage
     html_div("class"=>"method_index") do
       html_h2("Method Index")
       if type.constructor? && document_member?(type.constructor)
-	html_p do
+	html_div do
 	  html_code do
 	    pcdata("new ")
 	    link_method(type.constructor)
@@ -221,7 +225,7 @@ class TypePage < BasicPage
 	      pcdata("Inherited from ")
 	      link_type(type)
 	    end
-	    html_p("class"=>"extra_info") do
+	    html_div("class"=>"extra_info") do
 	      list_methods(type, known_method_names, link_for_type(type))
 	    end
 	  end

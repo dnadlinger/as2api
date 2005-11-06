@@ -105,7 +105,12 @@ class Page
   def generate_links
     html_link("rel"=>"stylesheet",
              "type"=>"text/css",
-	     "href"=>base_path("style.css"))
+	     "href"=>base_path("style.css"),
+	     "title"=>"JavaDoc")
+    html_link("rel"=>"alternate stylesheet",
+             "type"=>"text/css",
+	     "href"=>base_path("unnatural.css"),
+	     "title"=>"Unnatural")
     link_top do |title, href|
       html_link("rel"=>"top", "title"=>title, "href"=>href)
     end
