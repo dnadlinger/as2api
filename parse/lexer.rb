@@ -74,8 +74,9 @@ class LexerBuilder
   # the fist match wins), and to cope with keyword/identifier ambiguity
   # (keywords have '\b' regexp-lookahead appended)
 
-  def initialize
+  def initialize(token_module)
     @matches = []
+    @token_module = token_module
   end
 
   def make_match(match)
@@ -93,7 +94,7 @@ class LexerBuilder
       super("#{name}", lineno)
     end
     EOE
-    ActionScript::Parse.const_set("#{name.capitalize}Token".to_sym, the_class)
+    @token_module.const_set("#{name.capitalize}Token".to_sym, the_class)
   end
 
   def make_simple_token(name, value, match)
@@ -104,7 +105,7 @@ class LexerBuilder
       super("#{value}", lineno)
     end
     EOE
-    ActionScript::Parse.const_set(class_name, the_class)
+    @token_module.const_set(class_name, the_class)
 
     add_match(match, :lex_simple_token, class_name.to_sym)
   end

@@ -1,6 +1,6 @@
 
 module ActionScript
-module Parse
+module ParseDoc
 
 
 
@@ -43,8 +43,8 @@ class DocCommentParser
   end
 
   def parse_whitespace
-    if lookahead?(DocWhitespaceToken)
-      eat_text_token_of_kind(DocWhitespaceToken)
+    if lookahead?(WhitespaceToken)
+      eat_text_token_of_kind(WhitespaceToken)
     end
   end
 

@@ -2,43 +2,43 @@
 require 'parse/lexer'
 
 module ActionScript
-module Parse
+module ParseDoc
 
-class DocWhitespaceToken < ASToken
+class WhitespaceToken < ActionScript::Parse::ASToken
 end
 
-class EndOfLineToken < ASToken
+class EndOfLineToken < ActionScript::Parse::ASToken
 end
 
-class StarsToken < ASToken
+class StarsToken < ActionScript::Parse::ASToken
 end
 
-class ParaAtTagToken < ASToken
+class ParaAtTagToken < ActionScript::Parse::ASToken
   def to_s
     "@#{@body}"
   end
 end
 
-class InlineAtTagToken < ASToken
+class InlineAtTagToken < ActionScript::Parse::ASToken
   def to_s
     "{@#{@body}"
   end
 end
 
-class WordToken < ASToken
+class WordToken < ActionScript::Parse::ASToken
 end
 
-class DocCommentLexer < AbstractLexer
+class DocCommentLexer < ActionScript::Parse::AbstractLexer
   def lex_simple_token(class_sym, match, io)
-    ActionScript::Parse.const_get(class_sym).new(io.lineno-1)
+    ActionScript::ParseDoc.const_get(class_sym).new(io.lineno-1)
   end
 
   def lex_simplebody_token(class_sym, match, io)
-    ActionScript::Parse.const_get(class_sym).new(match[0], io.lineno-1)
+    ActionScript::ParseDoc.const_get(class_sym).new(match[0], io.lineno-1)
   end
 
   def lex_simplecapture_token(class_sym, match, io)
-    ActionScript::Parse.const_get(class_sym).new(match[1], io.lineno-1)
+    ActionScript::ParseDoc.const_get(class_sym).new(match[1], io.lineno-1)
   end
 end
 
@@ -50,10 +50,10 @@ WHITESPACE_THEN_STARS = "[ \t]*\\*+"
 WORD = "[^ \t\f\n\r}{]+"
 
 def self.build_doc_lexer
-  builder = LexerBuilder.new
+  builder = ActionScript::Parse::LexerBuilder.new(ActionScript::ParseDoc)
 
   builder.add_match(WHITESPACE_THEN_STARS, :lex_simplebody_token, :StarsToken)
-  builder.add_match(DOC_WHITESPACE, :lex_simplebody_token, :DocWhitespaceToken)
+  builder.add_match(DOC_WHITESPACE, :lex_simplebody_token, :WhitespaceToken)
   builder.add_match(END_OF_LINE, :lex_simplebody_token, :EndOfLineToken)
 
   builder.add_match(AT_INLINE_TAG, :lex_simplecapture_token, :InlineAtTagToken)

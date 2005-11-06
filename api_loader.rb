@@ -252,8 +252,8 @@ class DocASHandler < ActionScript::Parse::ASHandler
 
     input = StringIO.new(comment_token.body)
     input.lineno = comment_token.lineno
-    lexer = ActionScript::Parse::DocCommentLexer.new(input)
-    parser = ActionScript::Parse::DocCommentParser.new(lexer)
+    lexer = ActionScript::ParseDoc::DocCommentLexer.new(input)
+    parser = ActionScript::ParseDoc::DocCommentParser.new(lexer)
     handler = OurDocCommentHandler.new(comment_data, config, @type_resolver)
     parser.handler = handler
 

@@ -294,7 +294,7 @@ class ASLexer < AbstractLexer
 end
 
 def self.build_lexer
-  builder = LexerBuilder.new
+  builder = LexerBuilder.new(ActionScript::Parse)
 
   # TODO: whitespace tokens don't span lines, which might not be the expected
   #       behaviour

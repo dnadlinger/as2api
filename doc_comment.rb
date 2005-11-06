@@ -84,7 +84,7 @@ class CommentData
   end
 end
 
-class OurDocCommentHandler < ActionScript::Parse::DocCommentHandler
+class OurDocCommentHandler < ActionScript::ParseDoc::DocCommentHandler
   def initialize(comment_data, handler_config, type_resolver)
     @comment_data = comment_data
     @handler_config = handler_config
