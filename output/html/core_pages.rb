@@ -364,40 +364,27 @@ class TypePage < BasicPage
   end
 
   def type_hierachy(type)
-    # TODO: ASCII art is an accessability problem.  Replace with images that
-    #       have alt-text, or use CSS to generate content, e.g.
-    #          <span class="inherit_relation" title="inherited by"></span>
-    html_pre("class"=>"type_hierachy") do
-      count = 0
-      unless type.extends.nil?
-	count = type_hierachy_recursive(type.extends)
+    html_div("class"=>"type_hierachy") do
+      ancestors = [type]
+      type.each_ancestor {|a| ancestors << a }
+      unless ancestors.empty?
+	count = type_hierachy_recursive(ancestors)
       end
-      if count > 0
-	pcdata("   " * count)
-	pcdata("+--")
-      end
-      html_strong(type.qualified_name)
     end
   end
 
-  def type_hierachy_recursive(type_proxy)
-    count = 0
-    if type_proxy.resolved?
-      type = type_proxy.resolved_type
-      unless type.extends.nil?
-	count = type_hierachy_recursive(type.extends)
+  def type_hierachy_recursive(ancestors)
+    thetype = ancestors.pop
+    html_ul do
+      html_li do
+        if ancestors.empty?
+          html_strong(thetype.qualified_name)
+        else
+          link_type(thetype, true)
+          type_hierachy_recursive(ancestors)
+        end
       end
-    else
-      pcdata("????\n")
-      count = 1
     end
-    if count > 0
-      pcdata("   " * count)
-      pcdata("+--")
-    end
-    link_type_proxy(type_proxy, true)
-    pcdata("\n")
-    return count + 1
   end
 
   def document_parameters(arguments, comment_data)

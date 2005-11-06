@@ -124,6 +124,17 @@ table.exceptions td, table.arguments td {
 	text-align: center;
 }
 
+.type_hierachy > ul {
+	padding-left: 0;
+	margin-left: 0;
+}
+.type_hierachy li {
+	list-style: none;
+}
+.type_hierachy li li:before {
+	content: "\\2514  ";
+}
+
 
 /* Source highlighting rules */
 
@@ -305,6 +316,17 @@ table.exceptions td, table.arguments td {
 */
 .diagram {
 	text-align: center;
+}
+
+.type_hierachy > ul {
+	padding-left: 0;
+	margin-left: 0;
+}
+.type_hierachy li {
+	list-style: none;
+}
+.type_hierachy li li:before {
+	content: "\\2514  ";
 }
 
 
