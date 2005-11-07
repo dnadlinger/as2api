@@ -34,6 +34,7 @@ class Page
     @doctype_id = :strict
     @title = nil
     @title_extra = nil
+    @type = nil
     @io = nil  # to be set during the lifetime of generate() call
   end
 
@@ -104,6 +105,11 @@ class Page
   end
 
   def generate_links
+    html_script("type"=>"text/javascript",
+	     "src"=>base_path("quicknav.js")) { }
+    html_script do
+      comment("\ndocument.quicknavBasePath=\"#{base_path('index-files')}\";\n//")
+    end
     html_link("rel"=>"stylesheet",
              "type"=>"text/css",
 	     "href"=>base_path("style.css"),
@@ -293,7 +299,6 @@ class BasicPage < Page
   def initialize(conf, base_name, path_name=nil)
     super(base_name, path_name)
     @conf = conf
-    @type = nil
     @package = nil
     @navigation = nil
   end
@@ -391,7 +396,7 @@ class BasicPage < Page
   end
 
   def generate_navigation
-    html_ul("class"=>"main_nav") do
+    html_ul("class"=>"main_nav", "id"=>"main_nav") do
       @navigation.each do |nav|
 	link = nav.build_for_page(self)
 	html_li do

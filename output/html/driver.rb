@@ -4,6 +4,7 @@ require 'output/html/core_pages'
 require 'output/html/index'
 require 'output/html/sources'
 require 'output/html/default_frameset'
+require 'output/html/quicknav'
 require 'output/html/default_css'
 
 
@@ -89,7 +90,10 @@ class PageListBuilder
   end
 
   def build_all_index_pages(list)
-    list << IndexPage.new(@conf, @type_agregator)
+    indexer = Indexer.new
+    indexer.create_index(@type_agregator)
+    list << IndexPage.new(@conf, indexer)
+    list << QuicknavData.new(@conf, indexer)
   end
 
   def build_navigation_template
@@ -108,6 +112,7 @@ def document_types(conf, type_agregator)
   list = PageListBuilder.new(conf, type_agregator).build_page_list
   create_all_pages(conf, list)
   package_list(conf.output_dir, type_agregator)
+  quicknav_script(conf.output_dir)
   stylesheet(conf.output_dir)
   alternate_stylesheet(conf.output_dir)
 end

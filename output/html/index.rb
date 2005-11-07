@@ -64,26 +64,12 @@ class IndexNavLinkBuilder < NavLinkBuilder
   def title_on(page); "Alpabetical index of types and members"; end
 end
 
-
-class IndexPage < BasicPage
-  def initialize(conf, type_agregator)
-    super(conf, "index", "index-files")
-    @type_agregator = type_agregator
-    @title = "Alphabetical Index"
-  end
-
-  def extra_metadata
-    # no point in search engines indexing our index,
-    {
-      "robots" => "noindex"
-    }
-  end
-
-  def create_index()
+class Indexer
+  def create_index(type_agregator)
     index = []
     initials = Set.new
     # TODO: include packages
-    @type_agregator.each_type do |astype|
+    type_agregator.each_type do |astype|
       if astype.document?
 	index << TypeIndexTerm.new(astype)
 	initials << astype.unqualified_name.upcase[0]
@@ -104,14 +90,37 @@ class IndexPage < BasicPage
       end
     end
 
-    [index.sort!, initials]
+    @index = index.sort!
+    @initials = initials
   end
 
-  def generate_body_content
-    index, initials = create_index()
+  attr_reader :index, :initials
 
+  private
+
+  def document_member?(member)
+    !member.access.private?
+  end
+end
+
+class IndexPage < BasicPage
+  def initialize(conf, indexer)
+    super(conf, "index", "index-files")
+    @indexer = indexer
+    @title = "Alphabetical Index"
+  end
+
+  def extra_metadata
+    # no point in search engines indexing our index,
+    {
+      "robots" => "noindex"
+    }
+  end
+
+
+  def generate_body_content
     html_p do
-      initials.to_a.sort.each do |initial|
+      @indexer.initials.to_a.sort.each do |initial|
 	i = initial.chr
 	html_a(i, {"href"=>"##{i}"})
 	pcdata(" ")
@@ -119,7 +128,7 @@ class IndexPage < BasicPage
     end
 
     last_initial = nil
-    index.each do |element|
+    @indexer.index.each do |element|
       initial = element.term.upcase[0]
       if initial != last_initial
 	html_h2 do
@@ -139,5 +148,29 @@ class IndexPage < BasicPage
   end
 end
 
+class QuicknavData < Page
+  def initialize(conf, indexer)
+    super("quicknav", "index-files")
+    @indexer = indexer
+    @title = "Alphabetical Index"
+  end
+
+  def generate_content
+    html_ul do
+      @indexer.index.each do |element|
+	html_li do
+	  element.link(self)
+	end
+      end
+    end
+  end
+
+  def extra_metadata
+    # no point in search engines indexing our index,
+    {
+      "robots" => "noindex"
+    }
+  end
+end
 
 # vim:softtabstop=2:shiftwidth=2

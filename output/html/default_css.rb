@@ -7,6 +7,36 @@ def stylesheet(output_dir)
 
   write_file(output_dir, name) do |out|
     out.print <<-HERE
+.quicknav > span {
+	float: right;
+}
+
+#quicknav_menu {
+	border: 1px solid black;
+	position: absolute;
+	font-size: normal;
+	padding: 0;
+	background-color: white;
+	overflow: hidden;
+}
+.quicknav label {
+	font-size: smaller;
+	font-weight: normal;
+	font-family: sans-serif;
+}
+#quicknav_input {
+	color: black;
+}
+#quicknav_menu li {
+	display: block;
+	font-size: smaller;
+	font-weight: normal;
+	font-family: sans-serif;
+	white-space: nowrap;
+	padding: 0.1em 0;
+	color: black;
+}
+
 h2 {
 	background-color: #ccccff;
 	padding-left: .2em;
@@ -161,6 +191,39 @@ def alternate_stylesheet(output_dir)
   write_file(output_dir, name) do |out|
     out.print <<-HERE
 /* apologies to the authors of NaturalDocs */
+.quicknav > span {
+	float: right;
+}
+
+#quicknav_menu {
+	border: 1px solid black;
+	position: absolute;
+	font-size: normal;
+	padding: 0;
+	background-color: white;
+	overflow: hidden;
+}
+.quicknav label {
+	font-size: smaller;
+	font-weight: normal;
+	font-family: sans-serif;
+}
+.quicknav #quicknav_input {
+	color: black;
+}
+.quicknav #quicknav_menu li {
+	display: block;
+	font-size: smaller;
+	font-weight: normal;
+	font-family: sans-serif;
+	white-space: nowrap;
+	padding: 0.1em 0;
+	color: black;
+}
+.quicknav #quicknav_menu a {
+	color: blue;
+}
+
 body {
 	font-family: sans-serif;
 }
