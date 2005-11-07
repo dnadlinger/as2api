@@ -78,7 +78,7 @@ table.summary_list {
 	margin-bottom: 1em;
 }
 table.summary_list td, table.summary_list caption {
-	border: 2px ridge grey;
+	border: 2px ridge gray;
 	padding: .2em;
 	text-align: left;
 }
