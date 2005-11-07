@@ -23,16 +23,7 @@ class XMLWriter
     chk_name(text)
     @io.print('<')
     @io.print(text)
-    unless attrs.nil?
-      attrs.each do |key, val|
-      	raise "#{key.inspect}=#{val.inspect}" if key.nil? || val.nil?
-	@io.print(' ')
-	@io.print(key)
-	@io.print('="')
-	@io.print(val.gsub(/"/, "&quot;"))
-	@io.print('"')
-      end
-    end
+    attrs(attrs)
     @io.print('>')
   end
 
@@ -40,15 +31,7 @@ class XMLWriter
     chk_name(text)
     @io.print('<')
     @io.print(text)
-    unless attrs.nil?
-      attrs.each do |key, val|
-	@io.print(' ')
-	@io.print(key)
-	@io.print('="')
-	@io.print(val.gsub(/"/, "&quot;"))
-	@io.print('"')
-      end
-    end
+    attrs(attrs)
     @io.print('/>')
   end
 
@@ -91,5 +74,18 @@ class XMLWriter
   private
   def chk_name(name)
     raise "bad character '#{$&}' in tag name #{name}" if name =~ /[<>& "']/
+  end
+
+  def attrs(attrs)
+    unless attrs.nil?
+      attrs.each do |key, val|
+      	raise "#{key.inspect}=#{val.inspect}" if key.nil? || val.nil?
+	@io.print(' ')
+	@io.print(key)
+	@io.print('="')
+	@io.print(val.gsub(/"/, "&quot;"))
+	@io.print('"')
+      end
+    end
   end
 end
