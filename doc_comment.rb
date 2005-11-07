@@ -457,6 +457,7 @@ class ConfigBuilder
   def build_type_config
     config = build_config
     add_standard_block_parsers(config)
+    config.add_block_parser("author", build_author_block_parser)
     return config
   end
 
@@ -504,6 +505,10 @@ class ConfigBuilder
     parser = SeeParser.new
     add_common_inlines(parser)
     parser
+  end
+
+  def build_author_block_parser
+    NilBlockParser.new  # ignore @author tags
   end
 end
 
