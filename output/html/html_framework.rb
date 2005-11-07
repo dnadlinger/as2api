@@ -3,6 +3,7 @@ require 'output/utils'
 
 require 'xmlwriter'
 require 'xhtmlwriter'
+require 'output/xml/xml_formatter'
 
 
 PROJECT_PAGE = "http://www.badgers-in-foil.co.uk/projects/as2api/"
@@ -416,10 +417,16 @@ class BasicPage < Page
 end
 
 
-def create_page(output_dir, page)
+def create_page(output_dir, page, format)
   dir = File.join(output_dir, page.path_name)
   write_file(dir, "#{page.base_name}.html") do |io|
-    page.generate(XMLWriter.new(io))
+    if format
+      out = XMLFormatter.new(XMLWriter.new(io))
+      out.inlines ["span", "abbr", "acronym", "cite", "code", "dfn", "em", "kbd", "q", "samp", "strong", "var", "p", "address", "h1", "h2", "h3", "h4", "h5", "h6", "a", "dt", "dd", "li", "ins", "del", "bdo", "b", "big", "i", "small", "sub", "sup", "tt", "img", "th", "td",]
+    else
+      out = XMLWriter.new(io)
+    end
+    page.generate(out)
   end
 end
 
@@ -432,7 +439,7 @@ def create_all_pages(conf, list)
       page.title_extra = conf.title
       page.encoding = conf.input_encoding
       conf.progress_listener.generate_page(index, page)
-      create_page(conf.output_dir, page)
+      create_page(conf.output_dir, page, conf.format_html)
     end
   end
 end

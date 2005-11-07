@@ -14,7 +14,8 @@ Conf = Struct.new(:output_dir,
 		  :input_encoding,
 		  :draw_diagrams,
 		  :dot_exe,
-		  :sources)
+		  :sources,
+		  :format_html)
 
 SourceFile = Struct.new(:prefix, :suffix)
 
@@ -95,7 +96,8 @@ class CLI
       [ "--encoding",         GetoptLong::REQUIRED_ARGUMENT ],
       [ "--draw-diagrams",    GetoptLong::NO_ARGUMENT ],
       [ "--dot-exe",          GetoptLong::REQUIRED_ARGUMENT ],
-      [ "--sources",          GetoptLong::NO_ARGUMENT ]
+      [ "--sources",          GetoptLong::NO_ARGUMENT ],
+      [ "--format-html",          GetoptLong::NO_ARGUMENT ]
     )
 
     conf = Conf.new
@@ -128,6 +130,8 @@ class CLI
 	  conf.dot_exe = arg
 	when "--sources"
 	  conf.sources = true
+	when "--format-html"
+	  conf.format_html = true
       end
     end
     if ARGV.empty?
