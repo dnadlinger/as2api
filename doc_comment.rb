@@ -154,7 +154,7 @@ class DocCommentParserConfig
   def handler_for(kind)
     handler = @block_handlers[kind.body]
     if handler.nil?
-      parse_error("#{kind.lineno}: Unknown block tag @#{kind.body}")
+      parse_error("#{kind.source}:#{kind.lineno}: Unknown block tag @#{kind.body}")
       handler = NIL_HANDLER
     end
     handler

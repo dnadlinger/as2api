@@ -11,11 +11,13 @@ require 'stringio'
 ActionScript::Parse::ASToken.module_eval("attr_accessor :last_comment")
 
 
-def simple_parse(input)
+def simple_parse(input, source)
   as_io = ASIO.new(input)
-  lex = DocASLexer.new(ActionScript::Parse::ASLexer.new(as_io))
-  parse = DocASParser.new(lex)
-  handler = DocASHandler.new
+  lex = ActionScript::Parse::ASLexer.new(as_io)
+  lex.source = source
+  skip = DocASLexer.new(lex)
+  parse = DocASParser.new(skip)
+  handler = DocASHandler.new(source)
   parse.handler = handler
   parse.parse_compilation_unit
   handler.defined_type
@@ -26,7 +28,7 @@ def parse_file(file)
   File.open(File.join(file.prefix, file.suffix)) do |io|
     begin
       is_utf8 = detect_bom?(io)
-      type = simple_parse(io)
+      type = simple_parse(io, file.suffix)
       type.input_file = file
       type.source_utf8 = is_utf8
       return type
@@ -100,7 +102,8 @@ end
 # Builds a model of the API being processed as ActionScript::Parse::Parser
 # recognises pieces of the ActionScript grammar
 class DocASHandler < ActionScript::Parse::ASHandler
-  def initialize
+  def initialize(source)
+    @source = source
     parse_conf_build = ConfigBuilder.new
     @method_comment_config = parse_conf_build.build_method_config
     @field_comment_config = parse_conf_build.build_field_config
@@ -253,6 +256,7 @@ class DocASHandler < ActionScript::Parse::ASHandler
     input = StringIO.new(comment_token.body)
     input.lineno = comment_token.lineno
     lexer = ActionScript::ParseDoc::DocCommentLexer.new(input)
+    lexer.source = @source
     parser = ActionScript::ParseDoc::DocCommentParser.new(lexer)
     handler = OurDocCommentHandler.new(comment_data, config, @type_resolver)
     parser.handler = handler

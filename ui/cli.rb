@@ -190,7 +190,7 @@ class CLI
     File.open(File.join(file.prefix, file.suffix)) do |io|
       begin
 	is_utf8 = detect_bom?(io)
-	type = simple_parse(io)
+	type = simple_parse(io, file.suffix)
 	type.input_file = file
 	type.source_utf8 = is_utf8
 	type_agregator.add_type(type)

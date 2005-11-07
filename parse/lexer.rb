@@ -10,6 +10,7 @@ class ASToken
   def initialize(body, lineno)
     @body = body
     @lineno = lineno
+    @source = nil
   end
   def body
     @body
@@ -20,6 +21,7 @@ class ASToken
   def to_s
     @body
   end
+  attr_accessor :source
 end
 
 
@@ -29,7 +31,10 @@ class AbstractLexer
     @io = io
     @tokens = Array.new
     @eof = false
+    @source = nil
   end
+
+  attr_accessor :source
 
   def get_next
     nextt
@@ -54,6 +59,7 @@ class AbstractLexer
   end
 
   def emit(token)
+    token.source = @source
     @tokens << token
   end
 
