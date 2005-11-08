@@ -148,29 +148,4 @@ class IndexPage < BasicPage
   end
 end
 
-class QuicknavData < Page
-  def initialize(conf, indexer)
-    super("quicknav", "index-files")
-    @indexer = indexer
-    @title = "Alphabetical Index"
-  end
-
-  def generate_content
-    html_ul do
-      @indexer.index.each do |element|
-	html_li do
-	  element.link(self)
-	end
-      end
-    end
-  end
-
-  def extra_metadata
-    # no point in search engines indexing our index,
-    {
-      "robots" => "noindex"
-    }
-  end
-end
-
 # vim:softtabstop=2:shiftwidth=2

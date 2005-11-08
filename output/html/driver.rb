@@ -93,7 +93,7 @@ class PageListBuilder
     indexer = Indexer.new
     indexer.create_index(@type_agregator)
     list << IndexPage.new(@conf, indexer)
-    list << QuicknavData.new(@conf, indexer)
+    list << QuicknavData.new(indexer)
   end
 
   def build_navigation_template

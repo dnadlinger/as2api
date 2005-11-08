@@ -42,6 +42,10 @@ class Page
 
   attr_writer :title
 
+  def base_name
+    "#{@base_name}.html"
+  end
+
   def title
     if @title_extra
       if @title
@@ -424,7 +428,7 @@ end
 
 def create_page(output_dir, page, format)
   dir = File.join(output_dir, page.path_name)
-  write_file(dir, "#{page.base_name}.html") do |io|
+  write_file(dir, page.base_name) do |io|
     if format
       out = XMLFormatter.new(XMLWriter.new(io))
       out.inlines ["span", "abbr", "acronym", "cite", "code", "dfn", "em", "kbd", "q", "samp", "strong", "var", "p", "address", "h1", "h2", "h3", "h4", "h5", "h6", "a", "dt", "dd", "li", "ins", "del", "bdo", "b", "big", "i", "small", "sub", "sup", "tt", "img", "th", "td",]

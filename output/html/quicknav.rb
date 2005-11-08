@@ -7,7 +7,22 @@ def quicknav_script(output_dir)
 
   write_file(output_dir, name) do |out|
     out.print <<-HERE
-function attachQuicknav() {
+var quicknavDoc;
+
+function loadData() {
+	// silently fails to load anything if the required DOM APIs
+	// are missing, in which case the quicknav will not appear.
+	if (document.implementation && document.implementation.createDocument) {
+		quicknavDoc = document.implementation.createDocument("", "", null);
+		quicknavDoc.onload = attachQuicknav;
+		if (quicknavDoc.load) {
+			quicknavDoc.load(adjustHref("quicknav.xml"));
+		}
+	}
+}
+
+function attachQuicknav(event) {
+	if (quicknavDoc.documentElement == null) { return; }
 	var main_nav = document.getElementById("main_nav");
 	var li = document.createElement("li");
 	var span = document.createElement("span");
@@ -30,16 +45,7 @@ function attachQuicknav() {
 	menu.id = "quicknav_menu";
 	menu.style.visibility = "hidden";
 	menu.appendChild(document.createTextNode("Loading..."));
-	
 	span.appendChild(menu);
-	// setup frame to load search data,
-	var dataFrame = document.createElement("iframe");
-	dataFrame.style.width = "0";
-	dataFrame.style.height = "0";
-	dataFrame.style.visibility = "hidden";
-	dataFrame.src = adjustHref("quicknav.html");
-	dataFrame.id = "data_frame"
-	span.appendChild(dataFrame);
 }
 
 function quicknavFocus() {
@@ -52,27 +58,34 @@ function quicknavKeyup() {
 }
 function quicknavSearch() {
  	var input = document.getElementById("quicknav_input");
-	var dataFrame = document.getElementById("data_frame");
 	var search = input.value.toLowerCase();
-	var items = dataFrame.contentDocument.getElementsByTagName("li");
+	var items = quicknavDoc.getElementsByTagName("li");
 	var menu = document.getElementById("quicknav_menu");
 	clearQuicknavMenu(menu);
 	var count = 0;
 	for (var i=0; i < items.length; i++) {
 		var item = items[i];
-		var match = item.firstChild.text;
+		var match = item.firstChild.firstChild.nodeValue;
 		if (match.substr(0, search.length).toLowerCase() == search) {
-			var clone = item.cloneNode(true);
-			var href = clone.firstChild.getAttribute("href");
-			href = adjustHref(href);
-			clone.firstChild.setAttribute("href", href);
-			menu.appendChild(clone);
+			menu.appendChild(createMenuItem(item));
 			count++;
 		}
 		if (count >= 8) {
 			break;
 		}
 	}
+}
+
+function createMenuItem(sourceNode) {
+	var li = document.createElement("li");
+	var a = document.createElement("a");
+	li.appendChild(a);
+	var anchorText = sourceNode.firstChild.firstChild.nodeValue;
+	a.appendChild(document.createTextNode(anchorText));
+	var href = sourceNode.firstChild.getAttribute("href");
+	href = adjustHref(href);
+	a.setAttribute("href", href);
+	return li;
 }
 
 function adjustHref(href) {
@@ -146,7 +159,30 @@ function getWidth(element) {
     }
 }
 
-window.onload = attachQuicknav;
+window.onload = loadData;
     HERE
+  end
+end
+
+class QuicknavData < Page
+
+  def initialize(indexer)
+    super("quicknav.xml", "index-files")
+    @indexer = indexer
+  end
+
+  def base_name
+    @base_name
+  end
+
+  def generate(xml_writer)
+    @io = xml_writer
+    html_ul do
+      @indexer.index.each do |element|
+        html_li do
+          element.link(self)
+        end
+      end
+    end
   end
 end
