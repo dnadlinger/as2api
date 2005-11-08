@@ -213,9 +213,9 @@ class Page
 
   def link_for_method(method)
     if @type == method.containing_type
-      "#method_#{method.name}"
+      "##{method.name}"
     else
-      "#{link_for_type(method.containing_type)}#method_#{method.name}"
+      "#{link_for_type(method.containing_type)}##{method.name}"
     end
   end
 
