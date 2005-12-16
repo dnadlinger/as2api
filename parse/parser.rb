@@ -302,8 +302,9 @@ class ASParser
     end
     sig = parse_function_signature
     sig.implicit_property_modifier = implicit_property_modifier
-    @handler.member_function(name, sig)
-    eat_block
+    eat_block do
+      @handler.member_function(name, sig)
+    end
   end
 
   def parse_interface_function
@@ -369,6 +370,7 @@ class ASParser
 
   def eat_block
     open = expect(LBraceToken)
+    yield if block_given?
     until lookahead?(RBraceToken)
       if lookahead?(LBraceToken)
         eat_block
