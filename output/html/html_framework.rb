@@ -427,7 +427,11 @@ end
 
 
 def create_page(output_dir, page, format)
-  dir = File.join(output_dir, page.path_name)
+  if page.path_name
+    dir = File.join(output_dir, page.path_name)
+  else
+    dir = output_dir
+  end
   write_file(dir, page.base_name) do |io|
     if format
       out = XMLFormatter.new(XMLWriter.new(io))
