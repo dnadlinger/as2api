@@ -446,6 +446,7 @@ class SeeParser < BlockParser
 	  @data.inlines[0] = link
 	end
     end
+    @data
   end
 end
 
