@@ -175,6 +175,10 @@ class Tag
   end
 
   attr_accessor :lineno
+
+  def ==(o)
+    super(o) && lineno == o.lineno
+  end
 end
 
 class LinkTag < Tag
@@ -186,6 +190,10 @@ class LinkTag < Tag
   end
 
   attr_accessor :target, :member, :text
+
+  def ==(o)
+    super(o) && member==o.member && text==o.text && target==o.target
+  end
 end
 
 class CodeTag < Tag
@@ -222,11 +230,19 @@ class BlockTag
   def inlines
     @inlines
   end
+
+  def ==(o)
+    o.respond_to?(:inlines) && inlines==o.inlines
+  end
 end
 
 
 class ParamBlockTag < BlockTag
   attr_accessor :param_name
+
+  def ==(o)
+    super(o) && param_name==o.param_name
+  end
 end
 
 
