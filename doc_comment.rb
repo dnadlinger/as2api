@@ -177,7 +177,7 @@ class Tag
   attr_accessor :lineno
 
   def ==(o)
-    super(o) && lineno == o.lineno
+    lineno == o.lineno
   end
 end
 
