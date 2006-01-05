@@ -33,7 +33,11 @@ class TC_DocComment < Test::Unit::TestCase
     comment_data = parse_it(text)
     assert(comment_data.has_seealso?, "should have @see tag")
     expected = SeeBlockTag.new
-    expected.add_inline("foo bar\nblat")
+    type_proxy = TypeProxy.new(nil, "foo")
+    type_proxy.lineno=2
+    link = LinkTag.new(2, type_proxy, nil, "bar\n blat\n")
+    link.lineno=2
+    expected.add_inline(link)
     assert_equal(expected, comment_data[1])
     #assert(doc.seealso_a.member?(expected), "@see didn't have #{expected.inspect}")
   end
