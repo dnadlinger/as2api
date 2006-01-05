@@ -12,6 +12,7 @@ class TC_DocComment < Test::Unit::TestCase
   def test_params()
     text = "*\n * @param foo bar\n blat ping pong\n *"
     comment_data = parse_it(text)
+    assert(comment_data.has_params?, "should have @param tag")
     expected = ParamBlockTag.new();
     expected.param_name = "foo"
     expected.add_inline("bar\n blat ping pong\n")
@@ -21,6 +22,7 @@ class TC_DocComment < Test::Unit::TestCase
   def test_return()
     text = "*\n * @return foo bar\n blat\n *"
     comment_data = parse_it(text)
+    assert(comment_data.has_return?, "should have @return tag")
     expected = ReturnBlockTag.new();
     expected.add_inline(" foo bar\n blat\n")
     assert_equal(expected, comment_data[1])
@@ -29,9 +31,7 @@ class TC_DocComment < Test::Unit::TestCase
   def test_see()
     text = "*\n * @see foo bar\n blat\n *"
     comment_data = parse_it(text)
-    expected = BlockTag.new
-    expected.add_inline("\n ")
-    assert_equal(expected, comment_data[0])
+    assert(comment_data.has_seealso?, "should have @see tag")
     expected = SeeBlockTag.new
     expected.add_inline("foo bar\nblat")
     assert_equal(expected, comment_data[1])
@@ -41,6 +41,7 @@ class TC_DocComment < Test::Unit::TestCase
   def test_throws()
     text = "*\n * @throws foo.Bbar blat\nping\n *"
     comment_data = parse_it(text)
+    assert(comment_data.has_exceptions?, "should have @throws tag")
     expected = ThrowsBlockTag.new();
     expected.add_inline("blat\nping")
     assert(expected, comment_data[1])
