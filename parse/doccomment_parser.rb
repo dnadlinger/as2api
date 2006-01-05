@@ -17,6 +17,7 @@ class DocCommentParser
 
   # this is the main parser entry-point
   def parse_comment
+    return unless @lex.peek_next  # TODO: can be removed once we have EOFToken
     @handler.comment_start(@lex.peek_next.lineno)
     while @lex.peek_next
       parse_line
