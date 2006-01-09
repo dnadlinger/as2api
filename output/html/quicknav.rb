@@ -7,7 +7,7 @@ def quicknav_script(output_dir)
 
   write_file(output_dir, name) do |out|
     out.print <<-HERE
-var quicknavDoc;
+var quicknavDoc = null;
 
 function loadData() {
 	// silently fails to load anything if the required DOM APIs
@@ -18,15 +18,45 @@ function loadData() {
 		if (quicknavDoc.load) {
 			quicknavDoc.load(adjustHref("quicknav.xml"));
 		}
+	} else if (ActiveXObject) {
+		var xmlhttp = null;
+		try {
+			xmlhttp = new ActiveXObject('Msxml2.XMLHTTP');
+		} catch (e) {
+			try {
+				xmlhttp = new ActiveXObject('Microsoft.XMLHTTP');
+			} catch (e) {
+				return;  // give up
+			}
+		}
+		xmlhttp.onreadystatechange = function() {
+			if (quicknavDoc != null) {
+				return;
+			}
+			if (xmlhttp.readyState==4) {
+				if (xmlhttp.status==200) {
+					quicknavDoc = xmlhttp.responseXML;
+					attachQuicknav();
+				} else {
+					alert("quicknav: "+statusText);
+				}
+			} 
+		};
+		xmlhttp.open("GET", adjustHref("quicknav.xml"));
+		xmlhttp.send("");
 	}
 }
 
-function attachQuicknav(event) {
-	if (quicknavDoc.documentElement == null) { return; }
+function attachQuicknav() {
+	if (quicknavDoc.documentElement == null) {
+		alert("quicknav: no doc");
+		return;
+	}
 	var main_nav = document.getElementById("main_nav");
 	var li = document.createElement("li");
-	var span = document.createElement("span");
 	li.className = "quicknav";
+	var span = document.createElement("span");
+	span.className = "ui";
 	main_nav.insertBefore(li, main_nav.firstChild);
 	li.appendChild(span);
 	// setup quicknav input box,
@@ -36,10 +66,10 @@ function attachQuicknav(event) {
 	span.appendChild(label);
 	var input = document.createElement("input");
 	input.id = "quicknav_input"
-	input.setAttribute("autocomplete", "off");
-	input.setAttribute("onfocus", "quicknavFocus();");
-	input.setAttribute("onkeyup", "quicknavKeyup();");
-	input.setAttribute("onblur", "quicknavBlur();");
+	input.autocomplete = "off";
+	input.onfocus = quicknavFocus;
+	input.onkeyup = quicknavKeyup;
+	input.onblur = quicknavBlur;
 	span.appendChild(input);
 	var menu = document.createElement("ul");
 	menu.id = "quicknav_menu";
@@ -80,14 +110,21 @@ function createMenuItem(sourceNode) {
 	var li = document.createElement("li");
 	var a = document.createElement("a");
 	li.appendChild(a);
-	var anchorText = sourceNode.firstChild.firstChild.nodeValue;
+	var sourceLink = sourceNode.firstChild;
+	var anchorText = sourceLink.firstChild.nodeValue;
 	a.appendChild(document.createTextNode(anchorText));
-	var href = sourceNode.firstChild.getAttribute("href");
+	var href = sourceLink.getAttribute("href");
 	href = adjustHref(href);
 	a.setAttribute("href", href);
+	a.setAttribute("title", sourceLink.getAttribute("title"));
 	return li;
 }
 
+/**
+ * Adjusts the given path, which is relative to the 'base document directory',
+ * returning a path relative to the current page instead, and therefore useful
+ * as the deftination of a hyperlink within this page.
+ */
 function adjustHref(href) {
 	return document.quicknavBasePath + "/" + href;
 }

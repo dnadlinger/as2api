@@ -7,11 +7,12 @@ def stylesheet(output_dir)
 
   write_file(output_dir, name) do |out|
     out.print <<-HERE
-.quicknav > span {
+.quicknav span.ui {
 	float: right;
 }
 
 #quicknav_menu {
+	list-style-type: none;
 	border: 1px solid black;
 	position: absolute;
 	font-size: normal;
@@ -34,6 +35,7 @@ def stylesheet(output_dir)
 	font-family: sans-serif;
 	white-space: nowrap;
 	padding: 0.1em 0;
+	margin: 0;
 	color: black;
 }
 
@@ -92,8 +94,9 @@ body {
 	font-weight: bolder;
 	display: inline;
 }
-.main_nav li * {
+.main_nav li .button {
 	padding: 0 7px;
+	height: 1em;  /* hack to get padding working in IE */
 }
 .nav_current {
 	background-color: #00008B;
@@ -154,10 +157,6 @@ table.exceptions td, table.arguments td {
 	text-align: center;
 }
 
-.type_hierachy > ul {
-	padding-left: 0;
-	margin-left: 0;
-}
 .type_hierachy li {
 	list-style: none;
 }
@@ -191,11 +190,12 @@ def alternate_stylesheet(output_dir)
   write_file(output_dir, name) do |out|
     out.print <<-HERE
 /* apologies to the authors of NaturalDocs */
-.quicknav > span {
+.quicknav span.ui {
 	float: right;
 }
 
 #quicknav_menu {
+	list-style-type: none;
 	border: 1px solid black;
 	position: absolute;
 	font-size: normal;
@@ -218,6 +218,7 @@ def alternate_stylesheet(output_dir)
 	font-family: sans-serif;
 	white-space: nowrap;
 	padding: 0.1em 0;
+	margin: 0;
 	color: black;
 }
 .quicknav #quicknav_menu a {
@@ -328,9 +329,10 @@ body {
 	font-weight: bolder;
 	display: inline;
 }
-.main_nav li * {
+.main_nav li .button {
 	padding: 4px;
 	color: #FFFFFF;
+	height: 1em;  /* hack to get padding working in IE */
 }
 .nav_current {
 	background-color: #00008B;
@@ -381,10 +383,6 @@ table.exceptions td, table.arguments td {
 	text-align: center;
 }
 
-.type_hierachy > ul {
-	padding-left: 0;
-	margin-left: 0;
-}
 .type_hierachy li {
 	list-style: none;
 }

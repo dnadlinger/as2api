@@ -405,17 +405,17 @@ class BasicPage < Page
 	link = nav.build_for_page(self)
 	html_li do
 	  if link.is_current
-	    html_span(link.content, {"class"=>"nav_current"})
+	    html_span(link.content, {"class"=>"button nav_current"})
 	  else
 	    if link.href
-	      attrs = {"href"=>link.href}
+	      attrs = {"href"=>link.href, "class"=>"button"}
 	      attrs["title"] = link.title if link.title
 	      html_a(link.content, attrs)
 	    else
 	      if link.title
-		html_span(link.content, {"title"=>link.title})
+		html_span(link.content, {"title"=>link.title, "class"=>"button"})
 	      else
-		html_span(link.content)
+		html_span(link.content, {"class"=>"button"})
 	      end
 	    end
 	  end
