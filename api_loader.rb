@@ -341,6 +341,10 @@ class TypeProxy
   def qualified?
     @name =~ /\./
   end
+
+  def ==(o)
+    name==o.name && containing_type==o.containing_type && resolved_type == o.resolved_type && lineno==o.lineno
+  end
 end
 
 
