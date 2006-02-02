@@ -1,8 +1,10 @@
 
 xsltproc=xsltproc
-docbook_home=/usr/share/sgml/docbook/stylesheet/xsl/nwalsh
+#docbook_home=/usr/share/sgml/docbook/stylesheet/xsl/nwalsh
+docbook_home=/home/dave/incoming/docbook-xsl-1.69.1
 docbook_fo_stylesheet=${docbook_home}/fo/docbook.xsl
 docbook_man_stylesheet=${docbook_home}/manpages/docbook.xsl
+docbook_html_stylesheet=${docbook_home}/html/docbook.xsl
 java_home=~/opt/j2sdk1.4.2_05
 fop=~/incoming/fop-0.20.5/fop.sh
 as2api=ruby -w as2api.rb
@@ -10,13 +12,17 @@ ruby_mswin32=/cygdrive/c/ruby/bin/ruby
 rubyscript2exe=${ruby_mswin32} -w ../rubyscript2exe.rb
 stuff=~/incoming/stuffit520.611linux-i386/bin/stuff
 
-sources = documenter.rb doc_comment.rb html_output.rb \
+sources = documenter.rb doc_comment.rb output/utils.rb \
+	  output/html/core_pages.rb output/html/default_frameset.rb \
+	  output/html/driver.rb output/html/index.rb \
+	  output/html/default_css.rb output/html/diff.rb \
+	  output/html/html_framework.rb output/html/sources.rb \
           xmlwriter.rb xhtmlwriter.rb \
           parse/lexer.rb parse/parser.rb parse/as_io.rb \
 	  api_loader.rb api_model.rb \
           as2api.rb ui/cli.rb
 doc_pdf=as2api-documentation.pdf
-dist_files = ${sources} ${doc_pdf} as2api.1
+dist_files = ${sources} ${doc_pdf} as2api.1 COPYING
 mx_classes=examples/flash_mx_2004_7.2/Classes
 
 version = 0.4pre
@@ -98,6 +104,11 @@ ${doc_pdf}: as2api-documentation.fo
 
 as2api.1: as2api-documentation.xml
 	${xsltproc} ${docbook_man_stylesheet} as2api-documentation.xml
+
+as2api-documentation.html: as2api-documentation.xml
+	${xsltproc} --output as2api-documentation.html \
+	            --stringparam html.stylesheet ../www/bif.css \
+	            bif_docbook_html.xsl as2api-documentation.xml
 
 # noddy check that running with --help option doesn't complain of missing
 # required files,
