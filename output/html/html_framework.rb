@@ -38,9 +38,9 @@ class Page
     @io = nil  # to be set during the lifetime of generate() call
   end
 
-  attr_accessor :path_name, :base_name, :encoding, :doctype_id, :title_extra
+  attr_accessor :path_name, :encoding, :doctype_id, :title_extra
 
-  attr_writer :title
+  attr_writer :title, :base_name
 
   def base_name
     "#{@base_name}.html"
