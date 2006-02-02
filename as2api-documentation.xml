@@ -1,8 +1,13 @@
 <?xml version="1.0"?>
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
-                         "docbook/dtd/4.3/docbookx.dtd">
+                         "docbook/dtd/4.3/docbookx.dtd"
+[
+  <!ATTLIST chapter id ID #IMPLIED>
+  <!ATTLIST section id ID #IMPLIED>
+  <!ATTLIST titleabbrev id ID #IMPLIED>
+]>
 
-<?xml-stylesheet href="/home/dave/projects/docbook-css/driver.css"
+<?xml-stylesheet href="/home/dave/projects/docbook/css/xml/docbook/driver.css"
                  type="text/css"?>
 
 
