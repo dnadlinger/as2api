@@ -213,7 +213,7 @@
       </changelog>
     </release>
 
-    <release id="0.3" date="2005-??-??">
+    <release id="0.3" date="2005-06-28">
       <downloads>
 	<dl file="as2api-0.3.tar.gz">Plain Ruby scripts</dl>
 	<dl file="as2api-allinone-w32-0.3.zip">Windows .exe</dl>
@@ -251,6 +251,46 @@
 	<change>HTML in doc-comments will now stay as HTML in output, without
 	<literal>&lt;</literal> being encoded as <literal>&amp;lt;</literal>,
 	etc.</change>
+      </changelog>
+    </release>
+
+    <release id="0.4" date="2006-02-??">
+      <downloads>
+	<dl file="as2api-0.4.tar.gz">Plain Ruby scripts</dl>
+      </downloads>
+
+      <changelog>
+	<change>Added simple 'Quicknav' DHTML search box</change>
+	<change>Added tooltips (XHTML titles) to most links</change>
+	<change>Document instances where a method is overriding a method from
+	a superclass</change>
+	<change>For undocumented methods, try copying documentation from the
+	overridden/specifying method in the superclass/interface</change>
+	<change>Type summary descriptions now appear on package index
+	pages</change>
+	<change>Optimisations, for a modest increase in parsing speed</change>
+	<change>Additional <literal>--sources</literal> option cases
+	syntax-highlighted source code to be included with the
+	documentation</change>
+	<change>Small improvements to error messages</change>
+	<change>Fix bugs with code specified in relative paths (those starting
+	with <literal>'..'</literal>) probably being ignored</change>
+	<change>Rewrote doc-comment parsing <emphasis>again</emphasis></change>
+	<change>Syntax highlighting in <literal>{@code}</literal> tags</change>
+	<change>Now tries to avoid generating empty sections for Fields /
+	Methods</change>
+	<change>Lots of XHTML fixage</change>
+	<change>Improved documentation</change>
+	<change>New syntax for documenting variable-length argument
+	lists</change>
+	<change>Support <literal>@exception</literal> as a synonym for
+	<literal>@throws</literal></change>
+	<change>Allow for multiple fields in a class, defined in a single
+	<literal>var</literal> statement</change>
+	<change>Much refactoring of as2api internal implementation
+	details</change>
+	<change>Standard stylesheet looks closer to JavaDoc (eeek!)</change>
+	<change>Super-sekret stuff!</change>
       </changelog>
     </release>
   </releases>
