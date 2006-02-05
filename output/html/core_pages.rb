@@ -690,7 +690,7 @@ class PackageIndexPage < BasicPage
 	io.puts("strict digraph class_diagram {")
 	  io.puts("  rankdir=LR;")
 	   asclasses.each do |astype|
-	    io.puts("  #{astype.unqualified_name}[")
+	    io.puts("  Type#{astype.unqualified_name}[")
 	    io.puts("    label=\"#{astype.unqualified_name}\",")
 	    io.puts("    URL=\"#{astype.unqualified_name}.html\",")
 	    io.puts("    tooltip=\"#{astype.qualified_name}\",")
@@ -702,7 +702,7 @@ class PackageIndexPage < BasicPage
 	    parent = astype.extends
 	    if !parent.nil? && parent.resolved?
 	      if parent.resolved_type.package_name == @package.name
-		io.puts("  #{parent.resolved_type.unqualified_name} -> #{astype.unqualified_name};")
+		io.puts("  Type#{parent.resolved_type.unqualified_name} -> Type#{astype.unqualified_name};")
 	      end
 	    end
 	  end
