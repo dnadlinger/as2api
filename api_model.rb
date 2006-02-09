@@ -1,3 +1,11 @@
+# 
+# Part of as2api - http://www.badgers-in-foil.co.uk/projects/as2api/
+#
+# Copyright (c) 2006 David Holroyd, and contributors.
+#
+# See the file 'COPYING' for terms of use of this code.
+#
+
 
 # These classes represent the data-model upon which as2api operates.  The
 # class names are all prefixed with 'AS' becase many would otherwise clash
