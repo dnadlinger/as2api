@@ -48,127 +48,27 @@
     <title>Examples</title>
     <variablelist>
       <varlistentry>
-	<term><ulink url="examples/enflash-0.3/frameset.html">com.asusual.*</ulink></term>
-	<listitem><para>Documentation for the <ulink url="http://www.asual.com/enflash/">EnFlash framework, version 0.3</ulink>.</para></listitem>
+	<term><ulink url="examples/aswing-alpha2/frameset.html">org.aswing.*</ulink></term>
+	<listitem><para>Documentation for the <ulink url="http://www.aswing.org/">AsWing framework, version alpha-2</ulink>.</para></listitem>
       </varlistentry>
 
       <varlistentry>
 	<term><ulink url="examples/as2lib-0.9/frameset.html">com.as2lib.*</ulink></term>
-	<listitem><para>Documentation for <ulink url="http://www.as2lib.org/">As2lib framework, version 0.9</ulink>.</para></listitem>
+	<listitem><para>Documentation for <ulink url="http://www.as2lib.org/">As2lib framework, version 0.9.3</ulink>.</para></listitem>
       </varlistentry>
 
       <varlistentry>
-	<term><ulink url="examples/oregano_1.2.0beta3/frameset.html">org.omus.*</ulink></term>
-	<listitem><para>Documentation for <ulink url="http://www.v-i-a.net/blog/archives/000024.html">Oregano Multiuser Server client, version 1.2beta3</ulink>.</para></listitem>
+	<term><ulink url="examples/oregano_1.2.0-beta5/frameset.html">org.omus.*</ulink></term>
+	<listitem><para>Documentation for <ulink url="http://www.v-i-a.net/blog/archives/000024.html">Oregano Multiuser Server client, version 1.2.0-beta5</ulink>.</para></listitem>
       </varlistentry>
     </variablelist>
   </section>
 
   <section>
-    <title>Usage</title>
+    <title>Documentation</title>
 
-    <section>
-      <title>Windows .exe Version</title>
-
-      <para>In the zip archive, you'll find the <filename>as2api</filename>
-      executable.  (This is a commandline application -- you can't run
-      it simply by double-clicking the icon.)  Run this, from the
-      directory that contains it, by entering:</para>
-
-      <screen>as2api --classpath <replaceable>source/dir</replaceable> <replaceable>com.example.*</replaceable></screen>
-
-      <para>See the section bellow describing the available command line
-      options.</para>
-    </section>
-
-    <section>
-      <title>Plain Ruby Scripts</title>
-
-      <para>To make use of the plain script files, you must have a copy of
-      <ulink url="http://www.ruby-lang.org/">Ruby</ulink> installed.  The
-      main script is <filename>as2api.rb</filename>.  Run this, from the
-      directory that contains it, by entering:</para>
-
-      <screen>ruby as2api.rb --classpath <replaceable>source/dir</replaceable> <replaceable>com.example.*</replaceable></screen>
-
-      <para>The script will create a directory called
-      <filename>apidoc</filename> within the current directory.</para>
-    </section>
-
-    <section>
-      <title>Command Line Options</title>
-
-      <para>The only mandatory command line option is a specification of which
-      packages are to be documented.  There are two ways to specify
-      packages:</para>
-
-      <variablelist>
-      	<varlistentry>
-	  <term>Exact package name</term>
-	  <listitem><para>Specifies that exactly those classes in the named
-	  package should be documented.  'Sub-packages' will be
-	  ignored.  e.g. <userinput>com.example.pkg</userinput></para></listitem>
-      	</varlistentry>
-      	<varlistentry>
-	  <term>Package name prefix</term>
-	  <listitem><para>Specifies the prefix on the names of packages to
-	  be documented.  e.g. <userinput>com.example.pkg.*</userinput></para></listitem>
-      	</varlistentry>
-      </variablelist>
-
-      <para>The following optional parameters are supported:</para>
-
-      <variablelist>
-      	<varlistentry>
-	  <term><option>--classpath <replaceable>path</replaceable></option></term>
-	  <listitem><para>A list of paths (delimited by ';' on windows and
-	  ':' on other platforms).  Each path will be searched for packages
-	  matching the given 'package spec' list.  If no classpath is
-	  specified, only the current directory is searched.</para></listitem>
-      	</varlistentry>
-
-      	<varlistentry>
-	  <term><option>--output-dir <replaceable>path</replaceable></option></term>
-	  <listitem><para>The directory into which generated HTML files will be
-	  placed (the directory will be created, if required.  If no output
-	  directory is specified the default <filename>apidocs</filename> is
-	  used.</para></listitem>
-      	</varlistentry>
-
-      	<varlistentry>
-	  <term><option>--progress</option></term>
-	  <listitem><para>Print feedback showing how far tasks have
-	  progressed.</para></listitem>
-      	</varlistentry>
-
-      	<varlistentry>
-	  <term><option>--title <replaceable>text</replaceable></option></term>
-	  <listitem><para>Put the given text into the titles of generated HTML
-	  pages.</para></listitem>
-      	</varlistentry>
-
-      	<varlistentry>
-	  <term><option>--encoding <replaceable>name</replaceable></option></term>
-	  <listitem><para>The encoding of the source files to be
-	  parsed.</para></listitem>
-      	</varlistentry>
-
-      	<varlistentry>
-	  <term><option>--draw-diagrams</option></term>
-	  <listitem><para>Causes class/interface inheritance diagrams to be
-	  generated for each package (requires that you have
-	  <ulink url="http://www.graphviz.org/">Graphviz<alt>Graph Visualization Software</alt></ulink>).</para>
-	  </listitem>
-      	</varlistentry>
-
-      	<varlistentry>
-	  <term><option>--dot-exe <replaceable>filename</replaceable></option></term>
-	  <listitem><para>Specify the location of the <command>dot</command>
-	  tool from Graphviz, if it is not available via the standard
-	  PATH.</para></listitem>
-      	</varlistentry>
-      </variablelist>
-    </section>
+    <para>Read the <ulink url="as2api-documentation.html">as2api documentation
+    online</ulink> (a PDF version is included in the downloads below).</para>
   </section>
 
   <releases freshmeatname="as2api">
@@ -254,9 +154,11 @@
       </changelog>
     </release>
 
-    <release id="0.4" date="2006-02-??">
+    <release id="0.4" date="2006-02-05">
       <downloads>
 	<dl file="as2api-0.4.tar.gz">Plain Ruby scripts</dl>
+	<dl file="as2api-allinone-w32-0.4.zip">Windows .exe</dl>
+	<dl file="as2api-allinone-osx-0.4.sit">OSX program</dl>
       </downloads>
 
       <changelog>
