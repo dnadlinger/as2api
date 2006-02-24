@@ -14,18 +14,20 @@ stuff=~/incoming/stuffit520.611linux-i386/bin/stuff
 
 sources = documenter.rb doc_comment.rb output/utils.rb \
 	  output/html/core_pages.rb output/html/default_frameset.rb \
-	  output/html/driver.rb output/html/index.rb \
+	  output/html/driver.rb output/html/index.rb output/html/quicknav.rb \
 	  output/html/default_css.rb output/html/diff.rb \
-	  output/html/html_framework.rb output/html/sources.rb \
+	  output/html/html_framework.rb \
+	  output/html/sources.rb output/xml/xml_formatter.rb output/utils.rb \
           xmlwriter.rb xhtmlwriter.rb \
-          parse/lexer.rb parse/parser.rb parse/as_io.rb \
+          parse/lexer.rb parse/parser.rb parse/as_io.rb parse/aslexer.rb \
+	  parse/doccomment_lexer.rb parse/doccomment_parser.rb \
 	  api_loader.rb api_model.rb \
           as2api.rb ui/cli.rb
 doc_pdf=as2api-documentation.pdf
 dist_files = ${sources} ${doc_pdf} as2api.1 COPYING
 mx_classes=examples/flash_mx_2004_7.2/Classes
 
-version = 0.4pre
+version = 0.4
 
 dist_dir = as2api-${version}
 tgz_name = ${dist_dir}.tar.gz
@@ -38,7 +40,8 @@ dist: tgz zip sit
 
 web-dist: tgz zip sit
 	mkdir -p projects/as2api/releases
-	cp ${tgz_name} ${zip_name} ${sit_name} projects/as2api/releases
+	#cp ${tgz_name} ${zip_name} ${sit_name} projects/as2api/releases
+	cp ${tgz_name} projects/as2api/releases
 	mkdir -p projects/as2api/examples
 	${as2api} --classpath ${mx_classes}:examples/as2lib_0.9/src \
 	          --output projects/as2api/examples/as2lib-0.9 \
@@ -61,7 +64,7 @@ web-dist: tgz zip sit
 
 tgz: docs
 	mkdir -p ${dist_dir}
-	cp --parents ${dist_files} ${dist_dir}
+	cp --parents ${dist_files} as2api-documentation.xml ${dist_dir}
 	tar czvf ${tgz_name} ${dist_dir}
 	rm -r ${dist_dir}
 
@@ -76,9 +79,10 @@ zip: docs
 
 sit: ${sit_name}
 
-${sit_name}: docs as2api_darwin
+${sit_name}: docs as2api-0.4_darwin
 	mkdir -p ${osx_dist_dir}
-	cp as2api_darwin ${doc_pdf} as2api.1 ${osx_dist_dir}
+	cp as2api-0.4_darwin ${osx_dist_dir}/as2api
+	cp ${doc_pdf} as2api.1 ${osx_dist_dir}
 	${stuff} --name=${sit_name} ${osx_dist_dir}
 
 test:
@@ -120,3 +124,21 @@ dist-check: tgz
 	cd ${dist_dir} && \
 	ruby -w as2api.rb --help > /dev/null
 	rm -r dist-check-tmp
+
+translations: data/locale/en/LC_MESSAGES/as2api.mo data/locale/i_piglatin/LC_MESSAGES/as2api.mo
+	
+
+po/as2api.pot:
+	rgettext `find -name "*.rb"` -o $@
+
+po/en/as2api.po: po/as2api.pot
+	mkdir -p po/en
+	msgen $< -o $@
+
+data/locale/en/LC_MESSAGES/as2api.mo: po/en/as2api.po
+	mkdir -p data/locale/en/LC_MESSAGES
+	rmsgfmt $< -o $@
+
+data/locale/i_piglatin/LC_MESSAGES/as2api.mo: po/i_piglatin/as2api.po
+	mkdir -p data/locale/i_piglatin/LC_MESSAGES
+	rmsgfmt $< -o $@
