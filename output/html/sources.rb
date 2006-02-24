@@ -22,7 +22,7 @@ class SourceNavLinkBuilder < NavLinkBuilder
 
   def title_on(page)
     if page.astype
-      "Source code of #{page.astype.qualified_name}"
+      _("Source code of %s") % page.astype.qualified_name
     else
       nil
     end
@@ -198,7 +198,7 @@ class SourcePage < BasicPage
 
 
   def link_top
-    yield "Overview", base_path("overview-summary.html")
+    yield _("Overview"), base_path("overview-summary.html")
   end
 end
 

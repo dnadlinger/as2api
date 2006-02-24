@@ -36,31 +36,31 @@ end
 class DiffOverviewPage < BasicDiffPage
   def initialize(conf, api_changes)
     super(conf, "change-summary", "changes")
-    @title = "API Change Overview"
+    @title = _("API Change Overview")
     @api_changes = api_changes
   end
 
   def generate_body_content
-    html_h1("API Change Overview")
+    html_h1(_("API Change Overview"))
 
     unless @api_changes
-      html_p("No changes")
+      html_p(_("No changes"))
       return
     end
 
-    summary_table(@api_changes.added_packages, "Added Packages") do |as_package|
+    summary_table(@api_changes.added_packages, _("Added Packages")) do |as_package|
       name = package_display_name_for(as_package)
       href = File.join("..", package_link_for(as_package, "package-summary.html"))
       html_a(name, {"href"=>href})
     end
 
-    summary_table(@api_changes.modified_packages, "Modified Packages") do |as_package|
+    summary_table(@api_changes.modified_packages, _("Modified Packages")) do |as_package|
       name = package_display_name_for(as_package)
       href = package_link_for(as_package, "change-summary.html")
       html_a(name, {"href", href})
     end
 
-    summary_table(@api_changes.removed_packages, "Removed Packages") do |as_package|
+    summary_table(@api_changes.removed_packages, _("Removed Packages")) do |as_package|
       name = package_display_name_for(as_package)
       pcdata(name)
     end
@@ -78,25 +78,25 @@ class PackageDiffIndexPage < BasicDiffPage
   def initialize(conf, package_changes)
     dir = File.join("changes", package_dir_for(package_changes))
     super(conf, "change-summary", dir)
-    @title = "Package #{package_display_name_for(package_changes)} API Change Overview"
+    @title = _("Package %s API Change Overview") % package_display_name_for(package_changes)
     @package_changes = package_changes
   end
 
   def generate_body_content
     html_h1(@title)
 
-    summary_table(@package_changes.added_types, "Added Types") do |as_type|
+    summary_table(@package_changes.added_types, _("Added Types")) do |as_type|
       name = as_type.unqualified_name
       pcdata(name)
     end
 
-    summary_table(@package_changes.modified_types, "Modified Types") do |as_type|
+    summary_table(@package_changes.modified_types, _("Modified Types")) do |as_type|
       name = as_type.new_type.unqualified_name
       href = "#{name}.html"
       html_a(name, {"href", href})
     end
 
-    summary_table(@package_changes.removed_types, "Removed Types") do |as_type|
+    summary_table(@package_changes.removed_types, _("Removed Types")) do |as_type|
       name = as_type.unqualified_name
       pcdata(name)
     end
@@ -114,59 +114,59 @@ class TypeDiffPage < BasicDiffPage
   def initialize(conf, type_changes)
     dir = File.join("changes", type_changes.new_type.package_name.gsub(/\./, "/"))
     super(conf, type_changes.new_type.unqualified_name, dir)
-    @title = "#{type_changes.new_type.unqualified_name} API Change Overview"
+    @title = _("%d API Change Overview") % type_changes.new_type.unqualified_name
     @type_changes = type_changes
   end
 
   def generate_body_content
     html_h1(@title)
 
-    summary_table(@type_changes.added_fields, "Added Fields") do |as_field|
+    summary_table(@type_changes.added_fields, _("Added Fields")) do |as_field|
       pcdata(as_field.name)
     end
 
-    summary_table_tr(@type_changes.modified_fields, "Modified Fields") do |field_changes|
+    summary_table_tr(@type_changes.modified_fields, _("Modified Fields")) do |field_changes|
       html_td do
 	pcdata(field_changes.name)
       end
       html_td do
 	generate_visibility_change(field_changes)
 	generate_static_change(field_changes)
-	generate_type_change("Field", field_changes)
+	generate_type_change(_("Field"), field_changes)
 	generate_readwrite_change(field_changes)
       end
     end
 
-    summary_table(@type_changes.removed_fields, "Removed Fields") do |as_field|
+    summary_table(@type_changes.removed_fields, _("Removed Fields")) do |as_field|
       pcdata(as_field.name)
     end
 
-    summary_table(@type_changes.added_methods, "Added Methods") do |as_method|
+    summary_table(@type_changes.added_methods, _("Added Methods")) do |as_method|
       pcdata(as_method.name)
     end
 
-    summary_table_tr(@type_changes.modified_methods, "Modified Methods") do |method_changes|
+    summary_table_tr(@type_changes.modified_methods, _("Modified Methods")) do |method_changes|
       html_td do
 	pcdata(method_changes.name)
       end
       html_td do
 	generate_visibility_change(method_changes)
 	generate_static_change(method_changes)
-	generate_type_change("Return", method_changes)
+	generate_type_change(_("Return"), method_changes)
 	generate_args_change(method_changes)
       end
     end
 
-    summary_table(@type_changes.removed_methods, "Removed Methods") do |as_method|
+    summary_table(@type_changes.removed_methods, _("Removed Methods")) do |as_method|
       pcdata(as_method.name)
     end
   end
 
   def generate_visibility_change(field_changes)
     if field_changes.visibility_change
-      pcdata("Visibility changed from ")
+      pcdata(_("Visibility changed from "))
       html_code(field_changes.visibility_change.old_vis)
-      pcdata(" to ")
+      pcdata(_(" to "))
       html_code(field_changes.visibility_change.new_vis)
       pcdata(". ")
     end
@@ -175,10 +175,11 @@ class TypeDiffPage < BasicDiffPage
   def generate_static_change(field_changes)
     if field_changes.static_change
       if field_changes.static_change.new_flag
-	pcdata("Is now ")
+	pcdata(_("Is now"))
       else
-	pcdata("Is no longer ")
+	pcdata(_("Is no longer"))
       end
+      pcdata(" ")
       html_code("static")
       pcdata(". ")
     end
@@ -188,16 +189,16 @@ class TypeDiffPage < BasicDiffPage
       if name
 	html_code(name)
       else
-	pcdata("unspecified")
+	pcdata(_("unspecified"))
       end
   end
 
   def generate_type_change(kind, field_changes)
     if field_changes.type_change
       pcdata(kind)
-      pcdata(" type changed from ")
+      pcdata(_(" type changed from "))
       generate_type_name(field_changes.type_change.old_type_name)
-      pcdata(" to ")
+      pcdata(_(" to "))
       generate_type_name(field_changes.type_change.new_type_name)
       pcdata(". ")
     end
@@ -208,16 +209,16 @@ class TypeDiffPage < BasicDiffPage
     if change
       if change.old_read != change.new_read
 	if change.new_read
-	  pcdata("Is now readable")
+	  pcdata(_("Is now readable"))
 	else
-	  pcdata("Is no longer readable")
+	  pcdata(_("Is no longer readable"))
 	end
       end
       if change.old_write != change.new_write
 	if change.new_write
-	  pcdata("Is now writeable")
+	  pcdata(_("Is now writeable"))
 	else
-	  pcdata("Is no longer writeable")
+	  pcdata(_("Is no longer writeable"))
 	end
       end
     end
@@ -226,9 +227,9 @@ class TypeDiffPage < BasicDiffPage
   def generate_args_change(method_changes)
     changes = method_changes.args_change
     if changes
-      pcdata("Argument list changed from ")
+      pcdata(_("Argument list changed from "))
       list_args(changes.old_args)
-      pcdata(" to ")
+      pcdata(_(" to "))
       list_args(changes.new_args)
       pcdata(".")
     end

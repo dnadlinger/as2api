@@ -7,11 +7,17 @@
 #
 
 
+require 'gettext'
+
 require 'documenter'
 require 'getoptlong'
 require 'set'
 require 'output/html/driver'
 require 'output/html/diff'
+
+include GetText
+
+bindtextdomain("as2api")
 
 Conf = Struct.new(:output_dir,
                   :classpath,
@@ -23,7 +29,9 @@ Conf = Struct.new(:output_dir,
 		  :draw_diagrams,
 		  :dot_exe,
 		  :sources,
-		  :format_html)
+		  :format_html,
+		  :source_lang,
+		  :target_lang)
 
 SourceFile = Struct.new(:prefix, :suffix)
 
@@ -58,7 +66,7 @@ end
 class VerboseProgressListener < NullProgressListener
   def parsing_sources(total_files)
     @total = total_files
-    $stderr.puts("Parsing #{total_files} source files:")
+    $stderr.puts(_("Parsing %d source files:") % total_files)
     yield
     progress_bar(total_files)  # ensure we see '100%'
     puts
@@ -70,7 +78,7 @@ class VerboseProgressListener < NullProgressListener
 
   def generating_pages(total_pages)
     @total = total_pages
-    $stderr.puts("Generating #{total_pages} HTML pages:")
+    $stderr.puts(_("Generating %d HTML pages:") % total_pages)
     yield
     progress_bar(total_pages)  # ensure we see '100%'
     puts
@@ -105,7 +113,9 @@ class CLI
       [ "--draw-diagrams",    GetoptLong::NO_ARGUMENT ],
       [ "--dot-exe",          GetoptLong::REQUIRED_ARGUMENT ],
       [ "--sources",          GetoptLong::NO_ARGUMENT ],
-      [ "--format-html",          GetoptLong::NO_ARGUMENT ]
+      [ "--format-html",      GetoptLong::NO_ARGUMENT ],
+      [ "--source-lang",      GetoptLong::REQUIRED_ARGUMENT ],
+      [ "--target-lang",      GetoptLong::REQUIRED_ARGUMENT ]
     )
 
     conf = Conf.new
@@ -140,11 +150,15 @@ class CLI
 	  conf.sources = true
 	when "--format-html"
 	  conf.format_html = true
+	when "--source-lang"
+	  conf.source_lang = arg
+	when "--target-lang"
+	  conf.target_lang = arg
       end
     end
     if ARGV.empty?
       usage
-      error("No packages specified")
+      error(_("No packages specified"))
     end
     ARGV.each do |package_spec|
       conf.package_filters << to_filter(package_spec)
@@ -186,13 +200,13 @@ class CLI
 	else
 	  dirname = File.dirname(source)
 	  if ignored_packages.add?(dirname)
-	    warn("package #{dirname.gsub(/\//, '.').inspect} will not be documented")
+	    warn(_("package %s will not be documented") % dirname.gsub(/\//, '.').inspect)
 	  end
 	end
 	found_sources = true
       end
       unless found_sources
-	warn("#{path.inspect} contains no ActionScript files")
+	warn(_("%s contains no ActionScript files") % path.inspect)
       end
     end
     result
@@ -226,14 +240,14 @@ class CLI
   def main
     @conf = parse_opts
     files = find_sources(@conf.classpath)
-    error("No source files matching specified packages") if files.empty?
+    error(_("No source files matching specified packages")) if files.empty?
     type_agregator = parse_all(files, @conf.classpath)
     type_agregator.resolve_types
     document_types(@conf, type_agregator)
 
     unless @conf.oldrev_classpath.empty?
       old_files = find_sources(@conf.oldrev_classpath)
-      error("No source files matching specified packages in oldrev-classpath") if old_files.empty?
+      error(_("No source files matching specified packages in oldrev-classpath")) if old_files.empty?
       old_type_agregator = parse_all(old_files, @conf.oldrev_classpath)
       old_type_agregator.resolve_types
       diff = APIDiff.new
@@ -284,12 +298,12 @@ Where options include:
   end
 
   def error(msg)
-    $stderr.puts("error: #{msg}")
+    $stderr.puts(_("error: %s") % msg)
     exit(-1)
   end
 
   def warn(msg)
-    $stderr.puts("warning: #{msg}")
+    $stderr.puts(_("warning: %s") % msg)
   end
 end
 

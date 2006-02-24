@@ -16,6 +16,7 @@ require 'output/html/quicknav'
 require 'output/html/default_css'
 
 
+bindtextdomain("as2api")
 
 def package_list(path_name, type_agregator)
   # REVISIT: Will a package list actually be useful for ActionScript, or can
@@ -106,11 +107,11 @@ class PageListBuilder
 
   def build_navigation_template
     elements = []
-    elements << OverviewNavLinkBuilder.new(@conf, "Overview")
-    elements << PackageNavLinkBuilder.new(@conf, "Package")
-    elements << TypeNavLinkBuilder.new(@conf, "Class")
-    elements << SourceNavLinkBuilder.new(@conf, "Source") if @conf.sources
-    elements << IndexNavLinkBuilder.new(@conf, "Index")
+    elements << OverviewNavLinkBuilder.new(@conf, _("Overview"))
+    elements << PackageNavLinkBuilder.new(@conf, _("Package"))
+    elements << TypeNavLinkBuilder.new(@conf, _("Class"))
+    elements << SourceNavLinkBuilder.new(@conf, _("Source")) if @conf.sources
+    elements << IndexNavLinkBuilder.new(@conf, _("Index"))
     elements
   end
 end

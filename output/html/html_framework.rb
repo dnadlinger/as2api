@@ -7,12 +7,17 @@
 #
 
 
+require 'gettext'
+
 require 'output/utils'
 
 require 'xmlwriter'
 require 'xhtmlwriter'
 require 'output/xml/xml_formatter'
 
+include GetText
+
+bindtextdomain("as2api")
 
 PROJECT_PAGE = "http://www.badgers-in-foil.co.uk/projects/as2api/"
 
@@ -46,7 +51,7 @@ class Page
     @io = nil  # to be set during the lifetime of generate() call
   end
 
-  attr_accessor :path_name, :encoding, :doctype_id, :title_extra
+  attr_accessor :path_name, :encoding, :lang, :doctype_id, :title_extra
 
   attr_writer :title, :base_name
 
@@ -63,6 +68,26 @@ class Page
       end
     else
       @title
+    end
+  end
+
+  def lang_to_gettext_locale(str)
+    return nil unless str
+    str.gsub(/-/, "_")
+  end
+
+  def with_message_locale(locale)
+    if locale
+      old_locale = Locale.get
+$stderr.puts("Locale: #{old_locale} -> #{locale}")
+      Locale.set(Locale::MESSAGES, locale)
+      begin
+	yield
+      ensure
+	Locale.set(Locale::MESSAGES, old_locale)
+      end
+    else
+      yield
     end
   end
 
@@ -91,9 +116,16 @@ class Page
     else
       raise "unhandled doctype #{doctype_id.inspect}"
     end
-    html_html do
-      generate_head
-      generate_content
+    attrs = {}
+    if lang
+      attrs["lang"] = lang
+      attrs["xml:lang"] = lang
+    end
+    with_message_locale(lang_to_gettext_locale(lang)) do
+      html_html(attrs) do
+	generate_head
+	generate_content
+      end
     end
   end
 
@@ -213,9 +245,9 @@ class Page
 
   def type_description_for(as_type)
     if as_type.instance_of?(ASClass)
-      "Class #{as_type.qualified_name}"
+      _("Class %s") % as_type.qualified_name
     elsif as_type.instance_of?(ASInterface)
-      "Interface #{as_type.qualified_name}"
+      _("Interface %s") % as_type.qualified_name
     end
   end
 
@@ -298,12 +330,12 @@ class Page
   end
 
   def package_display_name_for(package)
-    return "(Default)" if package.name == ""
+    return _("(Default)") if package.name == ""
     package.name
   end
 
   def package_description_for(package)
-    "Package #{package_display_name_for(package)}"
+    _("Package %s") % package_display_name_for(package)
   end
 end
 
@@ -331,7 +363,7 @@ class BasicPage < Page
 
   def generate_footer
     html_div("class"=>"footer") do
-      html_a("as2api", {"href"=>PROJECT_PAGE, "title"=>"ActionScript 2 API Documentation Generator"})
+      html_a("as2api", {"href"=>PROJECT_PAGE, "title"=>_("ActionScript 2 API Documentation Generator")})
     end
   end
 
@@ -459,6 +491,7 @@ def create_all_pages(conf, list)
     list.each_with_index do |page, index|
       page.title_extra = conf.title
       page.encoding = conf.input_encoding
+      page.lang = conf.target_lang
       conf.progress_listener.generate_page(index, page)
       create_page(conf.output_dir, page, conf.format_html)
     end

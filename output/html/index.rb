@@ -12,6 +12,9 @@ require 'set'
 require 'output/html/html_framework'
 
 
+bindtextdomain("as2api")
+
+
 class IndexTerm
   def <=>(other)
     cmp = term.downcase <=> other.term.downcase
@@ -31,7 +34,7 @@ class TypeIndexTerm < IndexTerm
 
   def link(out)
     out.link_type(@astype)
-    out.pcdata(" in package ")
+    out.pcdata(_(" in package "))
     out.html_a(out.package_display_name_for(@astype.package), {"href"=>"../" + @astype.package_name.gsub(".", "/") + "/package-summary.html"})
   end
 end
@@ -50,7 +53,7 @@ end
 class MethodIndexTerm < MemberIndexTerm
   def link(out)
     out.link_method(@asmember)
-    out.pcdata(" method in ")
+    out.pcdata(_(" method in "))
     out.link_type(@astype, true)
   end
 end
@@ -58,7 +61,7 @@ end
 class FieldIndexTerm < MemberIndexTerm
   def link(out)
     out.link_field(@asmember)
-    out.pcdata(" field in ")
+    out.pcdata(_(" field in "))
     out.link_type(@astype, true)
   end
 end
@@ -69,7 +72,7 @@ class IndexNavLinkBuilder < NavLinkBuilder
 
   def is_current?(page) page.is_a?(IndexPage); end
 
-  def title_on(page); "Alpabetical index of types and members"; end
+  def title_on(page); _("Alpabetical index of types and members"); end
 end
 
 class Indexer
@@ -115,7 +118,7 @@ class IndexPage < BasicPage
   def initialize(conf, indexer)
     super(conf, "index", "index-files")
     @indexer = indexer
-    @title = "Alphabetical Index"
+    @title = _("Alphabetical Index")
   end
 
   def extra_metadata
@@ -152,7 +155,7 @@ class IndexPage < BasicPage
   end
 
   def link_top
-    yield "Overview", base_path("overview-summary.html")
+    yield _("Overview"), base_path("overview-summary.html")
   end
 end
 

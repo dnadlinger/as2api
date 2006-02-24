@@ -9,6 +9,7 @@
 
 require 'output/html/html_framework'
 
+bindtextdomain("as2api")
 
 class PackageFramePage < Page
 
@@ -16,7 +17,7 @@ class PackageFramePage < Page
     dir = package_dir_for(package)
     super("package-frame", dir)
     @package = package
-    @title = "#{package_description_for(@package)} API Naviation"
+    @title = _("%s API Naviation") % package_description_for(@package)
     @doctype_id = :transitional
   end
 
@@ -28,7 +29,7 @@ class PackageFramePage < Page
 	interfaces = @package.interfaces
 	unless interfaces.empty?
 	  interfaces.sort!
-	  html_h3("Interfaces")
+	  html_h3(_("Interfaces"))
 	  html_ul("class"=>"navigation_list") do
 	    interfaces.each do |type|
 	  
@@ -41,7 +42,7 @@ class PackageFramePage < Page
 	classes = @package.classes
 	unless classes.empty?
 	  classes.sort!
-	  html_h3("Classes")
+	  html_h3(_("Classes"))
 	  html_ul("class"=>"navigation_list") do
 	    classes.each do |type|
 	  
@@ -61,17 +62,17 @@ class OverviewFramePage < Page
   def initialize(type_agregator)
     super("overview-frame")
     @type_agregator = type_agregator
-    @title = "API Overview"
+    @title = _("API Overview")
     @doctype_id = :transitional
   end
 
   def generate_content
       html_body do
-	html_h3("Packages")
+	html_h3(_("Packages"))
 	html_ul("class"=>"navigation_list") do
 	
 	  html_li do
-	    html_a("(All Types)", {"href"=>"all-types-frame.html", "target"=>"current_package_frame"})
+	    html_a(_("(All Types)"), {"href"=>"all-types-frame.html", "target"=>"current_package_frame"})
 	  end
 	  packages = @type_agregator.packages.sort
 	  packages.each do |package|
@@ -106,7 +107,7 @@ class AllTypesFramePage < Page
 
   def generate_content
       html_body do
-	html_h3("All Types")
+	html_h3(_("All Types"))
 	html_ul("class"=>"navigation_list") do
 	  types = @type_agregator.types.sort do |a,b|
 	    cmp = a.unqualified_name.downcase <=> b.unqualified_name.downcase
@@ -150,17 +151,17 @@ class FramesetPage < Page
       html_frameset("rows"=>"30%,70%") do
 	html_frame("src"=>"overview-frame.html",
 	                  "name"=>"all_packages_frame",
-	                  "title"=>"All Packages")
+	                  "title"=>_("All Packages"))
 	html_frame("src"=>"all-types-frame.html",
 	                  "name"=>"current_package_frame",
-                          "title"=>"All types")
+                          "title"=>_("All types"))
       end
       html_frame("src"=>"overview-summary.html",
                         "name"=>"type_frame",
-                        "title"=>"Package and type descriptions")
+                        "title"=>_("Package and type descriptions"))
       html_noframes do
 	html_body do
-	  html_a("Non-frameset overview page", {"href"=>"overview-summary.html"})
+	  html_a(_("Non-frameset overview page"), {"href"=>"overview-summary.html"})
 	end
       end
     end

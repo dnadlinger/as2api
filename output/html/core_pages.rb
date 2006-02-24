@@ -11,6 +11,8 @@ require 'output/html/html_framework'
 require 'output/utils'
 require 'rexml/document'
 
+bindtextdomain("as2api")
+
 class OverviewNavLinkBuilder < NavLinkBuilder
   def href_on(page); page.base_path("overview-summary.html"); end
 
@@ -18,9 +20,9 @@ class OverviewNavLinkBuilder < NavLinkBuilder
 
   def title_on(page)
     if @conf.title
-      "Overview of #{@conf.title}"
+      _("Overview of %s") % @conf.title
     else
-      "Overview of API"
+      _("Overview of API")
     end
   end
 end
@@ -38,7 +40,7 @@ class PackageNavLinkBuilder < NavLinkBuilder
 
   def title_on(page)
     if page.aspackage
-      "Overview of package #{page.package_display_name_for(page.aspackage)}"
+      _("Overview of package %s") % page.package_display_name_for(page.aspackage)
     else
       nil
     end
@@ -59,7 +61,7 @@ class TypeNavLinkBuilder < NavLinkBuilder
 
   def title_on(page)
     if page.astype
-      "Detail of #{page.astype.qualified_name} API"
+      _("Detail of %s API") % page.astype.qualified_name
     else
       nil
     end
@@ -91,7 +93,7 @@ class TypePage < BasicPage
 
       if @type.implements_interfaces?
 	html_div("class"=>"interfaces") do
-	  html_h2("Implemented Interfaces")
+	  html_h2(_("Implemented Interfaces"))
 	  @type.each_interface do |interface|
 	    # TODO: need to resolve interface name, make links
 	    html_code do
@@ -105,12 +107,12 @@ class TypePage < BasicPage
 	if @type.comment
 	  comment_data = @type.comment
 
-	  html_h2("Description")
+	  html_h2(_("Description"))
 	  html_p do
 	    output_doccomment_blocktag(comment_data[0])
 	  end
 	  if comment_data.has_seealso?
-	    html_h4("See Also")
+	    html_h4(_("See Also"))
 	    html_ul("class"=>"extra_info") do
 	      comment_data.each_seealso do |see_comment|
 		html_li do
@@ -152,7 +154,7 @@ class TypePage < BasicPage
   end
 
   def link_top
-    yield "Overview", base_path("overview-summary.html")
+    yield _("Overview"), base_path("overview-summary.html")
   end
 
   def link_up
@@ -161,27 +163,27 @@ class TypePage < BasicPage
 
   def link_prev
     if @prev_type
-      kind = @prev_type.is_a?(ASInterface) ? "Interface" : "Class"
+      kind = @prev_type.is_a?(ASInterface) ? _("Interface") : _("Class")
       yield "#{kind} #{@prev_type.qualified_name}", link_for_type(@prev_type)
     end
   end
 
   def link_next
     if @next_type
-      kind = @next_type.is_a?(ASInterface) ? "Interface" : "Class"
+      kind = @next_type.is_a?(ASInterface) ? _("Interface") : _("Class")
       yield "#{kind} #{@next_type.qualified_name}", link_for_type(@next_type)
     end
   end
 
   def field_index_list(type)
     html_div("class"=>"field_index") do
-      html_h2("Field Index")
+      html_h2(_("Field Index"))
       list_fields(type)
       if type.has_ancestor?
 	type.each_ancestor do |type|
 	  if has_documentable_fields?(type)
 	    html_h4 do
-	      pcdata("Inherited from ")
+	      pcdata(_("Inherited from "))
 	      link_type(type)
 	    end
 	    html_div("class"=>"extra_info") do
@@ -215,7 +217,7 @@ class TypePage < BasicPage
 
   def method_index_list(type)
     html_div("class"=>"method_index") do
-      html_h2("Method Index")
+      html_h2(_("Method Index"))
       if type.constructor? && document_member?(type.constructor)
 	html_div do
 	  html_code do
@@ -230,7 +232,7 @@ class TypePage < BasicPage
 	type.each_ancestor do |type|
 	  if has_documentable_methods?(type, known_method_names)
 	    html_h4 do
-	      pcdata("Inherited from ")
+	      pcdata(_("Inherited from "))
 	      link_type(type)
 	    end
 	    html_div("class"=>"extra_info") do
@@ -264,14 +266,14 @@ class TypePage < BasicPage
 
   def constructor_detail(type)
     html_div("class"=>"constructor_detail_list") do
-      html_h2("Constructor Detail")
+      html_h2(_("Constructor Detail"))
       document_method(type.constructor)
     end
   end
 
   def field_detail_list(type)
     html_div("class"=>"field_detail_list") do
-      html_h2("Field Detail")
+      html_h2(_("Field Detail"))
       type.each_field do |field|
 	document_field(field) if document_member?(field)
       end
@@ -299,7 +301,7 @@ class TypePage < BasicPage
 
   def method_detail_list(type)
     html_div("class"=>"method_detail_list") do
-      html_h2("Method Detail")
+      html_h2(_("Method Detail"))
       count = 0
       type.each_method do |method|
 	next unless document_member?(method)
@@ -345,7 +347,7 @@ class TypePage < BasicPage
 	  unless documented_method.nil?
 	    comment_data = documented_method.comment
 	    html_p("class"=>"inherited_docs") do
-	      pcdata("Description copied from ")
+	      pcdata(_("Description copied from "))
 	      link_type(documented_method.containing_type)
 	    end
 	    html_p do
@@ -396,7 +398,7 @@ class TypePage < BasicPage
   end
 
   def document_parameters(arguments, comment_data)
-    html_h4("Parameters")
+    html_h4(_("Parameters"))
     html_table("class"=>"arguments extra_info", "summary"=>"") do
       arguments.each do |arg|
 	desc = comment_data.find_param(arg.name)
@@ -416,7 +418,7 @@ class TypePage < BasicPage
       if vararg
 	html_tr do
 	  html_td do
-	    html_code("...", {"title", "Variable length argument list"})
+	    html_code("...", {"title", _("Variable length argument list")})
 	  end
 	  html_td do
 	    output_doccomment_blocktag(vararg)
@@ -427,7 +429,7 @@ class TypePage < BasicPage
   end
 
   def document_return(comment_data)
-    html_h4("Return")
+    html_h4(_("Return"))
     return_comment = comment_data.find_return
     html_p("class"=>"extra_info") do
       output_doccomment_blocktag(return_comment)
@@ -435,7 +437,7 @@ class TypePage < BasicPage
   end
 
   def document_exceptions(comment_data)
-    html_h4("Throws")
+    html_h4(_("Throws"))
     html_table("class"=>"exceptions extra_info", "summary"=>"") do
       comment_data.each_exception do |exception_comment|
 	html_tr do
@@ -451,7 +453,7 @@ class TypePage < BasicPage
   end
 
   def document_seealso(comment_data)
-    html_h4("See Also")
+    html_h4(_("See Also"))
     html_ul("class"=>"extra_info") do
       comment_data.each_seealso do |see_comment|
 	html_li do
@@ -462,7 +464,7 @@ class TypePage < BasicPage
   end
 
   def document_specified_by(method)
-    html_h4("Specified By")
+    html_h4(_("Specified By"))
     html_p("class"=>"extra_info") do
       link_method(method)
       pcdata(" in ")
@@ -471,7 +473,7 @@ class TypePage < BasicPage
   end
 
   def document_overridden(method)
-    html_h4("Overrides")
+    html_h4(_("Overrides"))
     html_p("class"=>"extra_info") do
       link_method(method)
       pcdata(" in ")
@@ -562,9 +564,9 @@ class TypePage < BasicPage
       pcdata(" ")
       html_em("class"=>"read_write_only") do
 	if field.read?
-	  pcdata("[Read Only]")
+	  pcdata(_("[Read Only]"))
 	else
-	  pcdata("[Write Only]")
+	  pcdata(_("[Write Only]"))
 	end
       end
     end
@@ -579,7 +581,7 @@ class PackageIndexPage < BasicPage
     dir = package_dir_for(package)
     super(conf, "package-summary", dir)
     @package = package
-    @title = "#{package_description_for(@package)} API Documentation"
+    @title = _("%s API Documentation") % package_description_for(@package)
     @prev_package = nil
     @next_package = nil
   end
@@ -592,7 +594,7 @@ class PackageIndexPage < BasicPage
       unless interfaces.empty?
 	interfaces.sort!
 	html_table("class"=>"summary_list", "summary"=>"") do
-	  html_caption("Interface Summary")
+	  html_caption(_("Interface Summary"))
 	  interfaces.each do |type|
 	    html_tr do
 	
@@ -612,7 +614,7 @@ class PackageIndexPage < BasicPage
       unless classes.empty?
 	classes.sort!
 	html_table("class"=>"summary_list", "summary"=>"") do
-	  html_caption("Class Summary")
+	  html_caption(_("Class Summary"))
 	  classes.each do |type|
 	    html_tr do
 	
@@ -637,7 +639,7 @@ class PackageIndexPage < BasicPage
   end
 
   def link_top
-    yield "Overview", base_path("overview-summary.html")
+    yield _("Overview"), base_path("overview-summary.html")
   end
   def link_prev
     if @prev_package
@@ -653,7 +655,7 @@ class PackageIndexPage < BasicPage
   def class_diagram
     dir = File.join(@conf.output_dir, path_name)
     if FileTest.exists?(File.join(dir, "package-classes.png"))
-      html_h1("Class Inheritance Diagram")
+      html_h1(_("Class Inheritance Diagram"))
       html_div("class"=>"diagram") do
 	if FileTest.exists?(File.join(dir, "package-classes.cmapx"))
 	  map = true
@@ -673,7 +675,7 @@ class PackageIndexPage < BasicPage
   def interface_diagram
     dir = File.join(@conf.output_dir, path_name)
     if FileTest.exists?(File.join(dir, "package-interfaces.png"))
-      html_h1("Interface Inheritance Diagram")
+      html_h1(_("Interface Inheritance Diagram"))
       html_div("class"=>"diagram") do
 	if FileTest.exists?(File.join(dir, "package-interfaces.cmapx"))
 	  map = true
@@ -785,13 +787,13 @@ class OverviewPage < BasicPage
   def initialize(conf, type_agregator)
     super(conf, "overview-summary")
     @type_agregator = type_agregator
-    @title = "API Overview"
+    @title = _("API Overview")
   end
 
   def generate_body_content
-      html_h1("API Overview")
+      html_h1(_("API Overview"))
       html_table("class"=>"summary_list", "summary"=>"") do
-	html_caption("Packages")
+	html_caption(_("Packages"))
 	packages = @type_agregator.packages.sort
 	packages.each do |package|
 	  html_tr do
