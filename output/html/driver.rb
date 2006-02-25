@@ -107,11 +107,11 @@ class PageListBuilder
 
   def build_navigation_template
     elements = []
-    elements << OverviewNavLinkBuilder.new(@conf, _("Overview"))
-    elements << PackageNavLinkBuilder.new(@conf, _("Package"))
-    elements << TypeNavLinkBuilder.new(@conf, _("Class"))
-    elements << SourceNavLinkBuilder.new(@conf, _("Source")) if @conf.sources
-    elements << IndexNavLinkBuilder.new(@conf, _("Index"))
+    elements << OverviewNavLinkBuilder.new(@conf, N_("Overview"))
+    elements << PackageNavLinkBuilder.new(@conf, N_("Package"))
+    elements << TypeNavLinkBuilder.new(@conf, N_("Class"))
+    elements << SourceNavLinkBuilder.new(@conf, N_("Source")) if @conf.sources
+    elements << IndexNavLinkBuilder.new(@conf, N_("Index"))
     elements
   end
 end

@@ -32,7 +32,7 @@ class NavLinkBuilder
   end
 
   def build_for_page(page)
-    NavLink.new(href_on(page), @content, title_on(page), is_current?(page))
+    NavLink.new(href_on(page), _(@content), title_on(page), is_current?(page))
   end
 end
 
@@ -79,12 +79,11 @@ class Page
   def with_message_locale(locale)
     if locale
       old_locale = Locale.get
-$stderr.puts("Locale: #{old_locale} -> #{locale}")
-      Locale.set(Locale::MESSAGES, locale)
+      GetText.locale = locale
       begin
 	yield
       ensure
-	Locale.set(Locale::MESSAGES, old_locale)
+	GetText.locale = old_locale
       end
     else
       yield
