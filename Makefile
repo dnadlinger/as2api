@@ -129,6 +129,7 @@ translations: data/locale/en/LC_MESSAGES/as2api.mo data/locale/i_piglatin/LC_MES
 	
 
 po/as2api.pot:
+	mkdir -p po
 	rgettext `find -name "*.rb"` -o $@
 
 po/en/as2api.po: po/as2api.pot
