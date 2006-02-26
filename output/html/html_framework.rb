@@ -415,7 +415,7 @@ class BasicPage < Page
 	end
       else
 	html_code do
-	  highlight.highlight(input, self)
+	  highlight.highlight(input.strip, self)
 	end
       end
     else
