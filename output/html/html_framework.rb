@@ -377,6 +377,7 @@ class BasicPage < Page
       passthrough(inline)  # allow HTML through unabused (though I wish it were
                            # easy to require it be valid XHTML)
     elsif inline.is_a?(LinkTag)
+      # FIXME: Seem to have missed generating title attribute in several cases,
       if inline.target && inline.member
 	if inline.target.resolved?
 	  href = link_for_type(inline.target.resolved_type)
@@ -387,12 +388,17 @@ class BasicPage < Page
 	  end
 	  href << target
 	  html_a("href"=>href) do
-	    pcdata("#{inline.target.name}.#{inline.member}")
+	    if inline.text && inline.text!=""
+	      pcdata(inline.text)
+	    else
+	      pcdata("#{inline.target.name}.#{inline.member}")
+	    end
 	  end
 	else
 	  pcdata("#{inline.target.name}##{inline.member}")
 	end
       elsif inline.target
+	# FIXME: doesn't handle case where we have some link text
 	link_type_proxy(inline.target)
       else
 	if inline.member =~ /\(/
@@ -401,7 +407,11 @@ class BasicPage < Page
 	  target = "##{inline.member}"
 	end
 	html_a("href"=>target) do
-	  pcdata(inline.member)
+	  if inline.text && inline.text!=""
+	    pcdata(inline.text)
+	  else
+	    pcdata(inline.member)
+	  end
 	end
       end
     elsif inline.is_a?(CodeTag)
