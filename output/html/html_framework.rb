@@ -377,59 +377,67 @@ class BasicPage < Page
       passthrough(inline)  # allow HTML through unabused (though I wish it were
                            # easy to require it be valid XHTML)
     elsif inline.is_a?(LinkTag)
-      # FIXME: Seem to have missed generating title attribute in several cases,
-      if inline.target && inline.member
-	if inline.target.resolved?
-	  href = link_for_type(inline.target.resolved_type)
-	  if inline.member =~ /\(/
-	    target = "##{$`}"
-	  else
-	    target = "##{inline.member}"
-	  end
-	  href << target
-	  html_a("href"=>href) do
-	    if inline.text && inline.text!=""
-	      pcdata(inline.text)
-	    else
-	      pcdata("#{inline.target.name}.#{inline.member}")
-	    end
-	  end
-	else
-	  pcdata("#{inline.target.name}##{inline.member}")
-	end
-      elsif inline.target
-	# FIXME: doesn't handle case where we have some link text
-	link_type_proxy(inline.target)
-      else
-	if inline.member =~ /\(/
-	  target = "##{$`}"
-	else
-	  target = "##{inline.member}"
-	end
-	html_a("href"=>target) do
+      output_doccomment_linktag(inline)
+    elsif inline.is_a?(CodeTag)
+      output_doccomment_codetag(inline)
+    else
+      html_em(inline.inspect)
+    end
+  end
+
+  def output_doccomment_linktag(inline)
+    # FIXME: Seem to have missed generating title attribute in several cases,
+    if inline.target && inline.member
+      if inline.target.resolved?
+	href = link_for_type(inline.target.resolved_type)
+        if inline.member =~ /\(/
+          target = "##{$`}"
+        else
+          target = "##{inline.member}"
+        end
+	href << target
+	html_a("href"=>href) do
 	  if inline.text && inline.text!=""
 	    pcdata(inline.text)
 	  else
-	    pcdata(inline.member)
+	    pcdata("#{inline.target.name}.#{inline.member}")
 	  end
 	end
-      end
-    elsif inline.is_a?(CodeTag)
-      input = StringIO.new(inline.text)
-      input.lineno = inline.lineno
-      highlight = CodeHighlighter.new
-      highlight.number_lines = false
-      if inline.text =~ /[\n\r]/
-	html_pre do
-	  highlight.highlight(input, self)
-	end
       else
-	html_code do
-	  highlight.highlight(input.strip, self)
+	pcdata("#{inline.target.name}##{inline.member}")
+      end
+    elsif inline.target
+      # FIXME: doesn't handle case where we have some link text
+      link_type_proxy(inline.target)
+    else
+      if inline.member =~ /\(/
+        target = "##{$`}"
+      else
+        target = "##{inline.member}"
+      end
+      html_a("href"=>target) do
+	if inline.text && inline.text!=""
+	  pcdata(inline.text)
+	else
+	  pcdata(inline.member)
 	end
+      end
+    end
+  end
+
+  def output_doccomment_codetag(inline)
+    input = StringIO.new(inline.text)
+    input.lineno = inline.lineno
+    highlight = CodeHighlighter.new
+    highlight.number_lines = false
+    if inline.text =~ /[\n\r]/
+      html_pre do
+	highlight.highlight(input, self)
       end
     else
-      html_em(inline.inspect)
+      html_code do
+	highlight.highlight(input.strip, self)
+      end
     end
   end
 
