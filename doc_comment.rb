@@ -28,6 +28,10 @@ class CommentData
     @blocks[i]
   end
 
+  def description
+    @blocks[0]
+  end
+
   def each_block_of_type(type)
     each_block do |block|
       yield block if block.is_a?(type)
@@ -89,6 +93,13 @@ class CommentData
       return block
     end
     return nil
+  end
+
+  def find_throws(exception_name)
+    each_exception do |block|
+      return block if block.exception_type.name == exception_name
+    end
+    nil
   end
 end
 
@@ -237,6 +248,10 @@ class BlockTag
 
   def inlines
     @inlines
+  end
+
+  def clear
+    @inlines.clear
   end
 
   def ==(o)

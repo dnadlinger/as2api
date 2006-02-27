@@ -14,6 +14,8 @@ require 'getoptlong'
 require 'set'
 require 'output/html/driver'
 require 'output/html/diff'
+require 'localisation/xliff/driver.rb'
+require 'localisation/xliff/translation_loader.rb'
 
 include GetText
 
@@ -31,7 +33,9 @@ Conf = Struct.new(:output_dir,
 		  :sources,
 		  :format_html,
 		  :source_lang,
-		  :target_lang)
+		  :target_lang,
+		  :xliff_import,
+		  :xliff_export)
 
 SourceFile = Struct.new(:prefix, :suffix)
 
@@ -115,7 +119,9 @@ class CLI
       [ "--sources",          GetoptLong::NO_ARGUMENT ],
       [ "--format-html",      GetoptLong::NO_ARGUMENT ],
       [ "--source-lang",      GetoptLong::REQUIRED_ARGUMENT ],
-      [ "--target-lang",      GetoptLong::REQUIRED_ARGUMENT ]
+      [ "--target-lang",      GetoptLong::REQUIRED_ARGUMENT ],
+      [ "--xliff-import",     GetoptLong::REQUIRED_ARGUMENT ],
+      [ "--xliff-export",     GetoptLong::REQUIRED_ARGUMENT ]
     )
 
     conf = Conf.new
@@ -154,11 +160,21 @@ class CLI
 	  conf.source_lang = arg
 	when "--target-lang"
 	  conf.target_lang = arg
+	when "--xliff-import"
+	  conf.xliff_import = arg
+	when "--xliff-export"
+	  conf.xliff_export = arg
       end
     end
     if ARGV.empty?
       usage
       error(_("No packages specified"))
+    end
+    if conf.xliff_import && conf.xliff_export
+      error(_("Options can't be used together: %s") % "--xliff-import --xliff-export")
+    end
+    if conf.xliff_export && (conf.source_lang.nil? || conf.target_lang.nil?)
+      error(_("Both --source-lang and --target-lang must be provided with --xliff-export"))
     end
     ARGV.each do |package_spec|
       conf.package_filters << to_filter(package_spec)
@@ -237,14 +253,30 @@ class CLI
     type_agregator
   end
 
+  def xliff_import(type_aggregator)
+    update_docs(@conf, type_aggregator)
+  end
+
+  def xliff_export(type_aggregator)
+    generate_xliff(@conf, type_aggregator)
+  end
+
   def main
     @conf = parse_opts
     files = find_sources(@conf.classpath)
     error(_("No source files matching specified packages")) if files.empty?
     type_agregator = parse_all(files, @conf.classpath)
+    if @conf.xliff_import
+      xliff_import(type_agregator)
+    end
     type_agregator.resolve_types
-    document_types(@conf, type_agregator)
+    if @conf.xliff_export
+      xliff_export(type_agregator)
+    else
+      document_types(@conf, type_agregator)
+    end
 
+    # TODO: remove this hackery
     unless @conf.oldrev_classpath.empty?
       old_files = find_sources(@conf.oldrev_classpath)
       error(_("No source files matching specified packages in oldrev-classpath")) if old_files.empty?
