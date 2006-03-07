@@ -426,17 +426,19 @@ class BasicPage < Page
   end
 
   def output_doccomment_codetag(inline)
-    input = StringIO.new(inline.text)
-    input.lineno = inline.lineno
     highlight = CodeHighlighter.new
     highlight.number_lines = false
     if inline.text =~ /[\n\r]/
+      input = StringIO.new(inline.text)
+      input.lineno = inline.lineno
       html_pre do
 	highlight.highlight(input, self)
       end
     else
+      input = StringIO.new(inline.text.strip)
+      input.lineno = inline.lineno
       html_code do
-	highlight.highlight(input.strip, self)
+	highlight.highlight(input, self)
       end
     end
   end
