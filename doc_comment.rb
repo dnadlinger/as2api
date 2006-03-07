@@ -61,10 +61,14 @@ class CommentData
     has_blocktype?(ReturnBlockTag)
   end
 
+  def has_overload?
+    has_blocktype?(OverloadBlockTag)
+  end
+
   # Does the method comment include any info in addition to any basic
   # description block?
   def has_method_additional_info?
-    has_params? || has_return? || has_exceptions? || has_seealso?
+    has_params? || has_return? || has_exceptions? || has_seealso? || has_overload?
   end
 
   # Does the field comment include any info in addition to any basic description
@@ -79,6 +83,10 @@ class CommentData
 
   def each_seealso
     each_block_of_type(SeeBlockTag) {|block| yield block }
+  end
+
+  def each_overload
+    each_block_of_type(OverloadBlockTag) {|block| yield block }
   end
 
   def find_param(param_match)
@@ -281,6 +289,9 @@ end
 class ReturnBlockTag < BlockTag
 end
 
+class OverloadBlockTag < BlockTag
+end
+
 
 class InlineParser
   def start(type_resolver, lineno)
@@ -474,6 +485,24 @@ class SeeParser < BlockParser
 end
 
 
+class OverloadParser < BlockParser
+  def begin_block(type_resolver, lineno)
+    super(type_resolver, lineno)
+    @data = OverloadBlockTag.new
+  end
+
+  def end_block
+    if @data.inlines.first =~ /\A\s*(#.*)/
+      link = create_link(@type_resolver, $1, @lineno)
+      unless link.nil?
+	@data.inlines[0] = link
+      end
+    end
+    @data
+  end
+end
+
+
 #############################################################################
 
 
@@ -485,6 +514,7 @@ class ConfigBuilder
     config.add_block_parser("return", build_return_block_parser)
     config.add_block_parser("throws", build_throws_block_parser)
     config.add_block_parser("exception", build_throws_block_parser)
+    config.add_block_parser("overload", build_overload_block_parser)
     return config
   end
 
@@ -549,6 +579,10 @@ class ConfigBuilder
 
   def build_author_block_parser
     NilBlockParser.new  # ignore @author tags
+  end
+
+  def build_overload_block_parser
+    OverloadParser.new
   end
 end
 

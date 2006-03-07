@@ -341,6 +341,9 @@ class TypePage < BasicPage
 	    if comment_data.has_seealso?
 	      document_seealso(comment_data)
 	    end
+	    if comment_data.has_overload?
+	      document_overload(comment_data)
+	    end
 	  end
 	else
 	  documented_method = method.inherited_comment
@@ -458,6 +461,17 @@ class TypePage < BasicPage
       comment_data.each_seealso do |see_comment|
 	html_li do
 	  output_doccomment_blocktag(see_comment)
+	end
+      end
+    end
+  end
+
+  def document_overload(comment_data)
+    html_h4(_("Overloaded"))
+    html_ul("class"=>"extra_info") do
+      comment_data.each_overload do |overload_comment|
+	html_li do
+	  output_doccomment_blocktag(overload_comment)
 	end
       end
     end
