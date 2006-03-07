@@ -468,15 +468,6 @@ class GlobalTypeAggregator
 
   private
 
-  def collect_package_types(package_name)
-    # TODO: dump this and use ASPackage instead, now it's available
-    @types.each do |type|
-      if type.package_name == package_name
-	yield type
-      end
-    end
-  end
-
   def import_types_into_namespace(type, local_namespace)
     importer = type.import_manager
     importer.each_type do |type_name|
@@ -493,7 +484,7 @@ class GlobalTypeAggregator
   def import_packages_into_namespace(type, local_namespace)
     importer = type.import_manager
     importer.each_package do |package_name|
-      collect_package_types(package_name.join(".")) do |package_type|
+      @packages[package_name.join(".")].each_type do |package_type|
 	if local_namespace.has_key?(package_type.unqualified_name)
 	  $stderr.puts "#{type.input_filename}: #{package_type.unqualified_name} already refers to #{local_namespace[package_type.unqualified_name].qualified_name}"
 	end
