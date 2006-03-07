@@ -32,12 +32,12 @@ class ASType
     @extends = nil
     @comment = nil
     @type_resolver = nil
-    @import_manager = nil
+    @import_list = nil
     @input_file = nil
     @document = true
   end
 
-  attr_accessor :package, :extends, :comment, :source_utf8, :type_resolver, :import_manager, :intrinsic, :constructor
+  attr_accessor :package, :extends, :comment, :source_utf8, :type_resolver, :import_list, :intrinsic, :constructor
 
   def input_filename
     @input_file.suffix

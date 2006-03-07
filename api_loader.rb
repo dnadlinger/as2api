@@ -119,7 +119,7 @@ class DocASHandler < ActionScript::Parse::ASHandler
   end
 
   def compilation_unit_start
-    @import_manager = ImportList.new
+    @import_list = ImportList.new
     @defined_type = nil
   end
 
@@ -130,7 +130,7 @@ class DocASHandler < ActionScript::Parse::ASHandler
   end
 
   def import(name)
-    @import_manager.add_import(name)
+    @import_list.add_import(name)
   end
 
   def start_class(dynamic, name, super_name, interfaces)
@@ -149,7 +149,7 @@ class DocASHandler < ActionScript::Parse::ASHandler
       end
     end
     @defined_type.type_resolver = @type_resolver
-    @defined_type.import_manager = @import_manager
+    @defined_type.import_list = @import_list
   end
 
   def start_intrinsic_class(dynamic, name, super_name, interfaces)
@@ -167,7 +167,7 @@ class DocASHandler < ActionScript::Parse::ASHandler
       @defined_type.extends = @type_resolver.resolve(super_name)
     end
     @defined_type.type_resolver = @type_resolver
-    @defined_type.import_manager = @import_manager
+    @defined_type.import_list = @import_list
   end
 
   def access_modifier(modifier)
@@ -469,8 +469,7 @@ class GlobalTypeAggregator
   private
 
   def import_types_into_namespace(type, local_namespace)
-    importer = type.import_manager
-    importer.each_type do |type_name|
+    type.import_list.each_type do |type_name|
       import_type = local_namespace[type_name.join(".")]
       import_type = maybe_parse_external_definition(TypeProxy.new(type, type_name.join('.'))) unless import_type
       if import_type
@@ -482,8 +481,7 @@ class GlobalTypeAggregator
   end
 
   def import_packages_into_namespace(type, local_namespace)
-    importer = type.import_manager
-    importer.each_package do |package_name|
+    type.import_list.each_package do |package_name|
       @packages[package_name.join(".")].each_type do |package_type|
 	if local_namespace.has_key?(package_type.unqualified_name)
 	  $stderr.puts "#{type.input_filename}: #{package_type.unqualified_name} already refers to #{local_namespace[package_type.unqualified_name].qualified_name}"
@@ -514,7 +512,7 @@ class GlobalTypeAggregator
     return file_name unless file_name.nil?
     return nil if type_proxy.qualified?
 
-    type_proxy.containing_type.import_manager.each_package do |package_name|
+    type_proxy.containing_type.import_list.each_package do |package_name|
       candidate_name = package_name.join(".") + "." + type_proxy.name
       file_name = search_classpath_for(candidate_name)
       return file_name unless file_name.nil?
