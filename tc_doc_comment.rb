@@ -81,8 +81,8 @@ class TC_DocComment < Test::Unit::TestCase
     parser = ActionScript::ParseDoc::DocCommentParser.new(lexer)
     parse_conf_build = ConfigBuilder.new
     config = parse_conf_build.build_method_config
-    type_resolver = LocalTypeResolver.new(nil)
-    handler = OurDocCommentHandler.new(comment_data, config, type_resolver)
+    type_namespace = TypeLocalNamespace.new(nil)
+    handler = OurDocCommentHandler.new(comment_data, config, type_namespace)
     parser.handler = handler
 
     parser.parse_comment

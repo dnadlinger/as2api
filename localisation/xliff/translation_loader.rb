@@ -10,15 +10,15 @@ class CodePhHandler
 end
 
 class LinkPhHandler
-  def initialize(block, type_resolver)
+  def initialize(block, type_namespace)
     @block = block
-    @type_resolver = type_resolver
+    @type_namespace = type_namespace
   end
   def start_ph; @text=@ph_text=""; @sub_text="" end
   def end_ph;
     @ph_text =~ /^([^#\s]+)(?:#([^\s]+))?/
     if $1
-      target = @type_resolver.resolve($1)
+      target = @type_namespace.resolve($1)
     else
       target = nil
     end
@@ -154,7 +154,7 @@ class DocXliffHandler
       when "code"
 	return CodePhHandler.new(@current_block)
       when "link"
-	return LinkPhHandler.new(@current_block, @current_type.type_resolver)
+	return LinkPhHandler.new(@current_block, @current_type.type_namespace)
       else
 	raise "unhandled placeholder id #{id.inspect}"
     end

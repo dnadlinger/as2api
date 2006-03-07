@@ -31,13 +31,13 @@ class ASType
     @constructor = nil
     @extends = nil
     @comment = nil
-    @type_resolver = nil
+    @type_namespace = nil
     @import_list = nil
     @input_file = nil
     @document = true
   end
 
-  attr_accessor :package, :extends, :comment, :source_utf8, :type_resolver, :import_list, :intrinsic, :constructor
+  attr_accessor :package, :extends, :comment, :source_utf8, :type_namespace, :import_list, :intrinsic, :constructor
 
   def input_filename
     @input_file.suffix

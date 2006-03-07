@@ -112,10 +112,10 @@ class CommentData
 end
 
 class OurDocCommentHandler < ActionScript::ParseDoc::DocCommentHandler
-  def initialize(comment_data, handler_config, type_resolver)
+  def initialize(comment_data, handler_config, type_namespace)
     @comment_data = comment_data
     @handler_config = handler_config
-    @type_resolver = type_resolver
+    @type_namespace = type_namespace
   end
 
   def comment_start(lineno)
@@ -144,7 +144,7 @@ class OurDocCommentHandler < ActionScript::ParseDoc::DocCommentHandler
 
   def start_inline_tag(tag)
     @inline_handler = @block_handler.handler_for(tag)
-    @inline_handler.start(@type_resolver, tag.lineno)
+    @inline_handler.start(@type_namespace, tag.lineno)
   end
 
   def end_inline_tag
@@ -156,7 +156,7 @@ class OurDocCommentHandler < ActionScript::ParseDoc::DocCommentHandler
   private
 
   def beginning_of_block(lineno)
-    @block_handler.begin_block(@type_resolver, lineno)
+    @block_handler.begin_block(@type_namespace, lineno)
   end
 
   def end_of_block
@@ -294,8 +294,8 @@ end
 
 
 class InlineParser
-  def start(type_resolver, lineno)
-    @type_resolver = type_resolver
+  def start(type_namespace, lineno)
+    @type_namespace = type_namespace
     @lineno = lineno
     @text = ""
   end
@@ -307,7 +307,7 @@ end
 
 
 # creates a LinkTag inline
-def create_link(type_resolver, text, lineno)
+def create_link(type_namespace, text, lineno)
   if text =~ /^\s*([^\s]+(?:\([^\)]*\))?)\s*/
     target = $1
     text = $'
@@ -323,7 +323,7 @@ def create_link(type_resolver, text, lineno)
     if type_name == ""
       type_proxy = nil
     else
-      type_proxy = type_resolver.resolve(type_name, lineno)
+      type_proxy = type_namespace.resolve(type_name, lineno)
     end
     return LinkTag.new(lineno, type_proxy, member_name, text)
   end
@@ -334,7 +334,7 @@ end
 # handle {@link ...} in comments
 class LinkInlineParser < InlineParser
   def end
-    link = create_link(@type_resolver, @text, @lineno)
+    link = create_link(@type_namespace, @text, @lineno)
     if link.nil?
       "{@link #{@text}}"
     else
@@ -357,8 +357,8 @@ class BlockParser
 
   attr_accessor :handler
 
-  def begin_block(type_resolver, lineno)
-    @type_resolver = type_resolver
+  def begin_block(type_namespace, lineno)
+    @type_namespace = type_namespace
     @lineno = lineno
   end
 
@@ -409,8 +409,8 @@ end
 NIL_INLINE_PARSER = NilInlineParser.new
 
 class ParamParser < BlockParser
-  def begin_block(type_resolver, lineno)
-    super(type_resolver, lineno)
+  def begin_block(type_namespace, lineno)
+    super(type_namespace, lineno)
     @data = ParamBlockTag.new
   end
 
@@ -426,8 +426,8 @@ end
 
 
 class ThrowsParser < BlockParser
-  def begin_block(type_resolver, lineno)
-    super(type_resolver, lineno)
+  def begin_block(type_namespace, lineno)
+    super(type_namespace, lineno)
     @data = ThrowsBlockTag.new
   end
 
@@ -435,7 +435,7 @@ class ThrowsParser < BlockParser
     first_inline = @data.inlines[0]
     if first_inline =~ /\A\s*([^\s]+)\s+/
       @data.inlines[0] = $'
-      @data.exception_type = @type_resolver.resolve($1)
+      @data.exception_type = @type_namespace.resolve($1)
       @data
     else
       nil
@@ -445,24 +445,24 @@ end
 
 
 class ReturnParser < BlockParser
-  def begin_block(type_resolver, lineno)
-    super(type_resolver, lineno)
+  def begin_block(type_namespace, lineno)
+    super(type_namespace, lineno)
     @data = ReturnBlockTag.new
   end
 end
 
 
 class DescriptionParser < BlockParser
-  def begin_block(type_resolver, lineno)
-    super(type_resolver, lineno)
+  def begin_block(type_namespace, lineno)
+    super(type_namespace, lineno)
     @data = BlockTag.new
   end
 end
 
 
 class SeeParser < BlockParser
-  def begin_block(type_resolver, lineno)
-    super(type_resolver, lineno)
+  def begin_block(type_namespace, lineno)
+    super(type_namespace, lineno)
     @data = SeeBlockTag.new
   end
 
@@ -475,7 +475,7 @@ class SeeParser < BlockParser
 	# HTML entry
       else
 	# 'link' entry
-	link = create_link(@type_resolver, @data.inlines.first, @lineno)
+	link = create_link(@type_namespace, @data.inlines.first, @lineno)
 	unless link.nil?
 	  @data.inlines[0] = link
 	end
@@ -486,14 +486,14 @@ end
 
 
 class OverloadParser < BlockParser
-  def begin_block(type_resolver, lineno)
-    super(type_resolver, lineno)
+  def begin_block(type_namespace, lineno)
+    super(type_namespace, lineno)
     @data = OverloadBlockTag.new
   end
 
   def end_block
     if @data.inlines.first =~ /\A\s*(#.*)/
-      link = create_link(@type_resolver, $1, @lineno)
+      link = create_link(@type_namespace, $1, @lineno)
       unless link.nil?
 	@data.inlines[0] = link
       end

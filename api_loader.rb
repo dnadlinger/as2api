@@ -135,20 +135,20 @@ class DocASHandler < ActionScript::Parse::ASHandler
 
   def start_class(dynamic, name, super_name, interfaces)
     @defined_type = ASClass.new(name)
-    @type_resolver = LocalTypeResolver.new(@defined_type)
+    @type_namespace = TypeLocalNamespace.new(@defined_type)
     if @doc_comment
       @defined_type.comment = parse_comment(@type_comment_config, @doc_comment)
     end
     @defined_type.dynamic = dynamic
     if super_name
-      @defined_type.extends = @type_resolver.resolve(super_name)
+      @defined_type.extends = @type_namespace.resolve(super_name)
     end
     if interfaces
       interfaces.each do |interface|
-        @defined_type.add_interface(@type_resolver.resolve(interface))
+        @defined_type.add_interface(@type_namespace.resolve(interface))
       end
     end
-    @defined_type.type_resolver = @type_resolver
+    @defined_type.type_namespace = @type_namespace
     @defined_type.import_list = @import_list
   end
 
@@ -159,14 +159,14 @@ class DocASHandler < ActionScript::Parse::ASHandler
 
   def start_interface(name, super_name)
     @defined_type = ASInterface.new(name)
-    @type_resolver = LocalTypeResolver.new(@defined_type)
+    @type_namespace = TypeLocalNamespace.new(@defined_type)
     if @doc_comment
       @defined_type.comment = parse_comment(@type_comment_config, @doc_comment)
     end
     if super_name
-      @defined_type.extends = @type_resolver.resolve(super_name)
+      @defined_type.extends = @type_namespace.resolve(super_name)
     end
-    @defined_type.type_resolver = @type_resolver
+    @defined_type.type_namespace = @type_namespace
     @defined_type.import_list = @import_list
   end
 
@@ -189,7 +189,7 @@ class DocASHandler < ActionScript::Parse::ASHandler
   def start_member_field(name, type)
     field = ASExplicitField.new(@defined_type, @last_modifier, name.body)
     unless type.nil?
-      field.field_type = @type_resolver.resolve(type)
+      field.field_type = @type_namespace.resolve(type)
     end
     if @doc_comment
       field.comment = parse_comment(@field_comment_config, @doc_comment)
@@ -218,12 +218,12 @@ class DocASHandler < ActionScript::Parse::ASHandler
   def create_method(name, sig)
     method = ASMethod.new(@defined_type, @last_modifier, name.body)
     if sig.return_type
-      method.return_type = @type_resolver.resolve(sig.return_type)
+      method.return_type = @type_namespace.resolve(sig.return_type)
     end
     sig.arguments.each do |arg|
       argument = ASArg.new(arg.name.body)
       if arg.type
-        argument.arg_type = @type_resolver.resolve(arg.type)
+        argument.arg_type = @type_namespace.resolve(arg.type)
       end
       method.add_arg(argument)
     end
@@ -266,7 +266,7 @@ class DocASHandler < ActionScript::Parse::ASHandler
     lexer = ActionScript::ParseDoc::DocCommentLexer.new(input)
     lexer.source = @source
     parser = ActionScript::ParseDoc::DocCommentParser.new(lexer)
-    handler = OurDocCommentHandler.new(comment_data, config, @type_resolver)
+    handler = OurDocCommentHandler.new(comment_data, config, @type_namespace)
     parser.handler = handler
 
     parser.parse_comment
@@ -357,12 +357,7 @@ end
 # Resolves type names to instances of TypeProxy for a particular compilation
 # unit (the same name could refer to different types in different compilation
 # units).
-class LocalTypeResolver
-  # TODO: This class actually implements a namespace, so maybe should be
-  #       renamed as such.  Also, in as much as the TypeProxy objects this
-  #       class supplies *aren't* resolved yet, this class is completely
-  #       mis-named.
-
+class TypeLocalNamespace
   def initialize(containing_type)
     @containing_type = containing_type
     @named_types = {}
@@ -451,8 +446,7 @@ class GlobalTypeAggregator
       local_namespace[type.unqualified_name] = type
       import_types_into_namespace(type, local_namespace)
       import_packages_into_namespace(type, local_namespace)
-      resolver = type.type_resolver
-      resolver.each do |type_proxy|
+      type.type_namespace.each do |type_proxy|
 	real_type = local_namespace[type_proxy.local_name]
 	unless real_type
 	  real_type = maybe_parse_external_definition(type_proxy)
