@@ -242,8 +242,8 @@ class CLI
     end
   end
 
-  def parse_all(files, classpath)
-    type_agregator = GlobalTypeAggregator.new(classpath)
+  def parse_all(files)
+    type_agregator = GlobalTypeAggregator.new
     @conf.progress_listener.parsing_sources(files.length) do
       files.each_with_index do |file, index|
 	@conf.progress_listener.parse_source(index, file)
@@ -265,11 +265,12 @@ class CLI
     @conf = parse_opts
     files = find_sources(@conf.classpath)
     error(_("No source files matching specified packages")) if files.empty?
-    type_agregator = parse_all(files, @conf.classpath)
+    type_agregator = parse_all(files)
     if @conf.xliff_import
       xliff_import(type_agregator)
     end
-    type_agregator.resolve_types
+    type_resolver = TypeResolver.new(@conf.classpath)
+    type_resolver.resolve_types(type_agregator)
     if @conf.xliff_export
       xliff_export(type_agregator)
     else

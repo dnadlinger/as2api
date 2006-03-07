@@ -395,11 +395,9 @@ class GlobalTypeAggregator
   # TODO: this structure sucks; responsibility for type resolution should be
   #       entirely seperate from aggregation, not shoe-horned into this class
 
-  def initialize(classpath)
-    @classpath = classpath
+  def initialize()
     @types = []
     @packages = {}
-    @parsed_external_types = {}
   end
 
   def add_type(type)
@@ -434,18 +432,29 @@ class GlobalTypeAggregator
     @packages.values
   end
 
-  def resolve_types
+  def package(name)
+    @packages[name]
+  end
+end
+
+class TypeResolver
+  def initialize(classpath)
+    @classpath = classpath
+    @parsed_external_types = {}
+  end
+
+  def resolve_types(type_aggregator)
     # Eeek!...
     qname_map = {}
     qname_map[AS_VOID.qualified_name] = AS_VOID
-    @types.each do |type|
+    type_aggregator.each_type do |type|
       qname_map[type.qualified_name] = type
     end
-    @types.each do |type|
+    type_aggregator.each_type do |type|
       local_namespace = qname_map.dup
       local_namespace[type.unqualified_name] = type
       import_types_into_namespace(type, local_namespace)
-      import_packages_into_namespace(type, local_namespace)
+      import_packages_into_namespace(type_aggregator, type, local_namespace)
       type.type_namespace.each do |type_proxy|
 	real_type = local_namespace[type_proxy.local_name]
 	unless real_type
@@ -474,9 +483,9 @@ class GlobalTypeAggregator
     end
   end
 
-  def import_packages_into_namespace(type, local_namespace)
+  def import_packages_into_namespace(type_aggregator, type, local_namespace)
     type.import_list.each_package do |package_name|
-      @packages[package_name.join(".")].each_type do |package_type|
+      type_aggregator.package(package_name.join(".")).each_type do|package_type|
 	if local_namespace.has_key?(package_type.unqualified_name)
 	  $stderr.puts "#{type.input_filename}: #{package_type.unqualified_name} already refers to #{local_namespace[package_type.unqualified_name].qualified_name}"
 	end
