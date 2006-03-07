@@ -119,7 +119,7 @@ class DocASHandler < ActionScript::Parse::ASHandler
   end
 
   def compilation_unit_start
-    @import_manager = ImportManager.new
+    @import_manager = ImportList.new
     @defined_type = nil
   end
 
@@ -281,9 +281,7 @@ end
 
 
 # Records the classes and packages imported into a compilation unit
-class ImportManager
-  # FIXME: 'Manager' code smell!  rename ImportList, or something clearer
-
+class ImportList
   def initialize
     @types = []
     @packages = []
