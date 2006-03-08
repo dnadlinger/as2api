@@ -804,23 +804,23 @@ class OverviewPage < BasicPage
   end
 
   def generate_body_content
-      html_h1(_("API Overview"))
-      html_table("class"=>"summary_list", "summary"=>"") do
-	html_caption(_("Packages"))
-	packages = @type_agregator.packages.sort
-	packages.each do |package|
-	  html_tr do
-      
-	    html_td do
-	      name = package_display_name_for(package)
-	      html_a(name, {"href"=>package_link_for(package, "package-summary.html")})
-	    end
-	    #html_td do
-	      # TODO: package description
-	    #end
+    html_h1(_("API Overview"))
+    html_table("class"=>"summary_list", "summary"=>"") do
+      html_caption(_("Packages"))
+      packages = @type_agregator.packages.sort
+      packages.each do |package|
+	html_tr do
+    
+	  html_td do
+	    name = package_display_name_for(package)
+	    html_a(name, {"href"=>package_link_for(package, "package-summary.html")})
 	  end
+	  #html_td do
+	    # TODO: package description
+	  #end
 	end
       end
+    end
   end
 end
 
