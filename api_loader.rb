@@ -36,10 +36,10 @@ def parse_file(file)
   File.open(File.join(file.prefix, file.suffix)) do |io|
     begin
       is_utf8 = detect_bom?(io)
-      type = simple_parse(io, file.suffix)
-      type.input_file = file
-      type.source_utf8 = is_utf8
-      return type
+      astype = simple_parse(io, file.suffix)
+      astype.input_file = file
+      astype.source_utf8 = is_utf8
+      return astype
     rescue =>e
       $stderr.puts "#{file.suffix}: #{e.message}\n#{e.backtrace.join("\n")}"
     end
@@ -186,10 +186,10 @@ class DocASHandler < ActionScript::Parse::ASHandler
     end
   end
 
-  def start_member_field(name, type)
+  def start_member_field(name, astype)
     field = ASExplicitField.new(@defined_type, @last_modifier, name.body)
-    unless type.nil?
-      field.field_type = @type_namespace.resolve(type)
+    unless astype.nil?
+      field.field_type = @type_namespace.resolve(astype)
     end
     if @doc_comment
       field.comment = parse_comment(@field_comment_config, @doc_comment)
@@ -369,18 +369,18 @@ class TypeLocalNamespace
       lineno = name.first.lineno
       name = name.join(".")
     end
-    type = @named_types[name]
-    if type.nil?
-      type = TypeProxy.new(@containing_type, name)
-      type.lineno = lineno
-      @named_types[name] = type
+    astype = @named_types[name]
+    if astype.nil?
+      astype = TypeProxy.new(@containing_type, name)
+      astype.lineno = lineno
+      @named_types[name] = astype
     end
-    type
+    astype
   end
 
   def each
-    @named_types.each_value do |type|
-      yield type
+    @named_types.each_value do |astype|
+      yield astype
     end
   end
 end
@@ -398,21 +398,21 @@ class GlobalTypeAggregator
     @packages = {}
   end
 
-  def add_type(type)
-    @types << type
-    package_name = type.package_name
+  def add_type(astype)
+    @types << astype
+    package_name = astype.package_name
     package = @packages[package_name]
     if package.nil?
       package = ASPackage.new(package_name)
       @packages[package_name] = package
     end
-    type.package = package
-    package.add_type(type)
+    astype.package = package
+    package.add_type(astype)
   end
 
   def each_type
-    @types.each do |type|
-      yield type
+    @types.each do |astype|
+      yield astype
     end
   end
 
@@ -456,28 +456,28 @@ class TypeResolver
   end
 
   def add_fully_qualified_types_to_namespace(ns, type_aggregator)
-    type_aggregator.each_type do |type|
-      ns[type.qualified_name] = type
+    type_aggregator.each_type do |astype|
+      ns[astype.qualified_name] = astype
     end
   end
 
-  def create_local_namespace(global_ns, type_aggregator, type)
+  def create_local_namespace(global_ns, type_aggregator, astype)
     ns = global_ns.dup
-    ns[type.unqualified_name] = type
-    import_types_into_namespace(type, ns)
-    import_packages_into_namespace(type_aggregator, type, ns)
+    ns[astype.unqualified_name] = astype
+    import_types_into_namespace(astype, ns)
+    import_packages_into_namespace(type_aggregator, astype, ns)
     ns
   end
 
   def resolve_each_type(global_ns, type_aggregator)
-    type_aggregator.each_type do |type|
-      local_ns = create_local_namespace(global_ns, type_aggregator, type)
-      resolve_type_proxies(local_ns, type)
+    type_aggregator.each_type do |astype|
+      local_ns = create_local_namespace(global_ns, type_aggregator, astype)
+      resolve_type_proxies(local_ns, astype)
     end
   end
 
-  def resolve_type_proxies(local_ns, type)
-    type.type_namespace.each do |type_proxy|
+  def resolve_type_proxies(local_ns, astype)
+    astype.type_namespace.each do |type_proxy|
       real_type = local_ns[type_proxy.local_name]
       unless real_type
 	real_type = maybe_parse_external_definition(type_proxy)
@@ -485,28 +485,28 @@ class TypeResolver
       if real_type
 	type_proxy.resolved_type = real_type
       else
-	$stderr.puts "#{type.input_filename}:#{type_proxy.lineno}: Found no definition of type known locally as #{type_proxy.local_name.inspect}"
+	$stderr.puts "#{astype.input_filename}:#{type_proxy.lineno}: Found no definition of type known locally as #{type_proxy.local_name.inspect}"
       end
     end
   end
 
-  def import_types_into_namespace(type, local_namespace)
-    type.import_list.each_type do |type_name|
+  def import_types_into_namespace(astype, local_namespace)
+    astype.import_list.each_type do |type_name|
       import_type = local_namespace[type_name.join(".")]
-      import_type = maybe_parse_external_definition(TypeProxy.new(type, type_name.join('.'))) unless import_type
+      import_type = maybe_parse_external_definition(TypeProxy.new(astype, type_name.join('.'))) unless import_type
       if import_type
 	local_namespace[type_name.last.body] = import_type
       else
-	$stderr.puts "#{type.input_filename}:#{type_name.first.lineno}: Couldn't resolve import of #{type_name.join(".").inspect}"
+	$stderr.puts "#{astype.input_filename}:#{type_name.first.lineno}: Couldn't resolve import of #{type_name.join(".").inspect}"
       end
     end
   end
 
-  def import_packages_into_namespace(type_aggregator, type, local_namespace)
-    type.import_list.each_package do |package_name|
+  def import_packages_into_namespace(type_aggregator, astype, local_namespace)
+    astype.import_list.each_package do |package_name|
       type_aggregator.package(package_name.join(".")).each_type do|package_type|
 	if local_namespace.has_key?(package_type.unqualified_name)
-	  $stderr.puts "#{type.input_filename}: #{package_type.unqualified_name} already refers to #{local_namespace[package_type.unqualified_name].qualified_name}"
+	  $stderr.puts "#{astype.input_filename}: #{package_type.unqualified_name} already refers to #{local_namespace[package_type.unqualified_name].qualified_name}"
 	end
 	local_namespace[package_type.unqualified_name] = package_type
       end

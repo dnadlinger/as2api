@@ -400,8 +400,8 @@ class ASPackage
 
   attr_accessor :name
   
-  def add_type(type)
-    @types << type
+  def add_type(astype)
+    @types << astype
   end
 
   def types
@@ -409,23 +409,23 @@ class ASPackage
   end
 
   def each_type
-    @types.each do |type|
-      yield type
+    @types.each do |astype|
+      yield astype
     end
   end
 
   def classes
     result = []
-    each_type do |type|
-      result << type if type.instance_of?(ASClass)
+    each_type do |astype|
+      result << astype if astype.instance_of?(ASClass)
     end
     result
   end
 
   def interfaces
     result = []
-    each_type do |type|
-      result << type if type.instance_of?(ASInterface)
+    each_type do |astype|
+      result << astype if astype.instance_of?(ASInterface)
     end
     result
   end
