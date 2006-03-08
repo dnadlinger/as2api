@@ -95,7 +95,6 @@ class TypePage < BasicPage
 	html_div("class"=>"interfaces") do
 	  html_h2(_("Implemented Interfaces"))
 	  @type.each_interface do |interface|
-	    # TODO: need to resolve interface name, make links
 	    html_code do
 	      link_type_proxy(interface)
 	    end
