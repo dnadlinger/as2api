@@ -324,6 +324,7 @@ end
 # types pulled into the compilation unit by 'import com.example.*')
 class TypeProxy
   # TODO: this should be in api_model.rb
+  # TODO: this should be called TypeRef
 
   def initialize(containing_type, name)
     @name = name
@@ -392,9 +393,6 @@ end
 # ActionScript has been parsed, resolving the real types that the collected
 # TypeProxy objects are standing in for.
 class GlobalTypeAggregator
-  # TODO: this structure sucks; responsibility for type resolution should be
-  #       entirely seperate from aggregation, not shoe-horned into this class
-
   def initialize()
     @types = []
     @packages = {}
@@ -444,32 +442,53 @@ class TypeResolver
   end
 
   def resolve_types(type_aggregator)
-    # Eeek!...
-    qname_map = {}
-    qname_map[AS_VOID.qualified_name] = AS_VOID
-    type_aggregator.each_type do |type|
-      qname_map[type.qualified_name] = type
-    end
-    type_aggregator.each_type do |type|
-      local_namespace = qname_map.dup
-      local_namespace[type.unqualified_name] = type
-      import_types_into_namespace(type, local_namespace)
-      import_packages_into_namespace(type_aggregator, type, local_namespace)
-      type.type_namespace.each do |type_proxy|
-	real_type = local_namespace[type_proxy.local_name]
-	unless real_type
-	  real_type = maybe_parse_external_definition(type_proxy)
-	end
-	if real_type
-	  type_proxy.resolved_type = real_type
-	else
-	  $stderr.puts "#{type.input_filename}:#{type_proxy.lineno}: Found no definition of type known locally as #{type_proxy.local_name.inspect}"
-	end
-      end
-    end
+    global_ns = create_default_global_namespace
+    add_fully_qualified_types_to_namespace(global_ns, type_aggregator)
+    resolve_each_type(global_ns, type_aggregator)
   end
 
   private
+
+  def create_default_global_namespace
+    ns = {}
+    ns[AS_VOID.qualified_name] = AS_VOID
+    ns
+  end
+
+  def add_fully_qualified_types_to_namespace(ns, type_aggregator)
+    type_aggregator.each_type do |type|
+      ns[type.qualified_name] = type
+    end
+  end
+
+  def create_local_namespace(global_ns, type_aggregator, type)
+    ns = global_ns.dup
+    ns[type.unqualified_name] = type
+    import_types_into_namespace(type, ns)
+    import_packages_into_namespace(type_aggregator, type, ns)
+    ns
+  end
+
+  def resolve_each_type(global_ns, type_aggregator)
+    type_aggregator.each_type do |type|
+      local_ns = create_local_namespace(global_ns, type_aggregator, type)
+      resolve_type_proxies(local_ns, type)
+    end
+  end
+
+  def resolve_type_proxies(local_ns, type)
+    type.type_namespace.each do |type_proxy|
+      real_type = local_ns[type_proxy.local_name]
+      unless real_type
+	real_type = maybe_parse_external_definition(type_proxy)
+      end
+      if real_type
+	type_proxy.resolved_type = real_type
+      else
+	$stderr.puts "#{type.input_filename}:#{type_proxy.lineno}: Found no definition of type known locally as #{type_proxy.local_name.inspect}"
+      end
+    end
+  end
 
   def import_types_into_namespace(type, local_namespace)
     type.import_list.each_type do |type_name|
