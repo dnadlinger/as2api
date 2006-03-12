@@ -51,6 +51,7 @@ class ASType
   attr_reader :input_file
 
   def add_method(method)
+    raise "nil not allowed" if method.nil?
     @methods << method
   end
 
