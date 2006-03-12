@@ -184,6 +184,10 @@ class ASClass < ASType
     end
   end
 
+  def interfaces
+    @interfaces.dup
+  end
+
   # like #each_interface, but then also reports each_interface of each_ancestor
   def each_implemented_interface
     each_interface do |interface|

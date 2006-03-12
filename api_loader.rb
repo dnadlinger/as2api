@@ -356,6 +356,10 @@ class TypeProxy
   def ==(o)
     name==o.name && containing_type==o.containing_type && resolved_type == o.resolved_type && lineno==o.lineno
   end
+
+  def inspect
+    "<#{self.class.name}:0x#{(object_id&0xffffffff).to_s(16)} @containing_type=#{@containing_type ? @containing_type.qualified_name : "nil"} @resolved_type=#{@resolved_type ? @resolved_type.qualified_name : "nil"} @lineno=#{@lineno.inspect}>"
+  end
 end
 
 
