@@ -308,9 +308,9 @@ end
 
 # creates a LinkTag inline
 def create_link(type_namespace, text, lineno)
-  if text =~ /^\s*([^\s]+(?:\([^\)]*\))?)\s*/
+  if text =~ /^\s*([^\s]+(?:\([^\)]*\))?)\s*(.+)?/m
     target = $1
-    text = $'
+    text = $2
     # TODO: need a MemberProxy (and maybe Method+Field subclasses) with similar
     #       role to TypeProxy, to simplify this, and output_doccomment_inlinetag
     if target =~ /([^#]*)#(.*)/
