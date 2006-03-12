@@ -37,6 +37,7 @@ Conf = Struct.new(:output_dir,
 		  :xliff_import,
 		  :xliff_export)
 
+# TODO: this is used by other files -- move elsewhere
 SourceFile = Struct.new(:prefix, :suffix)
 
 class PackageFilter
