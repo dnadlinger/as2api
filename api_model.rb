@@ -23,9 +23,9 @@
 class ASType
   # give this ASType the given name (an array of IdentifierToken values
   # found by the parser)
-  def initialize(name)
-    @package_name = name[0, name.length-1].join(".")
-    @name = name.last.body
+  def initialize(package_name, type_name)
+    @package_name = package_name  # name[0, name.length-1].join(".")
+    @name = type_name  #name.last.body
     @source_utf8 = false
     @methods = []
     @constructor = nil
@@ -101,7 +101,7 @@ class ASType
 
   # The whole type name, including package-prefix
   def qualified_name
-    if @package_name == ""
+    if @package_name.nil? || @package_name == ""
       @name
     else
       "#{@package_name}.#{@name}"
@@ -161,11 +161,11 @@ AS_VOID = ASVoidType.new
 # Classes are types that (just for the perposes of API docs) have fields, and
 # implement interfaces
 class ASClass < ASType
-  def initialize(name)
+  def initialize(package_name, class_name)
     @dynamic = false
     @interfaces = []
     @fields = []
-    super(name)
+    super(package_name, class_name)
   end
 
   attr_accessor :dynamic
@@ -234,8 +234,8 @@ end
 # ASInterface doesn't add anything to the superclass, it just affirms that
 # the API only supported by ASClass will not be available here
 class ASInterface < ASType
-  def initialize(name)
-    super(name)
+  def initialize(package_name, interface_name)
+    super(package_name, interface_name)
   end
 
   def implements_interfaces?

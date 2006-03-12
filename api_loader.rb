@@ -134,7 +134,9 @@ class DocASHandler < ActionScript::Parse::ASHandler
   end
 
   def start_class(dynamic, name, super_name, interfaces)
-    @defined_type = ASClass.new(name)
+    pkg_name = name[0, name.length-1].join(".")
+    cls_name = name.last.body
+    @defined_type = ASClass.new(pkg_name, cls_name)
     @type_namespace = TypeLocalNamespace.new(@defined_type)
     if @doc_comment
       @defined_type.comment = parse_comment(@type_comment_config, @doc_comment)
@@ -158,7 +160,9 @@ class DocASHandler < ActionScript::Parse::ASHandler
   end
 
   def start_interface(name, super_name)
-    @defined_type = ASInterface.new(name)
+    pkg_name = name[0, name.length-1].join(".")
+    int_name = name.last.body
+    @defined_type = ASInterface.new(pkg_name, int_name)
     @type_namespace = TypeLocalNamespace.new(@defined_type)
     if @doc_comment
       @defined_type.comment = parse_comment(@type_comment_config, @doc_comment)
