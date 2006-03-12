@@ -354,11 +354,16 @@ class TypeProxy
   end
 
   def ==(o)
-    name==o.name && containing_type==o.containing_type && resolved_type == o.resolved_type && lineno==o.lineno
+    # note that types are considered to be equal here if they have the same
+    # name; we don't recursively compare their whole subgraphs
+    name==o.name &&
+    ((containing_type.nil? && o.containing_type.nil? ) || (containing_type.qualified_name == o.containing_type.qualified_name)) &&
+    ((resolved_type.nil? && o.resolved_type.nil?) || (resolved_type.qualified_name == o.resolved_type.qualified_name)) &&
+    lineno==o.lineno
   end
 
   def inspect
-    "<#{self.class.name}:0x#{(object_id&0xffffffff).to_s(16)} @containing_type=#{@containing_type ? @containing_type.qualified_name : "nil"} @resolved_type=#{@resolved_type ? @resolved_type.qualified_name : "nil"} @lineno=#{@lineno.inspect}>"
+    "<#{self.class.name}:0x#{(object_id&0xffffffff).to_s(16)} @name=#{name.inspect} @containing_type=#{@containing_type ? @containing_type.qualified_name : "nil"} @resolved_type=#{@resolved_type ? @resolved_type.qualified_name : "nil"} @lineno=#{@lineno.inspect}>"
   end
 end
 
