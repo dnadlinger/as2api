@@ -70,6 +70,9 @@ class ASParser
         parse_import
       elsif lookahead?(LBracketToken)
 	eat_attribute
+      elsif lookahead?(SemicolonToken)
+        # eat missplaced semicolon
+        expect(SemicolonToken)
       else
 	break
       end
