@@ -1,0 +1,388 @@
+# Polish translation for as2api
+# Copyright (c) (c) 2006 Canonical Ltd, and Rosetta Contributors 2006
+# This file is distributed under the same license as the as2api package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2006.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: as2api\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2006-02-25 12:09+0000\n"
+"PO-Revision-Date: 2006-03-15 22:10+0000\n"
+"Last-Translator: David Holroyd <dave@badgers-in-foil.co.uk>\n"
+"Language-Team: Polish <pl@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ./output/html/html_framework.rb:247
+msgid "Class %s"
+msgstr "Class %s"
+
+#: ./output/html/html_framework.rb:249
+msgid "Interface %s"
+msgstr "Interface %s"
+
+#: ./output/html/html_framework.rb:332
+msgid "(Default)"
+msgstr "default"
+
+#: ./output/html/html_framework.rb:337
+msgid "Package %s"
+msgstr "Package %s"
+
+#: ./output/html/html_framework.rb:365
+msgid "ActionScript 2 API Documentation Generator"
+msgstr "ActionScript 2 API generator dokumentow"
+
+#: ./output/html/sources.rb:25
+msgid "Source code of %s"
+msgstr "Kod źródła %s"
+
+#: ./output/html/sources.rb:201 ./output/html/index.rb:158 ./output/html/core_pages.rb:157
+#: ./output/html/core_pages.rb:642 ./output/html/driver.rb:110
+msgid "Overview"
+msgstr "Przegląd"
+
+#: ./output/html/index.rb:37
+msgid " in package "
+msgstr " w package "
+
+#: ./output/html/index.rb:56
+msgid " method in "
+msgstr " method w "
+
+#: ./output/html/index.rb:64
+msgid " field in "
+msgstr " field w "
+
+#: ./output/html/index.rb:75
+msgid "Alpabetical index of types and members"
+msgstr "Spis alfabetyczny types i members"
+
+#: ./output/html/index.rb:121
+msgid "Alphabetical Index"
+msgstr "Spis Alfabetyczny"
+
+#: ./output/html/core_pages.rb:23
+msgid "Overview of %s"
+msgstr "Przegląd %s"
+
+#: ./output/html/core_pages.rb:25
+msgid "Overview of API"
+msgstr "Przegląd API"
+
+#: ./output/html/core_pages.rb:43
+msgid "Overview of package %s"
+msgstr "Przegląd package %s"
+
+#: ./output/html/core_pages.rb:64
+msgid "Detail of %s API"
+msgstr "Szczegol %s API"
+
+#: ./output/html/core_pages.rb:96
+msgid "Implemented Interfaces"
+msgstr "Implementowane Interfaces"
+
+#: ./output/html/core_pages.rb:110
+msgid "Description"
+msgstr "Opis"
+
+#: ./output/html/core_pages.rb:115 ./output/html/core_pages.rb:456
+msgid "See Also"
+msgstr "Sprawdź także"
+
+#: ./output/html/core_pages.rb:166 ./output/html/core_pages.rb:173
+msgid "Interface"
+msgstr "Interface"
+
+#: ./output/html/core_pages.rb:166 ./output/html/core_pages.rb:173 ./output/html/driver.rb:112
+msgid "Class"
+msgstr "Class"
+
+#: ./output/html/core_pages.rb:180
+msgid "Field Index"
+msgstr "Field Spis"
+
+#: ./output/html/core_pages.rb:186 ./output/html/core_pages.rb:235
+msgid "Inherited from "
+msgstr "wziete z "
+
+#: ./output/html/core_pages.rb:220
+msgid "Method Index"
+msgstr "Method Spis"
+
+#: ./output/html/core_pages.rb:269
+msgid "Constructor Detail"
+msgstr "Constructor szczegoly"
+
+#: ./output/html/core_pages.rb:276
+msgid "Field Detail"
+msgstr "Field szczegoly"
+
+#: ./output/html/core_pages.rb:304
+msgid "Method Detail"
+msgstr "Method szczegoly"
+
+#: ./output/html/core_pages.rb:350
+msgid "Description copied from "
+msgstr "Opis wziety z "
+
+#: ./output/html/core_pages.rb:401
+msgid "Parameters"
+msgstr "Parametry"
+
+#: ./output/html/core_pages.rb:421
+msgid "Variable length argument list"
+msgstr "Zmiennej dlugosci lista parametrow"
+
+#: ./output/html/core_pages.rb:432 ./output/html/diff.rb:155
+msgid "Return"
+msgstr "Return"
+
+#: ./output/html/core_pages.rb:440
+msgid "Throws"
+msgstr "Throws"
+
+#: ./output/html/core_pages.rb:467
+msgid "Specified By"
+msgstr "Okreslone przez"
+
+#: ./output/html/core_pages.rb:476
+msgid "Overrides"
+msgstr "Posiada wieksze znaczenie"
+
+#: ./output/html/core_pages.rb:567
+msgid "[Read Only]"
+msgstr "[Tylko do odczytu]"
+
+#: ./output/html/core_pages.rb:569
+msgid "[Write Only]"
+msgstr "Write Only"
+
+#: ./output/html/core_pages.rb:584
+msgid "%s API Documentation"
+msgstr "Dokumentacja %s API"
+
+#: ./output/html/core_pages.rb:597
+msgid "Interface Summary"
+msgstr "Podsumowanie Interface"
+
+#: ./output/html/core_pages.rb:617
+msgid "Class Summary"
+msgstr "Podsumowanie Class"
+
+#: ./output/html/core_pages.rb:658
+msgid "Class Inheritance Diagram"
+msgstr "Schemat Zaleznosci Class"
+
+#: ./output/html/core_pages.rb:678
+msgid "Interface Inheritance Diagram"
+msgstr "Schemat Zaleznosci Interface"
+
+#: ./output/html/core_pages.rb:790 ./output/html/core_pages.rb:794
+#: ./output/html/default_frameset.rb:65
+msgid "API Overview"
+msgstr "Przeglad API"
+
+#: ./output/html/core_pages.rb:796 ./output/html/default_frameset.rb:71
+msgid "Packages"
+msgstr "Packages"
+
+#: ./output/html/diff.rb:39 ./output/html/diff.rb:44
+msgid "API Change Overview"
+msgstr "Przeglad zmian API"
+
+#: ./output/html/diff.rb:47
+msgid "No changes"
+msgstr "Bez zmian"
+
+#: ./output/html/diff.rb:51
+msgid "Added Packages"
+msgstr "Dodatkowe Packages"
+
+#: ./output/html/diff.rb:57
+msgid "Modified Packages"
+msgstr "Zmienione Packeges"
+
+#: ./output/html/diff.rb:63
+msgid "Removed Packages"
+msgstr "Usuniete Packages"
+
+#: ./output/html/diff.rb:81
+msgid "Package %s API Change Overview"
+msgstr "Przeglad Zmian w Package %s API"
+
+#: ./output/html/diff.rb:88
+msgid "Added Types"
+msgstr "Dodatkowe Types"
+
+#: ./output/html/diff.rb:93
+msgid "Modified Types"
+msgstr "Zmodyfikowane Types"
+
+#: ./output/html/diff.rb:99
+msgid "Removed Types"
+msgstr "Usuniete Types"
+
+#: ./output/html/diff.rb:117
+msgid "%d API Change Overview"
+msgstr "Przeglad zmian w %d API"
+
+#: ./output/html/diff.rb:124
+msgid "Added Fields"
+msgstr "Dodatkowe Fields"
+
+#: ./output/html/diff.rb:128
+msgid "Modified Fields"
+msgstr "Zmodyfikowane Fields"
+
+#: ./output/html/diff.rb:135
+msgid "Field"
+msgstr "Field"
+
+#: ./output/html/diff.rb:140
+msgid "Removed Fields"
+msgstr "Usuniete Fields"
+
+#: ./output/html/diff.rb:144
+msgid "Added Methods"
+msgstr "Dodatkowe Methods"
+
+#: ./output/html/diff.rb:148
+msgid "Modified Methods"
+msgstr "Zmodyfikowane Methods"
+
+#: ./output/html/diff.rb:160
+msgid "Removed Methods"
+msgstr "Usunite Methods"
+
+#: ./output/html/diff.rb:167
+msgid "Visibility changed from "
+msgstr "Visibility zmieniona z "
+
+#: ./output/html/diff.rb:169 ./output/html/diff.rb:201 ./output/html/diff.rb:232
+msgid " to "
+msgstr " do "
+
+#: ./output/html/diff.rb:178
+msgid "Is now"
+msgstr "Jest teraz"
+
+#: ./output/html/diff.rb:180
+msgid "Is no longer"
+msgstr "Nie jest"
+
+#: ./output/html/diff.rb:192
+msgid "unspecified"
+msgstr "nieokreslony"
+
+#: ./output/html/diff.rb:199
+msgid " type changed from "
+msgstr " type zmieniony z "
+
+#: ./output/html/diff.rb:212
+msgid "Is now readable"
+msgstr "Jest teraz do odczytu"
+
+#: ./output/html/diff.rb:214
+msgid "Is no longer readable"
+msgstr "Nie jest do odczytu"
+
+#: ./output/html/diff.rb:219
+msgid "Is now writeable"
+msgstr "Jest teraz writeable"
+
+#: ./output/html/diff.rb:221
+msgid "Is no longer writeable"
+msgstr "Nie jest writable"
+
+#: ./output/html/diff.rb:230
+msgid "Argument list changed from "
+msgstr "Lista argumentow zmieniona z "
+
+#: ./output/html/default_frameset.rb:20
+msgid "%s API Naviation"
+msgstr "Nawigacja %s API"
+
+#: ./output/html/default_frameset.rb:32
+msgid "Interfaces"
+msgstr "Interfaces"
+
+#: ./output/html/default_frameset.rb:45
+msgid "Classes"
+msgstr "Classes"
+
+#: ./output/html/default_frameset.rb:75
+msgid "(All Types)"
+msgstr "(Wszystkie Typy)"
+
+#: ./output/html/default_frameset.rb:110
+msgid "All Types"
+msgstr "Wszystkie Typy"
+
+#: ./output/html/default_frameset.rb:154
+msgid "All Packages"
+msgstr "Wszystkie Packages"
+
+#: ./output/html/default_frameset.rb:157
+msgid "All types"
+msgstr "Wszystkie typy"
+
+#: ./output/html/default_frameset.rb:161
+msgid "Package and type descriptions"
+msgstr "Opisy package i type"
+
+#: ./output/html/default_frameset.rb:164
+msgid "Non-frameset overview page"
+msgstr "Non-frameset overview page"
+
+#: ./output/html/driver.rb:111
+msgid "Package"
+msgstr "Package"
+
+#: ./output/html/driver.rb:113
+msgid "Source"
+msgstr "Zrodlo"
+
+#: ./output/html/driver.rb:114
+msgid "Index"
+msgstr "Spis"
+
+#: ./ui/cli.rb:69
+msgid "Parsing %d source files:"
+msgstr "Analiza %d zrodla plikow"
+
+#: ./ui/cli.rb:81
+msgid "Generating %d HTML pages:"
+msgstr "Generowanie stron %d HTML"
+
+#: ./ui/cli.rb:161
+msgid "No packages specified"
+msgstr "Bez okraslonych packages"
+
+#: ./ui/cli.rb:203
+msgid "package %s will not be documented"
+msgstr "package %s nie zostana udekumentowane"
+
+#: ./ui/cli.rb:209
+msgid "%s contains no ActionScript files"
+msgstr "%s nie zawiera plikow ActionScript"
+
+#: ./ui/cli.rb:243
+msgid "No source files matching specified packages"
+msgstr "Bez zrodla plikow odpowiadajacych okraslonym paskages"
+
+#: ./ui/cli.rb:250
+msgid "No source files matching specified packages in oldrev-classpath"
+msgstr ""
+"Bez zrodla plikow odpowiadajacych okraslonym paskages w oldrev-classpath"
+
+#: ./ui/cli.rb:301
+msgid "error: %s"
+msgstr "blad: %s"
+
+#: ./ui/cli.rb:306
+msgid "warning: %s"
+msgstr "ostrzezenie: %s"

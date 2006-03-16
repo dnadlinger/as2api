@@ -125,7 +125,7 @@ dist-check: tgz
 	ruby -w as2api.rb --help > /dev/null
 	rm -r dist-check-tmp
 
-translations: data/locale/en/LC_MESSAGES/as2api.mo data/locale/i_piglatin/LC_MESSAGES/as2api.mo
+translations: data/locale/en/LC_MESSAGES/as2api.mo data/locale/i_piglatin/LC_MESSAGES/as2api.mo data/locale/pl/LC_MESSAGES/as2api.mo
 	
 
 po/as2api.pot:
@@ -142,4 +142,8 @@ data/locale/en/LC_MESSAGES/as2api.mo: po/en/as2api.po
 
 data/locale/i_piglatin/LC_MESSAGES/as2api.mo: po/i_piglatin/as2api.po
 	mkdir -p data/locale/i_piglatin/LC_MESSAGES
+	rmsgfmt $< -o $@
+
+data/locale/pl/LC_MESSAGES/as2api.mo: po/pl/as2api.po
+	mkdir -p data/locale/pl/LC_MESSAGES
 	rmsgfmt $< -o $@
