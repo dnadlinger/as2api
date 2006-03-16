@@ -9,7 +9,6 @@
 
 require 'output/html/html_framework'
 
-bindtextdomain("as2api")
 
 class PackageFramePage < Page
 

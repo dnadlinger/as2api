@@ -12,8 +12,7 @@ require 'set'
 require 'output/html/html_framework'
 
 
-bindtextdomain("as2api")
-
+GetText.bindtextdomain("as2api")
 
 class IndexTerm
   def <=>(other)

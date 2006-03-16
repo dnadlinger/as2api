@@ -11,7 +11,6 @@ require 'output/html/html_framework'
 require 'output/utils'
 require 'rexml/document'
 
-bindtextdomain("as2api")
 
 class OverviewNavLinkBuilder < NavLinkBuilder
   def href_on(page); page.base_path("overview-summary.html"); end

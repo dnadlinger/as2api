@@ -15,9 +15,8 @@ require 'xmlwriter'
 require 'xhtmlwriter'
 require 'output/xml/xml_formatter'
 
-include GetText
 
-bindtextdomain("as2api")
+GetText.bindtextdomain("as2api")
 
 PROJECT_PAGE = "http://www.badgers-in-foil.co.uk/projects/as2api/"
 
@@ -32,13 +31,24 @@ class NavLinkBuilder
   end
 
   def build_for_page(page)
-    NavLink.new(href_on(page), _(@content), title_on(page), is_current?(page))
+    NavLink.new(href_on(page), GetText.gettext(@content), title_on(page), is_current?(page))
+  end
+
+  def _(msg)
+    GetText.gettext(msg)
   end
 end
 
 
 class Page
   include XHTMLWriter
+
+  # forwards method call to GetText.  Defined here so that subclasses can use
+  # gettext-like _("foo") calls, but don't have to have every individual file
+  # call bindtextdomain
+  def _(msg)
+    GetText.gettext(msg)
+  end
 
   def initialize(base_name, path_name=nil)
     @path_name = path_name
@@ -76,17 +86,20 @@ class Page
     str.gsub(/-/, "_")
   end
 
-  def with_message_locale(locale)
+  def with_message_locale(locale, charset)
     if locale
       old_locale = Locale.get
       GetText.locale = locale
-      begin
-	yield
-      ensure
-	GetText.locale = old_locale
-      end
-    else
+    end
+    if charset
+      old_charset = Locale.charset
+      GetText.charset = charset
+    end
+    begin
       yield
+    ensure
+      GetText.locale = old_locale if locale
+      GetText.charset = old_charset if charset
     end
   end
 
@@ -120,7 +133,8 @@ class Page
       attrs["lang"] = lang
       attrs["xml:lang"] = lang
     end
-    with_message_locale(lang_to_gettext_locale(lang)) do
+    gettext_encoding = encoding || "ISO-8859-1"
+    with_message_locale(lang_to_gettext_locale(lang), gettext_encoding) do
       html_html(attrs) do
 	generate_head
 	generate_content

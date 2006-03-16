@@ -16,8 +16,6 @@ require 'output/html/quicknav'
 require 'output/html/default_css'
 
 
-bindtextdomain("as2api")
-
 def package_list(path_name, type_agregator)
   # REVISIT: Will a package list actually be useful for ActionScript, or can
   #          we always assume that any code that makes reference to a type
