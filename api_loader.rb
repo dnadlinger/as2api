@@ -378,6 +378,7 @@ class TypeLocalNamespace
   end
 
   def resolve(name, lineno=nil)
+    raise "invalid name #{name.inspect}" if name.nil?
     if name.is_a?(Array)
       lineno = name.first.lineno
       name = name.join(".")
@@ -517,7 +518,12 @@ class TypeResolver
 
   def import_packages_into_namespace(type_aggregator, astype, local_namespace)
     astype.import_list.each_package do |package_name|
-      type_aggregator.package(package_name.join(".")).each_type do|package_type|
+      pkg = type_aggregator.package(package_name.join("."))
+      unless pkg
+	$stderr.puts "#{astype.input_filename}:#{package_name.first.lineno}: couldn't find package #{package_name.join(".").inspect}"
+	next
+      end
+      pkg.each_type do|package_type|
 	if local_namespace.has_key?(package_type.unqualified_name)
 	  $stderr.puts "#{astype.input_filename}: #{package_type.unqualified_name} already refers to #{local_namespace[package_type.unqualified_name].qualified_name}"
 	end
