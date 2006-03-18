@@ -18,6 +18,24 @@
 #       to insulate the documentation-generating subsystem from those details
 
 
+# Describes what level of access a type alloes to one of its members
+class ASAccess
+  def initialize(visibility, static)
+    @visibility = visibility
+    @static = static
+  end
+
+  attr_accessor :visibility
+
+  def static?; @static; end
+  def private?; @visibility==:private; end
+  attr_writer :static
+
+  def ==(o)
+    static? == o.static? && visibility == o.visibility
+  end
+end
+
 # Superclass for ASClass and ASInterface, one instance of an ASType subclass
 # is created per compilation unit successfully parsed
 class ASType

@@ -231,11 +231,11 @@ class Page
 
   def signature_for_method(method)
     sig = ""
-    if method.access.is_static
+    if method.access.static?
       sig << "static "
     end
     unless method.access.visibility.nil?
-      sig << "#{method.access.visibility.body} "
+      sig << "#{method.access.visibility} "
     end
     sig << "function "
     sig << method.name
@@ -289,11 +289,11 @@ class Page
 
   def signature_for_field(field)
     sig = ""
-    if field.access.is_static
+    if field.access.static?
       sig << "static "
     end
     unless field.access.visibility.nil?
-      sig << "#{field.access.visibility.body} "
+      sig << "#{field.access.visibility} "
     end
     sig << field.name
     if field.field_type

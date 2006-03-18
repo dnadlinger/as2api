@@ -175,7 +175,15 @@ class DocASHandler < ActionScript::Parse::ASHandler
   end
 
   def access_modifier(modifier)
-    @last_modifier = modifier
+    vis = case modifier.visibility
+      when ActionScript::Parse::PublicToken
+	:public
+      when ActionScript::Parse::PrivateToken
+	:private
+      else
+	raise "unhandled visibility #{modifier.visibility.body.inspect}"
+    end
+    @last_modifier = ASAccess.new(vis, modifier.is_static)
   end
 
   def show_modifier

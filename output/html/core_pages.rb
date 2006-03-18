@@ -504,11 +504,11 @@ class TypePage < BasicPage
 
   def method_synopsis(method)
     html_code("class"=>"method_synopsis") do
-      if method.access.is_static
+      if method.access.static?
 	pcdata("static ")
       end
       unless method.access.visibility.nil?
-	pcdata("#{method.access.visibility.body} ")
+	pcdata("#{method.access.visibility} ")
       end
       pcdata("function ")
       html_strong("class"=>"method_name") do
@@ -542,11 +542,11 @@ class TypePage < BasicPage
   end
 
   def explicit_field_synopsis(field)
-    if field.access.is_static
+    if field.access.static?
       pcdata("static ")
     end
     unless field.access.visibility.nil?
-      pcdata("#{field.access.visibility.body} ")
+      pcdata("#{field.access.visibility} ")
     end
     html_strong("class"=>"field_name") do
       pcdata(field.name)
@@ -558,11 +558,11 @@ class TypePage < BasicPage
   end
 
   def implicit_field_synopsis(field)
-    if field.access.is_static
+    if field.access.static?
       pcdata("static ")
     end
     unless field.access.visibility.nil?
-      pcdata("#{field.access.visibility.body} ")
+      pcdata("#{field.access.visibility} ")
     end
     html_strong("class"=>"field_name") do
       pcdata(field.name)
