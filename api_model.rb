@@ -9,7 +9,7 @@
 
 # These classes represent the data-model upon which as2api operates.  The
 # class names are all prefixed with 'AS' becase many would otherwise clash
-# with Ruby's inbuild classes with the same name.
+# with Ruby's inbuilt classes with the same name.
 
 
 # TODO: The interfaces to these classes still, in places, make direct use of
@@ -18,7 +18,7 @@
 #       to insulate the documentation-generating subsystem from those details
 
 
-# Describes what level of access a type alloes to one of its members
+# Describes what level of access a type allows to one of its members
 class ASAccess
   def initialize(visibility, static)
     @visibility = visibility
