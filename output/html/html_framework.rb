@@ -334,7 +334,11 @@ class Page
   end
 
   def package_dir_for(package)
-    package.name.gsub(/\./, "/")
+    if package.name
+      package.name.gsub(/\./, "/")
+    else
+      ""
+    end
   end
 
   def package_link_for(package, page)
@@ -343,7 +347,7 @@ class Page
   end
 
   def package_display_name_for(package)
-    return _("(Default)") if package.name == ""
+    return _("(Default)") if package.name.nil? || package.name == ""
     package.name
   end
 
