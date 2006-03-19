@@ -180,8 +180,10 @@ class DocASHandler < ActionScript::Parse::ASHandler
 	:public
       when ActionScript::Parse::PrivateToken
 	:private
+      when nil
+	nil
       else
-	raise "unhandled visibility #{modifier.visibility.body.inspect}"
+	raise "unhandled visibility #{modifier.visibility.inspect}"
     end
     @last_modifier = ASAccess.new(vis, modifier.is_static)
   end
