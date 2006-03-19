@@ -13,7 +13,9 @@ require 'documenter'
 require 'getoptlong'
 require 'set'
 require 'output/html/driver'
+require 'api_diff'
 require 'output/html/diff'
+require 'output/diff/api_dump'
 require 'localisation/xliff/driver.rb'
 require 'localisation/xliff/translation_loader.rb'
 
@@ -23,7 +25,14 @@ bindtextdomain("as2api")
 
 Conf = Struct.new(:output_dir,
                   :classpath,
-                  :oldrev_classpath,
+                  :api_export,
+                  :api_name,
+                  :api_version,
+		  :diff_load_old,
+		  :diff_load_new,
+		  :diff_url_old,
+		  :diff_url_new,
+		  :do_diff,
 		  :package_filters,
 		  :title,
 		  :progress_listener,
@@ -111,7 +120,13 @@ class CLI
       [ "--help",       "-h", GetoptLong::NO_ARGUMENT ],
       [ "--output-dir", "-d", GetoptLong::REQUIRED_ARGUMENT ],
       [ "--classpath",        GetoptLong::REQUIRED_ARGUMENT ],
-      [ "--oldrev-classpath", GetoptLong::REQUIRED_ARGUMENT ],
+      [ "--api-export",       GetoptLong::NO_ARGUMENT ],
+      [ "--api-name",         GetoptLong::REQUIRED_ARGUMENT ],
+      [ "--api-version",      GetoptLong::REQUIRED_ARGUMENT ],
+      [ "--diff-load-old",    GetoptLong::REQUIRED_ARGUMENT ],
+      [ "--diff-load-new",    GetoptLong::REQUIRED_ARGUMENT ],
+      [ "--diff-url-old",     GetoptLong::REQUIRED_ARGUMENT ],
+      [ "--diff-url-new",     GetoptLong::REQUIRED_ARGUMENT ],
       [ "--title",            GetoptLong::REQUIRED_ARGUMENT ],
       [ "--progress",         GetoptLong::NO_ARGUMENT ],
       [ "--encoding",         GetoptLong::REQUIRED_ARGUMENT ],
@@ -127,7 +142,6 @@ class CLI
 
     conf = Conf.new
     conf.classpath = []
-    conf.oldrev_classpath = []
     conf.package_filters = []
     conf.draw_diagrams = false
     conf.dot_exe = "dot"  #  i.e. assume 'dot' is in our PATH
@@ -138,8 +152,20 @@ class CLI
 	  conf.output_dir = File.expand_path(arg)
 	when "--classpath"
 	  conf.classpath.concat(arg.split(File::PATH_SEPARATOR))
-	when "--oldrev-classpath"
-	  conf.oldrev_classpath.concat(arg.split(File::PATH_SEPARATOR))
+	when "--api-export"
+	  conf.api_export = true
+	when "--api-name"
+	  conf.api_name = arg
+	when "--api-version"
+	  conf.api_version = arg
+	when "--diff-load-old"
+	  conf.diff_load_old = arg
+	when "--diff-load-new"
+	  conf.diff_load_new = arg
+	when "--diff-url-old"
+	  conf.diff_url_old = arg
+	when "--diff-url-new"
+	  conf.diff_url_new = arg
 	when "--title"
 	  conf.title = arg
 	when "--help"
@@ -167,15 +193,23 @@ class CLI
 	  conf.xliff_export = arg
       end
     end
-    if ARGV.empty?
-      usage
-      error(_("No packages specified"))
-    end
     if conf.xliff_import && conf.xliff_export
       error(_("Options can't be used together: %s") % "--xliff-import --xliff-export")
     end
     if conf.xliff_export && (conf.source_lang.nil? || conf.target_lang.nil?)
       error(_("Both --source-lang and --target-lang must be provided with --xliff-export"))
+    end
+    if conf.api_export && (conf.api_name.nil? || conf.api_version.nil?)
+      error(_("Both --api-name and --api-version must be provided with --api-export"))
+    end
+    if conf.diff_load_old.nil? != conf.diff_load_new.nil?
+      error(_("--diff-load-old and --diff-load-new must appear together"))
+    elsif conf.diff_load_old && conf.diff_load_new
+      conf.do_diff = true
+    end
+    if ARGV.empty? && !conf.do_diff
+      usage
+      error(_("No packages specified"))
     end
     ARGV.each do |package_spec|
       conf.package_filters << to_filter(package_spec)
@@ -262,32 +296,46 @@ class CLI
     generate_xliff(@conf, type_aggregator)
   end
 
+  def api_export(type_aggregator)
+    generate_api_dump(@conf, type_aggregator)
+  end
+
+  def do_api_diff
+puts "Loading old API..."
+    old_type_agregator, old_api_name, old_api_version = load_api_dump(@conf.diff_load_old)
+puts "Loading new API..."
+    new_type_agregator, new_api_name, new_api_version = load_api_dump(@conf.diff_load_new)
+    if old_api_name != new_api_name
+      warn(_("API names differ: #{old_api_name.inspect} #{new_api_name.inspect}"))
+    end
+    diff = APIDiff.new
+puts "Calculating API changes..."
+    api_changes = diff.diff(old_type_agregator, new_type_agregator)
+
+    generate_diffs(@conf, api_changes)
+  end
+
   def main
     @conf = parse_opts
-    files = find_sources(@conf.classpath)
-    error(_("No source files matching specified packages")) if files.empty?
-    type_agregator = parse_all(files)
-    if @conf.xliff_import
-      xliff_import(type_agregator)
-    end
-    type_resolver = TypeResolver.new(@conf.classpath)
-    type_resolver.resolve_types(type_agregator)
-    if @conf.xliff_export
-      xliff_export(type_agregator)
+    if @conf.do_diff
+      do_api_diff
     else
-      document_types(@conf, type_agregator)
-    end
-
-    # TODO: remove this hackery
-    unless @conf.oldrev_classpath.empty?
-      old_files = find_sources(@conf.oldrev_classpath)
-      error(_("No source files matching specified packages in oldrev-classpath")) if old_files.empty?
-      old_type_agregator = parse_all(old_files, @conf.oldrev_classpath)
-      old_type_agregator.resolve_types
-      diff = APIDiff.new
-      api_changes = diff.diff(old_type_agregator, type_agregator)
-
-      generate_diffs(@conf, api_changes)
+      files = find_sources(@conf.classpath)
+      error(_("No source files matching specified packages")) if files.empty?
+      type_agregator = parse_all(files)
+      if @conf.xliff_import
+	xliff_import(type_agregator)
+      end
+      type_resolver = TypeResolver.new(@conf.classpath)
+      type_resolver.resolve_types(type_agregator)
+      if @conf.api_export
+	api_export(type_agregator)
+      end
+      if @conf.xliff_export
+	xliff_export(type_agregator)
+      else
+	document_types(@conf, type_agregator)
+      end
     end
   end
 
