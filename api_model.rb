@@ -58,7 +58,7 @@ class ASType
   attr_accessor :package, :extends, :comment, :source_utf8, :type_namespace, :import_list, :intrinsic, :constructor
 
   def input_filename
-    @input_file.suffix
+    @input_file && @input_file.suffix
   end
 
   def input_file=(file)
