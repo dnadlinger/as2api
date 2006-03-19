@@ -57,7 +57,7 @@ class DiffOverviewPage < BasicDiffPage
     summary_table(@api_changes.modified_packages, _("Modified Packages")) do |as_package|
       name = package_display_name_for(as_package)
       href = package_link_for(as_package, "change-summary.html")
-      html_a(name, {"href", href})
+      html_a(name, {"href"=>href})
     end
 
     summary_table(@api_changes.removed_packages, _("Removed Packages")) do |as_package|
@@ -112,9 +112,14 @@ end
 
 class TypeDiffPage < BasicDiffPage
   def initialize(conf, type_changes)
-    dir = File.join("changes", type_changes.new_type.package_name.gsub(/\./, "/"))
+    if type_changes.new_type.package_name
+      dir = File.join("changes", type_changes.new_type.package_name.gsub(/\./, File::SEPARATOR))
+    else
+      dir = "changes"
+    end
+
     super(conf, type_changes.new_type.unqualified_name, dir)
-    @title = _("%d API Change Overview") % type_changes.new_type.unqualified_name
+    @title = _("%s API Change Overview") % type_changes.new_type.unqualified_name
     @type_changes = type_changes
   end
 
@@ -165,9 +170,9 @@ class TypeDiffPage < BasicDiffPage
   def generate_visibility_change(field_changes)
     if field_changes.visibility_change
       pcdata(_("Visibility changed from "))
-      html_code(field_changes.visibility_change.old_vis)
+      html_code(field_changes.visibility_change.old_vis.to_s)
       pcdata(_(" to "))
-      html_code(field_changes.visibility_change.new_vis)
+      html_code(field_changes.visibility_change.new_vis.to_s)
       pcdata(". ")
     end
   end
@@ -262,6 +267,11 @@ class TypeDiffPage < BasicDiffPage
   end
 end
 
+def build_navigation
+  elements = []
+  # TODO
+  elements
+end
 
 def make_diff_pages(conf, api_changes)
   list = []
@@ -277,6 +287,9 @@ def make_diff_pages(conf, api_changes)
       end
     end
   end
+
+  nav = build_navigation
+  list.each { |page| page.navigation = nav if page.is_a?(BasicPage) }
 
   list
 end
