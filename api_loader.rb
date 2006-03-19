@@ -410,10 +410,6 @@ end
 
 # Collects types that are produced by parsing compilation units, building the
 # package list as types from different packages are added.
-#
-# #resolve_types can be used to resolve inter-type references after all the
-# ActionScript has been parsed, resolving the real types that the collected
-# TypeProxy objects are standing in for.
 class GlobalTypeAggregator
   def initialize()
     @types = []
@@ -457,6 +453,14 @@ class GlobalTypeAggregator
   end
 end
 
+
+# Utility for resolving the TypeProxy objects created within each ASType of
+# a GlobalTypeAggregator.
+#
+# Once all types to be documented have been parsed, this class resolves the
+# inter-type references that the TypeProxy objects represent, possibly loading
+# and parsing further ActionScript files from the classpath as type-resolution
+# requires.
 class TypeResolver
   def initialize(classpath)
     @classpath = classpath
