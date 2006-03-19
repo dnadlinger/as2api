@@ -108,15 +108,13 @@ class APIDiff
 
   def diff_access(old_access, new_access)
     visibility_change = diff_visibility(old_access.visibility, new_access.visibility)
-    static_change = diff_static(old_access.is_static, new_access.is_static)
+    static_change = diff_static(old_access.static?, new_access.static?)
     [visibility_change, static_change]
   end
 
   def diff_visibility(old_visibility, new_visibility)
-    old_vis = old_visibility.body
-    new_vis = new_visibility.body
-    if old_vis != new_vis
-      VisibilityChange.new(old_vis, new_vis)
+    if old_visibility != new_visibility
+      VisibilityChange.new(old_visibility, new_visibility)
     else
       nil
     end
@@ -143,12 +141,12 @@ class APIDiff
     if old_type.nil?
       old_type_name = nil
     else
-      old_type_name = old_type.resolved_type.qualified_name
+      old_type_name = old_type.resolved? ? old_type.resolved_type.qualified_name : old_type.local_name
     end
     if new_type.nil?
       new_type_name = nil
     else
-      new_type_name = new_type.resolved_type.qualified_name
+      new_type_name = new_type.resolved? ? new_type.resolved_type.qualified_name : new_type.local_name
     end
     if old_type_name != new_type_name
       TypeSigChange.new(old_type_name, new_type_name)
@@ -167,7 +165,7 @@ class APIDiff
 
   def arg_type_name(arg_type)
     return nil if arg_type.nil?
-    arg_type.resolved_type.qualified_name
+    arg_type.resolved? ? arg_type.resolved_type.qualified_name : arg_type.local_name
   end
 
   def diff_args(old_args, new_args)
