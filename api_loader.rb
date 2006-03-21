@@ -547,7 +547,7 @@ class TypeResolver
   end
 
   def classname_to_filename(qualified_class_name)
-    return qualified_class_name.sub(/\./, File::SEPARATOR) + ".as"
+    return qualified_class_name.gsub(/\./, File::SEPARATOR) + ".as"
   end
 
   def search_classpath_for(qualified_class_name)
