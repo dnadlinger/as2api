@@ -7,7 +7,7 @@
   <!ATTLIST titleabbrev id ID #IMPLIED>
 ]>
 
-<?xml-stylesheet href="/home/dave/projects/docbook/css/xml/docbook/driver.css"
+<?xml-stylesheet href="/home/dave/projects/css/xml/docbook/driver.css"
                  type="text/css"?>
 
 
@@ -70,7 +70,17 @@
 	  <arg>--draw-diagrams</arg>
 	  <arg>--dot-exe <replaceable>executable-path-and-name</replaceable></arg>
 	  <arg>--sources</arg>
+	  <arg>--api-export</arg>
+	  <arg>--api-name <replaceable>text</replaceable></arg>
+	  <arg>--api-version <replaceable>text</replaceable></arg>
 	  <arg rep="repeat" choice="plain"><replaceable>package-spec</replaceable></arg>
+	</cmdsynopsis>
+	<cmdsynopsis>
+	  <command>as2api</command>
+	  <arg choice="plain">--diff-load-old <replaceable>file.xml</replaceable></arg>
+	  <arg choice="plain">--diff-load-new <replaceable>file.xml</replaceable></arg>
+	  <arg>--diff-url-old <replaceable>DocsURL</replaceable></arg>
+	  <arg>--diff-url-new <replaceable>DocsURL</replaceable></arg>
 	</cmdsynopsis>
       </refsynopsisdiv>
 
@@ -215,6 +225,49 @@
 	      <para>Enables the inclusion of a copy of the source code of each
 	      documented type in the generated HTML.  The source will be
 	      converted to an HTML file with 'syntax highlighting'.</para>
+	    </listitem>
+	  </varlistentry>
+
+	  <varlistentry>
+	    <term><option>--api-export</option></term>
+	    <listitem>
+	      <para>Causes as2api to export the API description as a single
+	      XML document, rather than the normal set of HTML files.  This
+	      file is for use with the <option>--diff-load-old</option> and
+	      <option>--diff-load-new</option> options.</para>
+	      <para>If this option is used, the <option>--api-name</option> and
+	      <option>--api-version</option> options become mandatory, and
+	      their values are used to determine the name of the XML file that
+	      will be produced.</para>
+	    </listitem>
+	  </varlistentry>
+
+	  <varlistentry>
+	    <term><option>--api-name <replaceable>text</replaceable></option></term>
+	    <listitem>
+	      <para>A short name for the ActionScript API being
+	      processed.</para>
+	    </listitem>
+	  </varlistentry>
+
+	  <varlistentry>
+	    <term><option>--api-version <replaceable>text</replaceable></option></term>
+	    <listitem>
+	      <para>A value identifting the version of the API being processed,
+	      to differentiate it from other versions of the same API.  This
+	      free-form value may be a version number, release date, CVS tag,
+	      etc.</para>
+	    </listitem>
+	  </varlistentry>
+
+	  <varlistentry>
+	    <term><option>--diff-load-old <replaceable>oldfile.xml</replaceable></option> / <option>--diff-load-new <replaceable>newfile.xml</replaceable></option></term>
+	    <listitem>
+	      <para>When this pair of options are supplied, as2api doesn't
+	      generate any API documentation, instead, the two versions of the
+	      API described by <replaceable>oldfile.xml</replaceable> and
+	      <replaceable>newfile.xml</replaceable> are examined, and a
+	      report is produced describing how the API has changed.</para>
 	    </listitem>
 	  </varlistentry>
 	</variablelist>
@@ -853,4 +906,65 @@ public function element(name:String,
     </section>
   </section>
 
+  <section>
+    <title>Advanced Usage</title>
+
+    <section>
+      <title>API 'Diffs'</title>
+
+      <para>This feature of as2api is inspired by the
+      <ulink url="http://www.jdiff.org/">JDiff</ulink> tool for JavaDoc.</para>
+
+      <para>as2api has a special mode of operation in which it doesn't document
+      an API, but rather it documents the differences between two versions of
+      the same API.</para>
+
+      <para>These reports allow the user's of an API to focus attention on the
+      important features when learning about a new release.  They could also
+      be used by the API developer to check for backwards-incompatable
+      changes.</para>
+
+      <para>Since parsing ActionScript code is a somewhat expensive operation,
+      as2api doesn't use the original code as the basis for comparison.
+      Instead, it first dumps a description of the API to an XML file, and
+      then given two dump-files, it can report the differences between
+      them.</para>
+
+      <para>As an example, we will generate a report of the differences between
+      the core classes in Flash 7 and Flash 8.</para>
+
+      <example>
+	<title>Generating API Dump Files</title>
+
+	<para>Dump the Flash 7 API description to a file called
+	<filename>flash_core_classes-7.xml</filename>,</para>
+
+	<screen>as2api --api-export \
+	--classpath examples/flash8/FP7 \
+	--api-name "Flash Core Classes" \
+	--api-version 7 \
+	"(default)" "System" "TextField"</screen>
+
+	<para>Dump the Flash 8 API description to a file called
+	<filename>flash_core_classes-8.xml</filename>,</para>
+
+	<screen>as2api --api-export \
+	--classpath examples/flash8/FP8 \
+	--api-name "Flash Core Classes" \
+	--api-version 8 \
+	"(default)" "System" "TextField" "flash.*"</screen>
+      </example> 
+
+      <para>With two API dump files, we are now in a position to generate the
+      report describing the changes.</para>
+
+      <example>
+	<title>Generating an API-Change Report</title>
+
+	<para>Creates a report starting at <filename>apidoc/changes/change-summary.html</filename></para>
+	<screen>as2api --diff-load-old flash_core_classes-7.xml \
+	--diff-load-new flash_core_classes-8.xml</screen>
+      </example>
+    </section>
+  </section>
 </article>
