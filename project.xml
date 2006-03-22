@@ -33,15 +33,13 @@
   </longdesc>
 
   <status>
-    <para>If you already know JavaDoc, lots of stuff will work as expected.
-    Still to be done:</para>
-    <itemizedlist>
-      <listitem><para>Support more of the estandard JavaDoc
-      tags</para></listitem>
-      <listitem><para>Automatically pull any package.html contents into
-      package-summary page</para></listitem>
-      <listitem><para>Localisation</para></listitem>
-    </itemizedlist>
+    <para>If you already know JavaDoc, lots of stuff will work as
+    expected.</para>
+    <para>See the specifications of
+    <ulink url="https://launchpad.net/products/as2api/+specs">features that
+    could be implemented</ulink> in future releases, and the
+    <ulink url="https://launchpad.net/products/as2api/+bugs">bugs in the
+    current version</ulink>.</para>
   </status>
 
   <section>
