@@ -38,8 +38,11 @@ sit_name = ${osx_dist_dir}.sit
 
 dist: tgz zip sit
 
-web-dist: tgz zip sit
-	mkdir -p projects/as2api/releases
+projects/as2api:
+	mkdir -p projects/as2api
+
+web-dist: tgz zip sit projects/as2api projects/as2api/index.html projects/as2api/biff.css
+	mkdir projects/as2api/releases
 	#cp ${tgz_name} ${zip_name} ${sit_name} projects/as2api/releases
 	cp ${tgz_name} projects/as2api/releases
 	mkdir -p projects/as2api/examples
@@ -59,8 +62,12 @@ web-dist: tgz zip sit
 		  --encoding utf-8 \
 		  --title "Oregano Client 1.2.0 beta3" \
 		  org.omus.*
-	cd projects/as2api && xsltproc ../../../www/project_page.xsl ../../project.xml > index.html
-	cp ../www/bif.css projects/as2api
+
+projects/as2api/index.html: projects/as2api project.xml
+	xsltproc ../www/project_page.xsl project.xml > $@
+	
+projects/as2api/bif.css: ../www/bif.css
+	cp $< $@
 
 tgz: docs
 	mkdir -p ${dist_dir}
