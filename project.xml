@@ -216,6 +216,14 @@
     </list>
   </mailinglists>
 
+  <section>
+    <title>Bugs</title>
+
+    <para>Please report bugs to the above mailing list, or use the project's
+    <ulink url="https://launchpad.net/products/as2api/+addticket">support
+    request<alt>Make a support request against as2api on launchpad.net</alt></ulink> page (registration required).</para>
+  </section>
+
   <related>
     <relation kind="Other ActionScript 2 API documentation generators">
       <relatedproject name="AS2docGenerator">
