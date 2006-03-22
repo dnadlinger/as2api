@@ -1,0 +1,36 @@
+
+  as2api
+  http://www.badgers-in-foil.co.uk/projects/as2api/
+
+  Copyright (c) 2006 David Holroyd
+
+
+as2api is an API documentation generator tool for ActionScript 2, implemented
+in Ruby (http://www.ruby-lang.org/).
+
+If you have Ruby installed, you can run as2api on the command line by entering,
+
+  ruby as2api.rb
+
+Which should case the script to show a message explaining the available command
+line options.
+
+
+If you would like to contribute to the project, the source code can be obtained
+from the Subversion repository here,
+
+  http://svn.badgers-in-foil.co.uk/as2api/trunk/
+
+Development of the project is discussed on the mailing list described here,
+
+  http://lists.badgers-in-foil.co.uk/mailman/listinfo/as2api-dev
+
+A web interface for submitting bug reports and feature requests can be found
+over here,
+
+  https://launchpad.net/products/as2api/
+
+
+
+If you would like to contribute code, please submit patches, and remember to
+add your name to the Copyright lines at the top of this file.
