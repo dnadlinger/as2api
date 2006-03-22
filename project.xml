@@ -198,12 +198,11 @@
   <section>
     <title>Code</title>
 
-    <para>The code is viewable at,</para>
+    <para>To obtain a copy of the latest code, use the
+    <ulink url="http://subversion.tigris.org/">Subversion<alt>The Subversion version control system</alt></ulink>
+    repository at the URL:</para>
 
     <para><literal>http://svn.badgers-in-foil.co.uk/viewcvs.cgi/as2api/trunk/as2api/</literal></para>
-
-    <para>(Not linked, to avoid ViewCVS straining the server, but feel free to
-    cut'n'paste'n'browse around.)</para>
   </section>
 
   <mailinglists>
