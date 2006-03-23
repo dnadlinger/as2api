@@ -938,6 +938,8 @@ public function element(name:String,
  * Blah method could be called with an Integer or
  * a String argument.
  *
+ * @param ... values to be written
+ *
  * <emphasis role="strong">@overload #writeInteger()</emphasis>
  * <emphasis role="strong">@overload #writeString()</emphasis>
  */
