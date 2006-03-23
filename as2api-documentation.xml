@@ -551,6 +551,30 @@ public function setName(name:String):Void {
       </section>
 
       <section>
+	<title>Supported Non-Standard-JavaDoc Features</title>
+
+	<informaltable>
+	  <tgroup cols="2">
+	    <colspec colnum="1" colname="col1" colwidth="1*"/>
+	    <colspec colnum="2" colname="col2" colwidth="3*"/>
+	    <thead>
+	      <row>
+		<entry>Feature</entry>
+		<entry>Description</entry>
+	      </row>
+	    </thead>
+	    <tbody>
+	      <row>
+		<entry><link linkend="overload_tag">@overload</link></entry>
+		<entry>Describe 'overloaded' methods (by pointing to a method
+		that this one delegates to)</entry>
+	      </row>
+	    </tbody>
+	  </tgroup>
+	</informaltable>
+      </section>
+
+      <section>
 	<title>Unsupported JavaDoc Features</title>
 
 	<informaltable>
@@ -903,6 +927,26 @@ public function element(name:String,
 }</programlisting>
 	</example>
       </section>
+
+      <section id="overload_tag">
+	<title>Linking to Other Methods Delegated to Based on Arguments</title>
+
+	<para><remark>TODO</remark></para>
+	<example>
+	  <title>Linking to Overload Method Implementations</title>
+	  <programlisting>/**
+ * Blah method could be called with an Integer or
+ * a String argument.
+ *
+ * <emphasis role="strong">@overload #writeInteger()</emphasis>
+ * <emphasis role="strong">@overload #writeString()</emphasis>
+ */
+public function write(ob):Void {
+    // ...
+}</programlisting>
+	</example>
+      </section>
+
     </section>
   </section>
 
