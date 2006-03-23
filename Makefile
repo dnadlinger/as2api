@@ -93,7 +93,7 @@ ${sit_name}: docs as2api-0.4_darwin
 	${stuff} --name=${sit_name} ${osx_dist_dir}
 
 test:
-	ruby -w ts.rb
+	cd tests && ./run.sh
 
 clean:
 	rm -rf ${tgz_name} ${zip_name} ${sit_name} ${w32_dist_dir} ${dist_dir}
