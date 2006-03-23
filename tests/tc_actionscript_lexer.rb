@@ -24,10 +24,8 @@ class TC_ActionScriptLexer < Test::Unit::TestCase
   include ActionScript::Parse
 
   def test_lex_error
-    begin
+    assert_raise(RuntimeError) do
       assert_lex_to("@")
-      flunk("should be exception on invalid input")
-    rescue
     end
   end
 
