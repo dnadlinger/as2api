@@ -18,11 +18,13 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
+ruby=ruby
+rcov=/home/dave/opt/bin/rcov
 
 if [ "$1" == "cover" ]; then
-  rb="/home/dave/opt/bin/rcov --exclude-only=/usr/lib"
+  rb="$rcov --exclude-only=/usr/lib"
 else
-  rb="ruby -w"
+  rb="$ruby -w"
 fi
 
 $rb -I .. ./ts.rb
