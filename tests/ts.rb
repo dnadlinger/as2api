@@ -16,4 +16,9 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
+require 'tc_actionscript_lexer.rb'
+require 'tc_actionscript_parser.rb'
+require 'tc_doccomment_lexer.rb'
+require 'tc_doccomment_parser.rb'
+require 'tc_doc_comment.rb'
 require 'tc_api_serializer'
