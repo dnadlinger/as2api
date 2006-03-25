@@ -21,10 +21,12 @@
 ruby=ruby
 rcov=/home/dave/opt/bin/rcov
 
+lib=../lib
+
 if [ "$1" == "cover" ]; then
   rb="$rcov --exclude-only=/usr/lib"
 else
   rb="$ruby -w"
 fi
 
-$rb -I .. ./ts.rb
+$rb -I $lib ./ts.rb
