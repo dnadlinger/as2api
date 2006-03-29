@@ -164,7 +164,7 @@ class Page
   def generate_links
     html_script("type"=>"text/javascript",
 	     "src"=>base_path("quicknav.js")) { }
-    html_script do
+    html_script("type"=>"text/javascript") do
       comment("\ndocument.quicknavBasePath=\"#{base_path('index-files')}\";\n//")
     end
     html_link("rel"=>"stylesheet",
@@ -477,6 +477,9 @@ class BasicPage < Page
   end
 
   def generate_navigation
+    # avoid empty list (illegal xhtml)
+    return if @navigation.empty?
+
     html_ul("class"=>"main_nav", "id"=>"main_nav") do
       @navigation.each do |nav|
 	link = nav.build_for_page(self)
