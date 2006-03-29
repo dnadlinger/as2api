@@ -63,8 +63,7 @@ class DiffOverviewPage < BasicDiffPage
 
     summary_table(@api_changes.added_packages, _("Added Packages")) do |as_package|
       name = package_display_name_for(as_package)
-      href = File.join("..", package_link_for(as_package, "package-summary.html"))
-      html_a(name, {"href"=>href})
+      pcdata(name)
     end
 
     summary_table(@api_changes.modified_packages, _("Modified Packages")) do |as_package|
