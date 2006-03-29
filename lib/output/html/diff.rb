@@ -49,12 +49,12 @@ end
 class DiffOverviewPage < BasicDiffPage
   def initialize(conf, api_changes)
     super(conf, "change-overview", "changes")
-    @title = _("API Change Overview")
+    @title = _("%s API Changes Between Versions %s and %s") % [api_changes.api_name, api_changes.api_old_ver, api_changes.api_new_ver]
     @api_changes = api_changes
   end
 
   def generate_body_content
-    html_h1(_("API Change Overview"))
+    html_h1(@title)
 
     unless @api_changes
       html_p(_("No changes"))
