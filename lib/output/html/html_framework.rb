@@ -208,7 +208,11 @@ class Page
   def link_next; end
 
   def link_for_type(type)
-    base_path(type.qualified_name.gsub(/\./, "/")+".html")
+    if type.document?
+      base_path(type.qualified_name.gsub(/\./, "/")+".html")
+    else
+      nil
+    end
   end
 
   def link_type(type, qualified=false, attrs={})
@@ -226,8 +230,9 @@ class Page
     else
       content = type.unqualified_name
     end
-    if type.document?
-      attrs["href"] = link_for_type(type)
+    href = link_for_type(type)
+    if href
+      attrs["href"] = href
       html_a(content, attrs)
     else
       html_span(content, attrs)
@@ -281,7 +286,12 @@ class Page
     if @type == method.containing_type
       "##{method.name}"
     else
-      "#{link_for_type(method.containing_type)}##{method.name}"
+      type_href = link_for_type(method.containing_type)
+      if type_href
+	"#{type_href}##{method.name}"
+      else
+	nil
+      end
     end
   end
 
@@ -320,7 +330,12 @@ class Page
     if @type == field.containing_type
       "##{field.name}"
     else
-      "#{link_for_type(field.containing_type)}##{field.name}"
+      type_href = link_for_type(method.containing_type)
+      if type_href
+	"#{type_href}##{field.name}"
+      else
+	nil
+      end
     end
   end
 
@@ -421,13 +436,21 @@ class BasicPage < Page
     if inline.target && inline.member
       if inline.target.resolved?
 	href = link_for_type(inline.target.resolved_type)
-        if inline.member =~ /\(/
-          target = "##{$`}"
-        else
-          target = "##{inline.member}"
-        end
-	href << target
-	html_a("href"=>href) do
+	if href
+	  if inline.member =~ /\(/
+	    target = "##{$`}"
+	  else
+	    target = "##{inline.member}"
+	  end
+	  href << target
+	  html_a("href"=>href) do
+	    if inline.text && inline.text!=""
+	      pcdata(inline.text)
+	    else
+	      pcdata("#{inline.target.name}.#{inline.member}")
+	    end
+	  end
+	else
 	  if inline.text && inline.text!=""
 	    pcdata(inline.text)
 	  else
