@@ -355,12 +355,12 @@ class Page
   end
 
   def package_link_for(package, page)
-    return page if package.name == ""
+    return page if package.default?
     package_dir_for(package) + "/" + page
   end
 
   def package_display_name_for(package)
-    return _("(Default)") if package.name.nil? || package.name == ""
+    return _("(Default)") if package.default?
     package.name
   end
 

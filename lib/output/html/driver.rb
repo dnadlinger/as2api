@@ -34,7 +34,7 @@ def package_list(path_name, type_agregator)
   #          classes, so maybe keep it just for that.)
   write_file(path_name, "package-list") do |out|
     type_agregator.each_package do |package|
-      out.puts(package.name) unless package.name == ""
+      out.puts(package.name) unless package.default?
     end
   end
 end

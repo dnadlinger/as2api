@@ -441,6 +441,10 @@ class ASPackage
     @types
   end
 
+  def default?
+    name.nil? || name==""
+  end
+
   def each_type
     @types.each do |astype|
       yield astype

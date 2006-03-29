@@ -49,7 +49,7 @@ class APISerializer
 
   def serialize_package(aspackage)
     attrs = {}
-    attrs["name"] = aspackage.name if aspackage.name
+    attrs["name"] = aspackage.name unless aspackage.default?
     api_package(attrs) {
       aspackage.each_type do |astype|
 	serialize_type(astype)
