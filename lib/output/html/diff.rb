@@ -78,12 +78,6 @@ class DiffOverviewPage < BasicDiffPage
       pcdata(name)
     end
   end
-
-  def navigation
-    html_ul("class"=>"main_nav") do
-      # TODO
-    end
-  end
 end
 
 
