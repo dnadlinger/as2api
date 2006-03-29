@@ -48,7 +48,7 @@ end
 
 class DiffOverviewPage < BasicDiffPage
   def initialize(conf, api_changes)
-    super(conf, "change-summary", "changes")
+    super(conf, "change-overview", "changes")
     @title = _("API Change Overview")
     @api_changes = api_changes
   end
@@ -69,7 +69,7 @@ class DiffOverviewPage < BasicDiffPage
 
     summary_table(@api_changes.modified_packages, _("Modified Packages")) do |as_package|
       name = package_display_name_for(as_package)
-      href = package_link_for(as_package, "change-summary.html")
+      href = package_link_for(as_package, "package-summary.html")
       html_a(name, {"href"=>href})
     end
 
@@ -90,7 +90,7 @@ end
 class PackageDiffIndexPage < BasicDiffPage
   def initialize(conf, package_changes)
     dir = File.join("changes", package_dir_for(package_changes))
-    super(conf, "change-summary", dir)
+    super(conf, "package-summary", dir)
     @title = _("Package %s API Change Overview") % package_display_name_for(package_changes)
     @package_changes = package_changes
   end
