@@ -31,6 +31,9 @@ class BasicDiffPage < BasicPage
     end
   end
 
+  # overridden to exclude quicknav JS
+  def generate_scripts; end
+
 end
 
 class DiffOverviewPage < BasicDiffPage

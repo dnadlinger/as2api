@@ -161,12 +161,15 @@ class Page
     {}
   end
 
-  def generate_links
+  def generate_scripts
     html_script("type"=>"text/javascript",
 	     "src"=>base_path("quicknav.js")) { }
     html_script("type"=>"text/javascript") do
       comment("\ndocument.quicknavBasePath=\"#{base_path('index-files')}\";\n//")
     end
+  end
+
+  def generate_links
     html_link("rel"=>"stylesheet",
              "type"=>"text/css",
 	     "href"=>base_path("style.css"),
