@@ -18,6 +18,59 @@
 
 require 'output/html/html_framework'
 
+
+class DiffOverviewNavLinkBuilder < NavLinkBuilder
+  def href_on(page); page.base_path("changes/change-overview.html"); end
+
+  def is_current?(page); page.is_a?(DiffOverviewPage); end
+
+  def title_on(page)
+    _("Overview of API Changes")
+  end
+end
+
+class DiffPackageNavLinkBuilder < NavLinkBuilder
+  def href_on(page)
+    if page.aspackage
+      "package-summary.html"
+    else
+      nil
+    end
+  end
+
+  def is_current?(page); page.is_a?(PackageDiffIndexPage); end
+
+  def title_on(page)
+    if page.aspackage
+      _("Overview of package %s") % page.package_display_name_for(page.aspackage)
+    else
+      nil
+    end
+  end
+end
+
+
+class DiffTypeNavLinkBuilder < NavLinkBuilder
+  def href_on(page)
+    if page.astype
+      page.astype.unqualified_name+".html"
+    else
+      nil
+    end
+  end
+
+  def is_current?(page); page.is_a?(TypeDiffPage); end
+
+  def title_on(page)
+    if page.astype
+      _("Detail of %s API") % page.astype.qualified_name
+    else
+      nil
+    end
+  end
+end
+
+
 class BasicDiffPage < BasicPage
 
   def summary_table(rows, caption)
@@ -92,8 +145,9 @@ class PackageDiffIndexPage < BasicDiffPage
     html_h1(@title)
 
     summary_table(@package_changes.added_types, _("Added Types")) do |as_type|
-      name = as_type.unqualified_name
-      pcdata(name)
+      #name = as_type.unqualified_name
+      #pcdata(name)
+      link_type(as_type)
     end
 
     summary_table(@package_changes.modified_types, _("Modified Types")) do |as_type|
@@ -106,6 +160,10 @@ class PackageDiffIndexPage < BasicDiffPage
       name = as_type.unqualified_name
       pcdata(name)
     end
+  end
+
+  def aspackage
+    @package_changes
   end
 
   def navigation
@@ -127,6 +185,10 @@ class TypeDiffPage < BasicDiffPage
     super(conf, type_changes.new_type.unqualified_name, dir)
     @title = _("%s API Change Overview") % type_changes.new_type.unqualified_name
     @type_changes = type_changes
+  end
+
+  def aspackage
+    @type_changes.new_type.package
   end
 
   def generate_body_content
@@ -275,7 +337,9 @@ end
 
 def build_navigation
   elements = []
-  # TODO
+  elements << DiffOverviewNavLinkBuilder.new(nil, N_("Overview"))
+  elements << DiffPackageNavLinkBuilder.new(nil, N_("Package"))
+  elements << DiffTypeNavLinkBuilder.new(nil, N_("Class"))
   elements
 end
 
