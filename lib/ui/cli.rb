@@ -321,6 +321,13 @@ puts "Loading new API..."
     diff = APIDiff.new
 puts "Calculating API changes..."
     api_changes = diff.diff(old_type_agregator, new_type_agregator)
+    api_changes.api_name = new_api_name
+    api_changes.api_old_ver = old_api_version
+    api_changes.api_new_ver = new_api_version
+    old_type_agregator.each_type { |astype| astype.document = false }
+    new_type_agregator.each_type { |astype| astype.document = false }
+    old_type_agregator.each_package { |pkg| pkg.doc_base = @conf.diff_url_old }
+    new_type_agregator.each_package { |pkg| pkg.doc_base = @conf.diff_url_new }
 
     generate_diffs(@conf, api_changes)
   end
