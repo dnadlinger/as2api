@@ -195,7 +195,7 @@ class APIChanges
     @modified_packages = modified_packages
   end
 
-  attr_accessor :added_packages, :removed_packages, :modified_packages
+  attr_accessor :added_packages, :removed_packages, :modified_packages, :api_name, :api_old_ver, :api_new_ver
 end
 
 
@@ -208,6 +208,14 @@ class PackageChanges
   end
 
   attr_accessor :name, :added_types, :removed_types, :modified_types
+
+  def added_types?; !@added_types.empty?; end
+  def removed_types?; !@removed_types.empty?; end
+  def modified_types?; !@modified_types.empty?; end
+
+  def default?
+    name.nil? || name == ""
+  end
 end
 
 class TypeChanges
@@ -220,6 +228,13 @@ class TypeChanges
     @removed_fields = removed_fields
     @modified_fields = modified_fields
   end
+
+  def added_methods?; !@added_methods.empty?; end
+  def modified_methods?; !@modified_methods.empty?; end
+  def removed_methods?; !@removed_methods.empty?; end
+  def added_fields?; !@added_fields.empty?; end
+  def removed_fields?; !@removed_fields.empty?; end
+  def modified_fields?; !@modified_fields.empty?; end
 
   attr_accessor :new_type, :added_methods, :removed_methods, :modified_methods, :added_fields, :removed_fields, :modified_fields
 end

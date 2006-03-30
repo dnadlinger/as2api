@@ -119,10 +119,32 @@ class DiffOverviewPage < BasicDiffPage
       pcdata(name)
     end
 
-    summary_table(@api_changes.modified_packages, _("Modified Packages")) do |as_package|
-      name = package_display_name_for(as_package)
-      href = package_link_for(as_package, "package-summary.html")
-      html_a(name, {"href"=>href})
+    summary_table_tr(@api_changes.modified_packages, _("Modified Packages")) do |as_package|
+      html_td do
+	name = package_display_name_for(as_package)
+	href = package_link_for(as_package, "package-summary.html")
+	html_a(name, {"href"=>href})
+      end
+      html_td do
+	lastcount = 0
+	if as_package.added_types?
+	  pcdata(_("%d added") % as_package.added_types.length)
+	  lastcount = as_package.added_types.length
+	end
+	if as_package.modified_types?
+	  pcdata(", ") unless lastcount.zero?
+	  pcdata(_("%d changed") % as_package.modified_types.length)
+	  lastcount = as_package.modified_types.length
+	end
+	if as_package.removed_types?
+	  pcdata(", ") unless lastcount.zero?
+	  pcdata(_("%d removed") % as_package.removed_types.length)
+	  lastcount = as_package.removed_types.length
+	end
+	pcdata(" ")
+	pcdata(n_("type", "types", lastcount.to_i))
+	pcdata(".")
+      end
     end
 
     summary_table(@api_changes.removed_packages, _("Removed Packages")) do |as_package|
@@ -150,10 +172,54 @@ class PackageDiffIndexPage < BasicDiffPage
       link_type(as_type)
     end
 
-    summary_table(@package_changes.modified_types, _("Modified Types")) do |as_type|
-      name = as_type.new_type.unqualified_name
-      href = "#{name}.html"
-      html_a(name, {"href", href})
+    summary_table_tr(@package_changes.modified_types, _("Modified Types")) do |as_type|
+      html_td do
+	name = as_type.new_type.unqualified_name
+	href = "#{name}.html"
+	html_a(name, {"href", href})
+      end
+      html_td do
+	if as_type.added_methods? || as_type.modified_methods? || as_type.removed_methods?
+	  lastcount = 0
+	  if as_type.added_methods?
+	    pcdata(_("%d added") % as_type.added_methods.length)
+	    lastcount = as_type.added_methods.length
+	  end
+	  if as_type.modified_methods?
+	    pcdata(", ") unless lastcount.zero?
+	    pcdata(_("%d changed") % as_type.modified_methods.length)
+	    lastcount = as_type.modified_methods.length
+	  end
+	  if as_type.removed_methods?
+	    pcdata(", ") unless lastcount.zero?
+	    pcdata(_("%d removed") % as_type.removed_methods.length)
+	    lastcount = as_type.removed_methods.length
+	  end
+	  pcdata(" ")
+	  pcdata(n_("method", "methods", lastcount.to_i))
+	  pcdata(".")
+	end
+	if as_type.added_fields? || as_type.modified_fields? || as_type.removed_fields?
+	  lastcount = 0
+	  if as_type.added_fields?
+	    pcdata(_("%d added") % as_type.added_fields.length)
+	    lastcount = as_type.added_fields.length
+	  end
+	  if as_type.modified_fields?
+	    pcdata(", ") unless lastcount.zero?
+	    pcdata(_("%d changed") % as_type.modified_fields.length)
+	    lastcount = as_type.modified_fields.length
+	  end
+	  if as_type.removed_fields?
+	    pcdata(", ") unless lastcount.zero?
+	    pcdata(_("%d removed") % as_type.removed_fields.length)
+	    lastcount = as_type.removed_fields.length
+	  end
+	  pcdata(" ")
+	  pcdata(n_("field", "fields", lastcount.to_i))
+	  pcdata(".")
+	end
+      end
     end
 
     summary_table(@package_changes.removed_types, _("Removed Types")) do |as_type|
