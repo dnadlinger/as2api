@@ -229,12 +229,12 @@ class TypeChanges
     @modified_fields = modified_fields
   end
 
-  def added_methods?; !@added_methods.empty?; end
-  def modified_methods?; !@modified_methods.empty?; end
-  def removed_methods?; !@removed_methods.empty?; end
-  def added_fields?; !@added_fields.empty?; end
-  def removed_fields?; !@removed_fields.empty?; end
-  def modified_fields?; !@modified_fields.empty?; end
+  def added_methods?; @added_methods && !@added_methods.empty?; end
+  def modified_methods?; @modified_methods && !@modified_methods.empty?; end
+  def removed_methods?; @removed_methods && !@removed_methods.empty?; end
+  def added_fields?; @added_fields && !@added_fields.empty?; end
+  def removed_fields?; @removed_fields && !@removed_fields.empty?; end
+  def modified_fields?; @modified_fields && !@modified_fields.empty?; end
 
   attr_accessor :new_type, :added_methods, :removed_methods, :modified_methods, :added_fields, :removed_fields, :modified_fields
 end
