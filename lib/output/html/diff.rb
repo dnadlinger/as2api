@@ -166,10 +166,17 @@ class PackageDiffIndexPage < BasicDiffPage
   def generate_body_content
     html_h1(@title)
 
-    summary_table(@package_changes.added_types, _("Added Types")) do |as_type|
+    summary_table_tr(@package_changes.added_types, _("Added Types")) do |as_type|
       #name = as_type.unqualified_name
       #pcdata(name)
-      link_type(as_type)
+      html_td do
+	link_type(as_type)
+      end
+      html_td do
+	if as_type.comment
+	  output_doccomment_initial_sentence(as_type.comment.description)
+	end
+      end
     end
 
     summary_table_tr(@package_changes.modified_types, _("Modified Types")) do |as_type|
@@ -220,6 +227,11 @@ class PackageDiffIndexPage < BasicDiffPage
 	  pcdata(".")
 	end
       end
+      html_td do
+	if as_type.new_type.comment
+	  output_doccomment_initial_sentence(as_type.new_type.comment.description)
+	end
+      end
     end
 
     summary_table(@package_changes.removed_types, _("Removed Types")) do |as_type|
@@ -260,8 +272,15 @@ class TypeDiffPage < BasicDiffPage
   def generate_body_content
     html_h1(@title)
 
-    summary_table(@type_changes.added_fields, _("Added Fields")) do |as_field|
-      pcdata(as_field.name)
+    summary_table_tr(@type_changes.added_fields, _("Added Fields")) do |as_field|
+      html_td do
+	pcdata(as_field.name)
+      end
+      html_td do
+	if as_field.comment
+	  output_doccomment_initial_sentence(as_field.comment.description)
+	end
+      end
     end
 
     summary_table_tr(@type_changes.modified_fields, _("Modified Fields")) do |field_changes|
@@ -280,8 +299,15 @@ class TypeDiffPage < BasicDiffPage
       pcdata(as_field.name)
     end
 
-    summary_table(@type_changes.added_methods, _("Added Methods")) do |as_method|
-      pcdata(as_method.name)
+    summary_table_tr(@type_changes.added_methods, _("Added Methods")) do |as_method|
+      html_td do
+	pcdata(as_method.name)
+      end
+      html_td do
+	if as_method.comment
+	  output_doccomment_initial_sentence(as_method.comment.description)
+	end
+      end
     end
 
     summary_table_tr(@type_changes.modified_methods, _("Modified Methods")) do |method_changes|
