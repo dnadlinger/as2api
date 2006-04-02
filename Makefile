@@ -113,8 +113,11 @@ ${doc_pdf}: as2api-documentation.fo
 	JAVA_HOME=${java_home} \
 	${fop} as2api-documentation.fo -pdf ${doc_pdf}
 
-as2api.1: as2api-documentation.xml
-	${xsltproc} ${docbook_man_stylesheet} as2api-documentation.xml
+man:
+	mkdir man
+
+man/as2api.1: as2api-documentation.xml man
+	${xsltproc} -o man/ ${docbook_man_stylesheet} as2api-documentation.xml
 
 as2api-documentation.html: as2api-documentation.xml
 	${xsltproc} --output as2api-documentation.html \
@@ -154,3 +157,10 @@ data/locale/i_piglatin/LC_MESSAGES/as2api.mo: po/i_piglatin/as2api.po
 data/locale/pl/LC_MESSAGES/as2api.mo: po/pl/as2api.po
 	mkdir -p data/locale/pl/LC_MESSAGES
 	rmsgfmt $< -o $@
+
+
+setup-3.4.1/setup.rb: setup-3.4.1.tar.gz
+	tar xzvf setup-3.4.1.tar.gz setup-3.4.1/setup.rb
+
+setup-3.4.1.tar.gz:
+	wget http://i.loveruby.net/archive/setup/setup-3.4.1.tar.gz
