@@ -376,7 +376,9 @@ class Page
 
   def link_package_summary(package)
     name = package_display_name_for(package)
-    html_a(name, {"href"=>package_link_for(package, "package-summary.html")})
+    href = package_link_for(package, "package-summary.html")
+    title = package_description_for(package)
+    html_a(name, {"href"=>href, "title"=>title, "class"=>"package_name"})
   end
 
   def package_display_name_for(package)
