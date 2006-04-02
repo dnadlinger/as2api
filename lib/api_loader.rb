@@ -487,6 +487,10 @@ class TypeResolver
 
   private
 
+  def err(filename, lineno, msg)
+    $stderr.puts "#{filename}:#{lineno}: #{msg}"
+  end
+
   def create_default_global_namespace
     ns = {}
     ns[AS_VOID.qualified_name] = AS_VOID
@@ -523,7 +527,7 @@ class TypeResolver
       if real_type
 	type_proxy.resolved_type = real_type
       else
-	$stderr.puts "#{astype.input_filename}:#{type_proxy.lineno}: Found no definition of type known locally as #{type_proxy.local_name.inspect}"
+	err(astype.input_filename, type_proxy.lineno, "Found no definition of type known locally as #{type_proxy.local_name.inspect}")
       end
     end
   end
@@ -535,7 +539,7 @@ class TypeResolver
       if import_type
 	local_namespace[type_name.last.body] = import_type
       else
-	$stderr.puts "#{astype.input_filename}:#{type_name.first.lineno}: Couldn't resolve import of #{type_name.join(".").inspect}"
+	err(astype.input_filename, type_name.first.lineno, "Couldn't resolve import of #{type_name.join(".").inspect}")
       end
     end
   end
@@ -544,12 +548,12 @@ class TypeResolver
     astype.import_list.each_package do |package_name|
       pkg = type_aggregator.package(package_name.join("."))
       unless pkg
-	$stderr.puts "#{astype.input_filename}:#{package_name.first.lineno}: couldn't find package #{package_name.join(".").inspect}"
+	err(astype.input_filename, package_name.first.lineno, "Couldn't find package #{package_name.join(".").inspect}")
 	next
       end
       pkg.each_type do|package_type|
 	if local_namespace.has_key?(package_type.unqualified_name)
-	  $stderr.puts "#{astype.input_filename}: #{package_type.unqualified_name} already refers to #{local_namespace[package_type.unqualified_name].qualified_name}"
+	  err(astype.input_filename, package_name.first.lineno, "#{package_type.unqualified_name} already refers to #{local_namespace[package_type.unqualified_name].qualified_name}")
 	end
 	local_namespace[package_type.unqualified_name] = package_type
       end
