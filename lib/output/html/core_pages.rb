@@ -819,10 +819,8 @@ class OverviewPage < BasicPage
       packages = @type_agregator.packages.sort
       packages.each do |package|
 	html_tr do
-    
 	  html_td do
-	    name = package_display_name_for(package)
-	    html_a(name, {"href"=>package_link_for(package, "package-summary.html")})
+	    link_package_summary(package)
 	  end
 	  #html_td do
 	    # TODO: package description

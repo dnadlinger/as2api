@@ -374,6 +374,11 @@ class Page
     package_dir_for(package) + "/" + page
   end
 
+  def link_package_summary(package)
+    name = package_display_name_for(package)
+    html_a(name, {"href"=>package_link_for(package, "package-summary.html")})
+  end
+
   def package_display_name_for(package)
     return _("(Default)") if package.default?
     package.name
