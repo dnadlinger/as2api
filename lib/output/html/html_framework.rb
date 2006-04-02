@@ -330,7 +330,7 @@ class Page
     if @type == field.containing_type
       "##{field.name}"
     else
-      type_href = link_for_type(method.containing_type)
+      type_href = link_for_type(field.containing_type)
       if type_href
 	"#{type_href}##{field.name}"
       else
