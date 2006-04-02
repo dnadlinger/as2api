@@ -66,7 +66,12 @@ class APIDeserializer
       @api_version = version
     end
     def end_api
-      TypeResolver.new([]).resolve_types(@type_aggregator)
+      resolver = TypeResolver.new([])
+      class << resolver
+	# prevent errors from being reported (TODO define a nicer API),
+	def err(filename, lineno, msg); end
+      end
+      resolver.resolve_types(@type_aggregator)
     end
 
     def start_package(name)
