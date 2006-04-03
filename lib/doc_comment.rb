@@ -214,7 +214,7 @@ class Tag
   attr_accessor :lineno
 
   def ==(o)
-    lineno == o.lineno
+    o.respond_to?(:lineno) && lineno == o.lineno
   end
 end
 

@@ -376,7 +376,7 @@ class TypeProxy
   def ==(o)
     # note that types are considered to be equal here if they have the same
     # name; we don't recursively compare their whole subgraphs
-    name==o.name &&
+    !o.nil? && name==o.name &&
     ((containing_type.nil? && o.containing_type.nil? ) || (containing_type.qualified_name == o.containing_type.qualified_name)) &&
     ((resolved_type.nil? && o.resolved_type.nil?) || (resolved_type.qualified_name == o.resolved_type.qualified_name)) &&
     lineno==o.lineno
