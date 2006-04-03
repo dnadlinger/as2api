@@ -347,8 +347,7 @@ puts "Calculating API changes..."
       type_resolver.resolve_types(type_agregator)
       if @conf.api_export
 	api_export(type_agregator)
-      end
-      if @conf.xliff_export
+      elsif @conf.xliff_export
 	xliff_export(type_agregator)
       else
 	document_types(@conf, type_agregator)
