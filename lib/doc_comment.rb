@@ -479,9 +479,9 @@ class SeeParser < BlockParser
   def end_block
     @data.inlines.first =~ /\A\s*/
     case $'
-      when /['"]/
+      when /^['"]/
 	# plain, 'string'-like see entry
-      when /</
+      when /^</
 	# HTML entry
       else
 	# 'link' entry
