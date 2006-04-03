@@ -115,8 +115,7 @@ class DiffOverviewPage < BasicDiffPage
     end
 
     summary_table(@api_changes.added_packages, _("Added Packages")) do |as_package|
-      name = package_display_name_for(as_package)
-      pcdata(name)
+      link_package_summary(as_package)
     end
 
     summary_table_tr(@api_changes.modified_packages, _("Modified Packages")) do |as_package|

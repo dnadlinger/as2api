@@ -183,6 +183,9 @@ class ASVoidType < ASType
     @package_name = ""
     @document = false
   end
+
+  # TODO: What package?  [default], I suppose.  Don't want to have to check
+  #       for astype.package.nil? everywhere
 end
 
 AS_VOID = ASVoidType.new
@@ -429,10 +432,17 @@ class ASPackage
   def initialize(name)
     @name = name
     @types = []
+    @doc_base = nil
   end
 
   attr_accessor :name
   
+  # If non-nil, the base URL at which documentation for this package's
+  # contents can be located.  Used for packages other than the ones being
+  # documented in this run, so that we can construct links to existing
+  # API documentation sets.
+  attr_accessor :doc_base
+
   def add_type(astype)
     @types << astype
   end

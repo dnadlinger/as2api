@@ -208,8 +208,11 @@ class Page
   def link_next; end
 
   def link_for_type(type)
+    return nil if type == AS_VOID
     if type.document?
       base_path(type.qualified_name.gsub(/\./, URL_SEPERATOR)+".html")
+    elsif type.package && type.package.doc_base
+      type.package.doc_base + URL_SEPERATOR + type.qualified_name.gsub(/\./, URL_SEPERATOR)+".html"
     else
       nil
     end
