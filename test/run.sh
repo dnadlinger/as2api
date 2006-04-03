@@ -21,7 +21,8 @@
 ruby=ruby
 rcov=/home/dave/opt/bin/rcov
 
-lib=../lib
+testdir=$(dirname $0)
+lib=$testdir/../lib
 
 if [ "$1" == "cover" ]; then
   rb="$rcov --exclude-only=/usr/lib"
@@ -29,4 +30,4 @@ else
   rb="$ruby -w"
 fi
 
-$rb -I $lib ./ts.rb
+$rb -I $lib -I $testdir $testdir/ts.rb
