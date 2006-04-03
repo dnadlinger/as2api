@@ -47,7 +47,7 @@ class FunctionSignature
   # Array of Argument objects
   attr_accessor :arguments
 
-  # TypeProxy for return type, or nil if none specified
+  # array of IdentifierToken for return type, or nil if none specified
   attr_accessor :return_type
 
   # nil, for nornal methods; "get" or "set" for implicit-property access

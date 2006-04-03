@@ -153,11 +153,11 @@ class DocASHandler < ActionScript::Parse::ASHandler
     end
     @defined_type.dynamic = dynamic
     if super_name
-      @defined_type.extends = @type_namespace.resolve(super_name)
+      @defined_type.extends = @type_namespace.ref_to(super_name)
     end
     if interfaces
       interfaces.each do |interface|
-        @defined_type.add_interface(@type_namespace.resolve(interface))
+        @defined_type.add_interface(@type_namespace.ref_to(interface))
       end
     end
     @defined_type.type_namespace = @type_namespace
@@ -178,7 +178,7 @@ class DocASHandler < ActionScript::Parse::ASHandler
       @defined_type.comment = parse_comment(@type_comment_config, @doc_comment)
     end
     if super_name
-      @defined_type.extends = @type_namespace.resolve(super_name)
+      @defined_type.extends = @type_namespace.ref_to(super_name)
     end
     @defined_type.type_namespace = @type_namespace
     @defined_type.import_list = @import_list
@@ -213,7 +213,7 @@ class DocASHandler < ActionScript::Parse::ASHandler
   def start_member_field(name, astype)
     field = ASExplicitField.new(@defined_type, @last_modifier, name.body)
     unless astype.nil?
-      field.field_type = @type_namespace.resolve(astype)
+      field.field_type = @type_namespace.ref_to(astype)
     end
     if @doc_comment
       field.comment = parse_comment(@field_comment_config, @doc_comment)
@@ -242,12 +242,12 @@ class DocASHandler < ActionScript::Parse::ASHandler
   def create_method(name, sig)
     method = ASMethod.new(@defined_type, @last_modifier, name.body)
     if sig.return_type
-      method.return_type = @type_namespace.resolve(sig.return_type)
+      method.return_type = @type_namespace.ref_to(sig.return_type)
     end
     sig.arguments.each do |arg|
       argument = ASArg.new(arg.name.body)
       if arg.type
-        argument.arg_type = @type_namespace.resolve(arg.type)
+        argument.arg_type = @type_namespace.ref_to(arg.type)
       end
       method.add_arg(argument)
     end
@@ -344,11 +344,10 @@ end
 
 # A proxy for some type referred to by a particular name within a compilation
 # unit.  After we've parsed all compilation units, we'll be able to resolve
-# what real type this proxy stands for (i.e. becase we'll have found the
+# what real type this reference stands for (i.e. becase we'll have found the
 # types pulled into the compilation unit by 'import com.example.*')
-class TypeProxy
+class TypeRef
   # TODO: this should be in api_model.rb
-  # TODO: this should be called TypeRef
 
   def initialize(containing_type, name)
     @name = name
@@ -388,7 +387,7 @@ class TypeProxy
 end
 
 
-# Resolves type names to instances of TypeProxy for a particular compilation
+# Resolves type names to instances of TypeRef for a particular compilation
 # unit (the same name could refer to different types in different compilation
 # units).
 class TypeLocalNamespace
@@ -397,19 +396,19 @@ class TypeLocalNamespace
     @named_types = {}
   end
 
-  def resolve(name, lineno=nil)
+  def ref_to(name, lineno=nil)
     raise "invalid name #{name.inspect}" if name.nil?
     if name.is_a?(Array)
       lineno = name.first.lineno
       name = name.join(".")
     end
-    astype = @named_types[name]
-    if astype.nil?
-      astype = TypeProxy.new(@containing_type, name)
-      astype.lineno = lineno
-      @named_types[name] = astype
+    type_ref = @named_types[name]
+    if type_ref.nil?
+      type_ref = TypeRef.new(@containing_type, name)
+      type_ref.lineno = lineno
+      @named_types[name] = type_ref
     end
-    astype
+    type_ref
   end
 
   def each
@@ -466,11 +465,11 @@ class GlobalTypeAggregator
 end
 
 
-# Utility for resolving the TypeProxy objects created within each ASType of
+# Utility for resolving the TypeRef objects created within each ASType of
 # a GlobalTypeAggregator.
 #
 # Once all types to be documented have been parsed, this class resolves the
-# inter-type references that the TypeProxy objects represent, possibly loading
+# inter-type references that the TypeRef objects represent, possibly loading
 # and parsing further ActionScript files from the classpath as type-resolution
 # requires.
 class TypeResolver
@@ -514,20 +513,20 @@ class TypeResolver
   def resolve_each_type(global_ns, type_aggregator)
     type_aggregator.each_type do |astype|
       local_ns = create_local_namespace(global_ns, type_aggregator, astype)
-      resolve_type_proxies(local_ns, astype)
+      resolve_type_refs(local_ns, astype)
     end
   end
 
-  def resolve_type_proxies(local_ns, astype)
-    astype.type_namespace.each do |type_proxy|
-      real_type = local_ns[type_proxy.local_name]
+  def resolve_type_refs(local_ns, astype)
+    astype.type_namespace.each do |type_ref|
+      real_type = local_ns[type_ref.local_name]
       unless real_type
-	real_type = maybe_parse_external_definition(type_proxy)
+	real_type = maybe_parse_external_definition(type_ref)
       end
       if real_type
-	type_proxy.resolved_type = real_type
+	type_ref.resolved_type = real_type
       else
-	err(astype.input_filename, type_proxy.lineno, "Found no definition of type known locally as #{type_proxy.local_name.inspect}")
+	err(astype.input_filename, type_ref.lineno, "Found no definition of type known locally as #{type_ref.local_name.inspect}")
       end
     end
   end
@@ -535,7 +534,7 @@ class TypeResolver
   def import_types_into_namespace(astype, local_namespace)
     astype.import_list.each_type do |type_name|
       import_type = local_namespace[type_name.join(".")]
-      import_type = maybe_parse_external_definition(TypeProxy.new(astype, type_name.join('.'))) unless import_type
+      import_type = maybe_parse_external_definition(TypeRef.new(astype, type_name.join('.'))) unless import_type
       if import_type
 	local_namespace[type_name.last.body] = import_type
       else
@@ -576,13 +575,13 @@ class TypeResolver
     nil
   end
 
-  def find_file_matching(type_proxy)
-    file_name = search_classpath_for(type_proxy.name)
+  def find_file_matching(type_ref)
+    file_name = search_classpath_for(type_ref.name)
     return file_name unless file_name.nil?
-    return nil if type_proxy.qualified?
+    return nil if type_ref.qualified?
 
-    type_proxy.containing_type.import_list.each_package do |package_name|
-      candidate_name = package_name.join(".") + "." + type_proxy.name
+    type_ref.containing_type.import_list.each_package do |package_name|
+      candidate_name = package_name.join(".") + "." + type_ref.name
       file_name = search_classpath_for(candidate_name)
       return file_name unless file_name.nil?
     end
@@ -590,8 +589,8 @@ class TypeResolver
     nil
   end
 
-  def maybe_parse_external_definition(type_proxy)
-    source_file = find_file_matching(type_proxy)
+  def maybe_parse_external_definition(type_ref)
+    source_file = find_file_matching(type_ref)
     return nil if source_file.nil?
     astype = @parsed_external_types[source_file.suffix]
     return astype unless astype.nil?

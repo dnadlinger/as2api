@@ -105,7 +105,7 @@ class TypePage < BasicPage
 	  html_h2(_("Implemented Interfaces"))
 	  @type.each_interface do |interface|
 	    html_code do
-	      link_type_proxy(interface)
+	      link_type_ref(interface)
 	    end
 	    pcdata(" ")
 	  end
@@ -453,7 +453,7 @@ class TypePage < BasicPage
       comment_data.each_exception do |exception_comment|
 	html_tr do
 	  html_td do
-	    link_type_proxy(exception_comment.exception_type)
+	    link_type_ref(exception_comment.exception_type)
 	  end
 	  html_td do
 	    output_doccomment_blocktag(exception_comment)
@@ -530,13 +530,13 @@ class TypePage < BasicPage
 	pcdata(arg.name)
 	if arg.arg_type
 	  pcdata(":")
-	  link_type_proxy(arg.arg_type)
+	  link_type_ref(arg.arg_type)
 	end
       end
       pcdata(")")
       if method.return_type
 	pcdata(":")
-	link_type_proxy(method.return_type)
+	link_type_ref(method.return_type)
       end
     end
   end
@@ -563,7 +563,7 @@ class TypePage < BasicPage
     end
     if field.field_type
       pcdata(":")
-      link_type_proxy(field.field_type)
+      link_type_ref(field.field_type)
     end
   end
 
@@ -580,7 +580,7 @@ class TypePage < BasicPage
     field_type = field.field_type
     unless field_type.nil?
       pcdata(":")
-      link_type_proxy(field_type)
+      link_type_ref(field_type)
     end
     unless field.readwrite?
       pcdata(" ")

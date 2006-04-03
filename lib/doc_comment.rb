@@ -321,8 +321,8 @@ def create_link(type_namespace, text, lineno)
   if text =~ /^\s*([^()\s]+(?:\([^\)]*\))?)\s*(.+)?/m
     target = $1
     text = $2
-    # TODO: need a MemberProxy (and maybe Method+Field subclasses) with similar
-    #       role to TypeProxy, to simplify this, and output_doccomment_inlinetag
+    # TODO: need a MemberRef (and maybe Method+Field subclasses) with similar
+    #       role to TypeRef, to simplify this, and output_doccomment_inlinetag
     if target =~ /([^#]*)#(.*)/
       type_name = $1
       member_name = $2
@@ -331,11 +331,11 @@ def create_link(type_namespace, text, lineno)
       member_name = nil
     end
     if type_name == ""
-      type_proxy = nil
+      type_ref = nil
     else
-      type_proxy = type_namespace.resolve(type_name, lineno)
+      type_ref = type_namespace.ref_to(type_name, lineno)
     end
-    return LinkTag.new(lineno, type_proxy, member_name, text)
+    return LinkTag.new(lineno, type_ref, member_name, text)
   end
   return nil
 end
@@ -445,7 +445,7 @@ class ThrowsParser < BlockParser
     first_inline = @data.inlines[0]
     if first_inline =~ /\A\s*([^\s]+)\s+/
       @data.inlines[0] = $'
-      @data.exception_type = @type_namespace.resolve($1)
+      @data.exception_type = @type_namespace.ref_to($1)
       @data
     else
       nil

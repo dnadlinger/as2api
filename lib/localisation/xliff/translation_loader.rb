@@ -35,7 +35,7 @@ class LinkPhHandler
   def end_ph;
     @ph_text =~ /^([^#\s]+)(?:#([^\s]+))?/
     if $1
-      target = @type_namespace.resolve($1)
+      target = @type_namespace.ref_to($1)
     else
       target = nil
     end

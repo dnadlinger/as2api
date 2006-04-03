@@ -84,7 +84,7 @@ class APIDeserializer
       @current_type.type_namespace = TypeLocalNamespace.new(@current_type)
       @current_type.import_list = ImportList.new
       if extends
-	@current_type.extends = resolve_type(extends)
+	@current_type.extends = ref_to(extends)
       end
     end
 
@@ -97,7 +97,7 @@ class APIDeserializer
       @current_type.type_namespace = TypeLocalNamespace.new(@current_type)
       @current_type.import_list = ImportList.new
       if extends
-	@current_type.extends = resolve_type(extends)
+	@current_type.extends = ref_to(extends)
       end
     end
     def end_interface
@@ -170,9 +170,9 @@ class APIDeserializer
       @current_comment_block = SeeBlockTag.new
       push_text_handler(SeeBlockTextHandler.new(@current_comment_block))
       lineno = 0
-      type_proxy = resolve_type(type) if type
+      type_ref = ref_to(type) if type
       text = nil
-      @current_comment_block.add_inline(LinkTag.new(lineno, type_proxy, member, text))
+      @current_comment_block.add_inline(LinkTag.new(lineno, type_ref, member, text))
     end
 
     def end_see
@@ -184,9 +184,9 @@ class APIDeserializer
     end
     def start_link(type, member)
       lineno = 0
-      type_proxy = resolve_type(type) if type
+      type_ref = ref_to(type) if type
       text = nil
-      link_tag = LinkTag.new(lineno, type_proxy, member, text)
+      link_tag = LinkTag.new(lineno, type_ref, member, text)
       push_text_handler(LinkBlockTextHandler.new(link_tag))
       @current_comment_block.add_inline(link_tag)
     end
@@ -194,7 +194,7 @@ class APIDeserializer
       pop_text_handler
     end
     def implements(interface)
-      @current_type.add_interface(resolve_type(interface))
+      @current_type.add_interface(ref_to(interface))
     end
     def start_constructor; end
     def end_constructor; end
@@ -210,7 +210,7 @@ class APIDeserializer
       @current_comment_block = @current_param_block = ParamBlockTag.new
       @current_comment_block.param_name = name
       @current_arg = ASArg.new(name)
-      @current_arg.arg_type = resolve_type(type) if type
+      @current_arg.arg_type = ref_to(type) if type
       push_text_handler(CommentBlockTextHandler.new(@current_comment_block))
     end
     def end_param
@@ -225,7 +225,7 @@ class APIDeserializer
     end
     def start_return(type)
       @current_comment_block = @current_return_block = ReturnBlockTag.new
-      @current_method.return_type = resolve_type(type) if type
+      @current_method.return_type = ref_to(type) if type
       push_text_handler(CommentBlockTextHandler.new(@current_comment_block))
     end
     def end_return
@@ -239,7 +239,7 @@ class APIDeserializer
     def start_field(name, type, visibility, static)
       access = ASAccess.new(visibility, static)
       @current_api_element = @current_field = ASExplicitField.new(@current_type, access, name)
-      @current_field.field_type = resolve_type(type) if type
+      @current_field.field_type = ref_to(type) if type
     end
     def end_field
       @current_type.add_field(@current_field)
@@ -247,7 +247,7 @@ class APIDeserializer
     end
     def start_exception(type)
       @current_comment_block = @current_exception = ThrowsBlockTag.new
-      @current_exception.exception_type = resolve_type(type)
+      @current_exception.exception_type = ref_to(type)
       push_text_handler(CommentBlockTextHandler.new(@current_comment_block))
     end
     def end_exception
@@ -257,8 +257,8 @@ class APIDeserializer
 
     private
 
-    def resolve_type(name)
-      @current_type.type_namespace.resolve(name)
+    def ref_to(name)
+      @current_type.type_namespace.ref_to(name)
     end
   end  # class DeserializerAPIListner
 

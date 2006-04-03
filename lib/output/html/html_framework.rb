@@ -242,11 +242,11 @@ class Page
     end
   end
 
-  def link_type_proxy(type_proxy, qualified=false)
-    if type_proxy.resolved?
-      link_type(type_proxy.resolved_type, qualified)
+  def link_type_ref(type_ref, qualified=false)
+    if type_ref.resolved?
+      link_type(type_ref.resolved_type, qualified)
     else
-      html_span(type_proxy.local_name, {"class"=>"unresolved_type_name"})
+      html_span(type_ref.local_name, {"class"=>"unresolved_type_name"})
     end
   end
 
@@ -472,7 +472,7 @@ class BasicPage < Page
       end
     elsif inline.target
       # FIXME: doesn't handle case where we have some link text
-      link_type_proxy(inline.target)
+      link_type_ref(inline.target)
     else
       if inline.member =~ /\(/
         target = "##{$`}"
