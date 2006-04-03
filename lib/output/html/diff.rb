@@ -243,12 +243,6 @@ class PackageDiffIndexPage < BasicDiffPage
   def aspackage
     @package_changes
   end
-
-  def navigation
-    html_ul("class"=>"main_nav") do
-      # TODO
-    end
-  end
 end
 
 
@@ -417,12 +411,6 @@ class TypeDiffPage < BasicDiffPage
 	end
       end
       pcdata(")")
-    end
-  end
-
-  def navigation
-    html_ul("class"=>"main_nav") do
-      # TODO
     end
   end
 end
