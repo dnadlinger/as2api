@@ -60,6 +60,18 @@ class TC_DocComment < Test::Unit::TestCase
     #assert(doc.seealso_a.member?(expected), "@see didn't have #{expected.inspect}")
   end
 
+  def test_see_local_member()
+    text = "*\n * @see #foo()</p>\n *"
+    comment_data = parse_it(text)
+    actual = comment_data[1]
+    assert(actual.is_a?(SeeBlockTag), "should have @see tag")
+    expected = SeeBlockTag.new
+    link = LinkTag.new(2, nil, "foo()", "</p>\n")
+    link.lineno=2
+    expected.add_inline(link)
+    assert_equal(expected, actual)
+  end
+
   def test_throws()
     text = "*\n * @throws foo.Bbar blat\nping\n *"
     comment_data = parse_it(text)
