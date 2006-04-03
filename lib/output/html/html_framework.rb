@@ -29,7 +29,7 @@ require 'output/xml/xml_formatter'
 GetText.bindtextdomain("as2api")
 
 PROJECT_PAGE = "http://www.badgers-in-foil.co.uk/projects/as2api/"
-
+URL_SEPERATOR = '/'
 
 NavLink = Struct.new("NavLink", :href, :content, :title, :is_current)
 
@@ -209,7 +209,7 @@ class Page
 
   def link_for_type(type)
     if type.document?
-      base_path(type.qualified_name.gsub(/\./, "/")+".html")
+      base_path(type.qualified_name.gsub(/\./, URL_SEPERATOR)+".html")
     else
       nil
     end
@@ -363,7 +363,7 @@ class Page
 
   def package_dir_for(package)
     if package.name
-      package.name.gsub(/\./, "/")
+      package.name.gsub(/\./, URL_SEPERATOR)
     else
       ""
     end
@@ -371,7 +371,7 @@ class Page
 
   def package_link_for(package, page)
     return page if package.default?
-    package_dir_for(package) + "/" + page
+    package_dir_for(package) + URL_SEPERATOR + page
   end
 
   def link_package_summary(package)
