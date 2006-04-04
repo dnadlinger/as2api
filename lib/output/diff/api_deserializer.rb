@@ -166,13 +166,22 @@ class APIDeserializer
       pop_text_handler
     end
 
-    def start_see(type, member)
+    def start_see(type, kind, member)
       @current_comment_block = SeeBlockTag.new
       push_text_handler(SeeBlockTextHandler.new(@current_comment_block))
       lineno = 0
       type_ref = ref_to(type) if type
+      ref = nil
+      case kind
+	when :method
+	  ref = type_ref.ref_method(member, nil)
+	when :field
+	  ref = type_ref.ref_field(member, nil)
+	else
+	  ref = type_ref
+      end
       text = nil
-      @current_comment_block.add_inline(LinkTag.new(lineno, type_ref, member, text))
+      @current_comment_block.add_inline(LinkTag.new(lineno, ref, text))
     end
 
     def end_see
@@ -182,11 +191,19 @@ class APIDeserializer
       @current_comment_block = nil
       pop_text_handler
     end
-    def start_link(type, member)
+    def start_link(type, kind, member)
       lineno = 0
       type_ref = ref_to(type) if type
+      case kind
+	when :method
+	  ref = type_ref.ref_method(member, nil)
+	when :field
+	  ref = type_ref.ref_field(member, nil)
+	else
+	  ref = type_ref
+      end
       text = nil
-      link_tag = LinkTag.new(lineno, type_ref, member, text)
+      link_tag = LinkTag.new(lineno, ref, text)
       push_text_handler(LinkBlockTextHandler.new(link_tag))
       @current_comment_block.add_inline(link_tag)
     end

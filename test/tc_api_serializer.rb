@@ -123,8 +123,8 @@ class TC_APISerializer < Test::Unit::TestCase
     expected_block.inlines.each_with_index do |expected_inline, index|
       actual_inline = actual_block.inlines[index]
       actual_inline.lineno = expected_inline.lineno if expected_inline.respond_to?(:lineno)
-      if expected_inline.respond_to?(:target) && expected_inline.target
-	actual_inline.target.lineno = expected_inline.target.lineno
+      if expected_inline.respond_to?(:target_ref) && expected_inline.target_ref && expected_inline.target_ref.respond_to?(:lineno)
+	actual_inline.target_ref.lineno = expected_inline.target_ref.lineno
       end
     end
     assert_equal(expected_block, actual_block)

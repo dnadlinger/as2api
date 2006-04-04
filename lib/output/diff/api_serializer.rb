@@ -188,8 +188,17 @@ class APISerializer
   def serialize_seealso(seealso)
     link = seealso.inlines.first
     attrs = {}
-    attrs["type"]=link.target.local_name if link.target
-    attrs["member"]=link.member if link.member
+    ref = link.target_ref
+    case ref
+      when TypeRef
+	attrs["type"]=ref.local_name
+      when MethodRef
+	attrs["type"]=ref.type_local_name
+	attrs["method"]=ref.member_name
+      when FieldRef
+	attrs["type"]=ref.type_local_name
+	attrs["field"]=ref.member_name
+    end
     if link.text && link.text!=""
       api_see(link.text, attrs)
     else
@@ -212,8 +221,17 @@ class APISerializer
 
   def serialize_link_tag(link)
     attrs = {}
-    attrs["type"]=link.target.local_name if link.target
-    attrs["member"]=link.member if link.member
+    ref = link.target_ref
+    case ref
+      when TypeRef
+	attrs["type"]=ref.local_name
+      when MethodRef
+	attrs["type"]=ref.type_local_name
+	attrs["method"]=ref.member_name
+      when FieldRef
+	attrs["type"]=ref.type_local_name
+	attrs["field"]=ref.member_name
+    end
     if link.text && link.text!=""
       api_link(link.text, attrs)
     else

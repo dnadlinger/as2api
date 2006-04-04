@@ -372,18 +372,78 @@ class TypeRef
     @name =~ /\./
   end
 
+  def ref_method(method_name, lineno)
+    MethodRef.new(self, method_name, lineno)
+  end
+
+  def ref_field(field_name, lineno)
+    FieldRef.new(self, field_name, lineno)
+  end
+
   def ==(o)
     # note that types are considered to be equal here if they have the same
     # name; we don't recursively compare their whole subgraphs
     !o.nil? && name==o.name &&
-    ((containing_type.nil? && o.containing_type.nil? ) || (containing_type.qualified_name == o.containing_type.qualified_name)) &&
-    ((resolved_type.nil? && o.resolved_type.nil?) || (resolved_type.qualified_name == o.resolved_type.qualified_name)) &&
+    (containing_type.nil? == o.containing_type.nil?) &&
+    (containing_type.nil? || containing_type.qualified_name == o.containing_type.qualified_name) &&
+    (resolved_type.nil? == o.resolved_type.nil?) &&
+    (resolved_type.nil? || resolved_type.qualified_name == o.resolved_type.qualified_name) &&
     lineno==o.lineno
   end
 
   def inspect
     "<#{self.class.name}:0x#{(object_id&0xffffffff).to_s(16)} @name=#{name.inspect} @containing_type=#{@containing_type ? @containing_type.qualified_name : "nil"} @resolved_type=#{@resolved_type ? @resolved_type.qualified_name : "nil"} @lineno=#{@lineno.inspect}>"
   end
+end
+
+
+# A reference, by name, to a member of a type, which may or may not actually
+# exist.  See MethodRef and FieldRef for concrete implementations.
+class MemberRef
+  def initialize(type_ref, member_name, lineno)
+    @type_ref = type_ref
+    @member_name = member_name
+    @lineno = lineno
+  end
+
+  attr_reader :member_name
+
+  def type_local_name
+    @type_ref.local_name
+  end
+
+  def type_resolved?
+    @type_ref.resolved?
+  end
+  def resolved_type
+    @type_ref.resolved_type
+  end
+
+  def resolved?
+    # TODO: should report failures to resolve member refs during type
+    #       resolution
+    type_resolved? && !resolved_member.nil?
+  end
+
+  def ==(o)
+    !o.nil? && member_name == o.member_name && type_local_name == o.type_local_name
+  end
+end
+
+class MethodRef < MemberRef
+  def resolved_method
+    @type_ref.resolved_type.get_method_called(@member_name)
+  end
+
+  def resolved_member; resolved_method; end
+end
+
+class FieldRef < MemberRef
+  def resolved_field
+    @type_ref.resolved_type.get_field_called(@member_name)
+  end
+
+  def resolved_member; resolved_field; end
 end
 
 
@@ -394,6 +454,7 @@ class TypeLocalNamespace
   def initialize(containing_type)
     @containing_type = containing_type
     @named_types = {}
+    @ref_to_self = TypeRef.new(containing_type, containing_type.qualified_name)
   end
 
   def ref_to(name, lineno=nil)
@@ -410,6 +471,8 @@ class TypeLocalNamespace
     end
     type_ref
   end
+
+  attr_reader :ref_to_self
 
   def each
     @named_types.each_value do |astype|

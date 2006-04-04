@@ -300,16 +300,28 @@ class Page
 
   def link_method(method)
     sig = signature_for_method(method)
+    attrs = {"title"=>sig}
     if method.containing_type.document?
-      html_a("href"=>link_for_method(method), "title"=>sig) do
+      attrs["href"] = link_for_method(method)
+      attrs["class"] = "method_name"
+      html_a(attrs) do
 	pcdata(method.name)
 	pcdata("()")
       end
     else
-      html_span("title"=>sig) do
+      attrs["class"] = "method_name undocumented"
+      html_span(attrs) do
 	pcdata(method.name)
 	pcdata("()")
       end
+    end
+  end
+
+  def link_method_ref(method_ref)
+    if method_ref.resolved?
+      link_method(method_ref.resolved_method)
+    else
+      html_span(method_ref.member_name, {"class"=>"unresolved method_name"})
     end
   end
 
@@ -352,6 +364,14 @@ class Page
       html_span("title"=>sig) do
 	pcdata(field.name)
       end
+    end
+  end
+
+  def link_field_ref(field_ref)
+    if field_ref.resolved?
+      link_field(field_ref.resolved_field)
+    else
+      html_span(field_ref.member_name, {"class"=>"unresolved field_name"})
     end
   end
 
@@ -442,50 +462,16 @@ class BasicPage < Page
   end
 
   def output_doccomment_linktag(inline)
-    # FIXME: Seem to have missed generating title attribute in several cases,
-    if inline.target && inline.member
-      if inline.target.resolved?
-	href = link_for_type(inline.target.resolved_type)
-	if href
-	  if inline.member =~ /\(/
-	    target = "##{$`}"
-	  else
-	    target = "##{inline.member}"
-	  end
-	  href << target
-	  html_a("href"=>href) do
-	    if inline.text && inline.text!=""
-	      pcdata(inline.text)
-	    else
-	      pcdata("#{inline.target.name}.#{inline.member}")
-	    end
-	  end
-	else
-	  if inline.text && inline.text!=""
-	    pcdata(inline.text)
-	  else
-	    pcdata("#{inline.target.name}.#{inline.member}")
-	  end
-	end
-      else
-	pcdata("#{inline.target.name}##{inline.member}")
-      end
-    elsif inline.target
-      # FIXME: doesn't handle case where we have some link text
-      link_type_ref(inline.target)
+    ref = inline.target_ref
+    # FIXME: need to handle any link-text in the tag
+    if ref.is_a?(TypeRef)
+      link_type_ref(ref)
+    elsif ref.is_a?(MethodRef)
+      link_method_ref(ref)
+    elsif ref.is_a?(FieldRef)
+      link_field_ref(ref)
     else
-      if inline.member =~ /\(/
-        target = "##{$`}"
-      else
-        target = "##{inline.member}"
-      end
-      html_a("href"=>target) do
-	if inline.text && inline.text!=""
-	  pcdata(inline.text)
-	else
-	  pcdata(inline.member)
-	end
-      end
+      raise "unhandled ref type #{ref.class.name}"
     end
   end
 

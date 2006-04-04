@@ -21,6 +21,11 @@ require 'doc_comment'
 require 'api_loader'
 
 class TC_DocComment < Test::Unit::TestCase
+
+  def setup
+    @my_class = ASClass.new("com.example", "MyClass")
+  end
+
   def test_description()
     text = "foo bar\n *blat\n * @param foo bar\n blat ping pong\n *"
     comment_data = parse_it(text)
@@ -51,9 +56,9 @@ class TC_DocComment < Test::Unit::TestCase
     comment_data = parse_it(text)
     assert(comment_data.has_seealso?, "should have @see tag")
     expected = SeeBlockTag.new
-    type_ref = TypeRef.new(nil, "foo")
+    type_ref = TypeRef.new(@my_class, "foo")
     type_ref.lineno=2
-    link = LinkTag.new(2, type_ref, nil, "bar\n blat\n")
+    link = LinkTag.new(2, type_ref, "bar\n blat\n")
     link.lineno=2
     expected.add_inline(link)
     assert_equal(expected, comment_data[1])
@@ -66,7 +71,9 @@ class TC_DocComment < Test::Unit::TestCase
     actual = comment_data[1]
     assert(actual.is_a?(SeeBlockTag), "should have @see tag")
     expected = SeeBlockTag.new
-    link = LinkTag.new(2, nil, "foo()", "</p>\n")
+    type_ref = TypeRef.new(@my_class, @my_class.qualified_name)
+    method_ref = MethodRef.new(type_ref, "foo", 2)
+    link = LinkTag.new(2, method_ref, "</p>\n")
     link.lineno=2
     expected.add_inline(link)
     assert_equal(expected, actual)
@@ -103,7 +110,7 @@ class TC_DocComment < Test::Unit::TestCase
     parser = ActionScript::ParseDoc::DocCommentParser.new(lexer)
     parse_conf_build = ConfigBuilder.new
     config = parse_conf_build.build_method_config
-    type_namespace = TypeLocalNamespace.new(nil)
+    type_namespace = TypeLocalNamespace.new(@my_class)
     handler = OurDocCommentHandler.new(comment_data, config, type_namespace)
     parser.handler = handler
 

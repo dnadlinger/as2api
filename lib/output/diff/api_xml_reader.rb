@@ -52,9 +52,25 @@ class APIXMLReader
       when "description"
 	@listener.start_description
       when "see"
-	@listener.start_see(attrs["type"], attrs["member"])
+	kind = member = nil
+	if attrs["method"]
+	  kind = :method
+	  member = attrs["method"]
+	elsif attrs["field"]
+	  kind = :field
+	  member = attrs["field"]
+	end
+	@listener.start_see(attrs["type"], kind, member)
       when "link"
-	@listener.start_link(attrs["type"], attrs["member"])
+	kind = member = nil
+	if attrs["method"]
+	  kind = :method
+	  member = attrs["method"]
+	elsif attrs["field"]
+	  kind = :field
+	  member = attrs["field"]
+	end
+	@listener.start_link(attrs["type"], kind, member)
       when "implements"
 	@listener.implements(attrs["interface"])
       when "constructor"
@@ -113,9 +129,9 @@ module APIListener
   def end_annotation; end
   def start_description; end
   def end_description; end
-  def start_see(type, member); end
+  def start_see(type, kind, member); end
   def end_see; end
-  def start_link(type, member); end
+  def start_link(type, kind, member); end
   def end_link; end
   def implements(interface); end
   def start_constructor; end
