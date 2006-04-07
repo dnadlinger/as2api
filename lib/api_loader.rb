@@ -614,6 +614,7 @@ class TypeResolver
 	next
       end
       pkg.each_type do|package_type|
+	next if astype.qualified_name == package_type.qualified_name
 	if local_namespace.has_key?(package_type.unqualified_name)
 	  err(astype.input_filename, package_name.first.lineno, "#{package_type.unqualified_name} already refers to #{local_namespace[package_type.unqualified_name].qualified_name}")
 	end
