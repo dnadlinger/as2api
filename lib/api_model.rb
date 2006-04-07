@@ -55,6 +55,10 @@ class ASType
     @package_name = package_name  # name[0, name.length-1].join(".")
     @name = type_name  #name.last.body
     @source_utf8 = false
+    # TODO: maybe whould have methods and fields stored in the same array of
+    #       members, since the reality is that actionscript keeps both in the
+    #       same namespace, and we should warn about redefinitions of a given
+    #       named member whether as a method or a field
     @methods = []
     @constructor = nil
     @extends = nil
