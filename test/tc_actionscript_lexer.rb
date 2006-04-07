@@ -18,6 +18,7 @@
 
 require 'test/unit'
 require 'parse/aslexer'
+require 'stringio'
 
 class TC_ActionScriptLexer < Test::Unit::TestCase
 
@@ -92,14 +93,14 @@ class TC_ActionScriptLexer < Test::Unit::TestCase
 
  private
   def simple_lex(text)
-    input = StrIO.new(text)
+    input = StringIO.new(text)
     lex = ASLexer.new(input)
     yield lex.get_next
     assert_nil(lex.get_next)
   end
 
   def assert_lex_to(text, *tokens)
-    input = StrIO.new(text)
+    input = StringIO.new(text)
     lex = ASLexer.new(input)
     tokens.each do |expected|
       tok = lex.get_next
@@ -115,27 +116,4 @@ class TC_ActionScriptLexer < Test::Unit::TestCase
     end
   end
 
-end
-
-
-# Simple IO-like object the readsfrom a String, rather than a file
-# TODO: handle multiple lines
-class StrIO
-  def initialize(data)
-    @data = data
-  end
-
-  def readline
-    dat = @data
-    @data = nil
-    dat
-  end
-
-  def eof?
-    @data.nil?
-  end
-
-  def lineno
-    1
-  end
 end
