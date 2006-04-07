@@ -367,11 +367,19 @@ class Page
     end
   end
 
-  def link_field_ref(field_ref)
-    if field_ref.resolved?
-      link_field(field_ref.resolved_field)
+  def link_field_or_method_ref(member_ref)
+    if member_ref.resolved?
+      member = member_ref.resolved_member
+      case member
+	when ASField
+	  link_field(member)
+	when ASMethod
+	  link_method(member)
+	else
+	  raise "unhandled member type #{member.class.name}"
+      end
     else
-      html_span(field_ref.member_name, {"class"=>"unresolved field_name"})
+      html_span(member_ref.member_name, {"class"=>"unresolved member_name"})
     end
   end
 
@@ -468,8 +476,8 @@ class BasicPage < Page
       link_type_ref(ref)
     elsif ref.is_a?(MethodRef)
       link_method_ref(ref)
-    elsif ref.is_a?(FieldRef)
-      link_field_ref(ref)
+    elsif ref.is_a?(MemberRef)
+      link_field_or_method_ref(ref)
     else
       raise "unhandled ref type #{ref.class.name}"
     end

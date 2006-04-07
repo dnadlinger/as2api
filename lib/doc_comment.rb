@@ -336,7 +336,7 @@ def create_link(type_namespace, text, lineno)
       if member_name =~ /\(/
 	target_ref = type_ref.ref_method($`, lineno)
       else
-	target_ref = type_ref.ref_field(member_name, lineno)
+	target_ref = type_ref.ref_member(member_name, lineno)
       end
     else
       target_ref = type_ref

@@ -376,8 +376,8 @@ class TypeRef
     MethodRef.new(self, method_name, lineno)
   end
 
-  def ref_field(field_name, lineno)
-    FieldRef.new(self, field_name, lineno)
+  def ref_member(member_name, lineno)
+    MemberRef.new(self, member_name, lineno)
   end
 
   def ==(o)
@@ -398,7 +398,7 @@ end
 
 
 # A reference, by name, to a member of a type, which may or may not actually
-# exist.  See MethodRef and FieldRef for concrete implementations.
+# exist.
 class MemberRef
   def initialize(type_ref, member_name, lineno)
     @type_ref = type_ref
@@ -424,6 +424,14 @@ class MemberRef
     #       resolution
     type_resolved? && !resolved_member.nil?
   end
+  def resolved_member
+    astype = @type_ref.resolved_type
+    if astype.respond_to?(:get_field_called)
+      field = astype.get_field_called(@member_name)
+      return field if field
+    end
+    return astype.get_method_called(@member_name)
+  end
 
   def ==(o)
     !o.nil? && member_name == o.member_name && type_local_name == o.type_local_name
@@ -436,14 +444,6 @@ class MethodRef < MemberRef
   end
 
   def resolved_member; resolved_method; end
-end
-
-class FieldRef < MemberRef
-  def resolved_field
-    @type_ref.resolved_type.get_field_called(@member_name)
-  end
-
-  def resolved_member; resolved_field; end
 end
 
 

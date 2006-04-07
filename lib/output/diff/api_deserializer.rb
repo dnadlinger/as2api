@@ -176,7 +176,7 @@ class APIDeserializer
 	when :method
 	  ref = type_ref.ref_method(member, nil)
 	when :field
-	  ref = type_ref.ref_field(member, nil)
+	  ref = type_ref.ref_member(member, nil)
 	else
 	  ref = type_ref
       end
@@ -198,7 +198,7 @@ class APIDeserializer
 	when :method
 	  ref = type_ref.ref_method(member, nil)
 	when :field
-	  ref = type_ref.ref_field(member, nil)
+	  ref = type_ref.ref_member(member, nil)
 	else
 	  ref = type_ref
       end
