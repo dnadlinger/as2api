@@ -37,6 +37,13 @@ class TC_ActionScriptLexer < Test::Unit::TestCase
     assert_lex_to('"\\"\"', StringToken.new('"', 1))
   end
 
+  def test_multiline_string
+    assert_lex_to("'te\nst'", StringToken.new("te\nst", 1))
+    # check that the following token has correct line number
+    assert_lex_to("\"\n\n\" ", StringToken.new("\n\n", 1),
+                               WhitespaceToken.new(" ", 3))
+  end
+
   def test_identfier
     assert_lex_to("foo", IdentifierToken.new("foo", 1))
     # check keyword at start of identifier doesn't confuse lexer
@@ -106,6 +113,7 @@ class TC_ActionScriptLexer < Test::Unit::TestCase
       tok = lex.get_next
       assert_equal(expected.class, tok.class)
       assert_equal(expected.body, tok.body)
+      assert_equal(expected.lineno, tok.lineno)
     end
     assert_nil(lex.get_next)
   end
