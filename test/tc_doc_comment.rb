@@ -104,7 +104,6 @@ class TC_DocComment < Test::Unit::TestCase
     comment_data = CommentData.new
 
     input = StringIO.new(text)
-    input.lineno = 1
     lexer = ActionScript::ParseDoc::DocCommentLexer.new(input)
     lexer.source = caller.last
     parser = ActionScript::ParseDoc::DocCommentParser.new(lexer)

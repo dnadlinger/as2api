@@ -30,8 +30,7 @@ ActionScript::Parse::ASToken.module_eval("attr_accessor :last_comment")
 
 
 def simple_parse(input, source)
-  as_io = ASIO.new(input)
-  lex = ActionScript::Parse::ASLexer.new(as_io)
+  lex = ActionScript::Parse::ASLexer.new(input)
   lex.source = source
   skip = DocASLexer.new(lex)
   parse = DocASParser.new(skip)
@@ -286,7 +285,7 @@ class DocASHandler < ActionScript::Parse::ASHandler
     comment_data = CommentData.new
 
     input = StringIO.new(comment_token.body)
-    input.lineno = comment_token.lineno
+    input.lineno = comment_token.lineno - 1
     lexer = ActionScript::ParseDoc::DocCommentLexer.new(input)
     lexer.source = @source
     parser = ActionScript::ParseDoc::DocCommentParser.new(lexer)

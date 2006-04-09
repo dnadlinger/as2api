@@ -197,9 +197,8 @@ class SourcePage < BasicPage
     File.open(File.join(file)) do |io|
       begin
 	is_utf8 = detect_bom?(io)
-	as_io = ASIO.new(io)
 	highlight = CodeHighlighter.new
-	highlight.highlight(as_io, self)
+	highlight.highlight(io, self)
       rescue =>e
 	$stderr.puts "#{file}: #{e.message}\n#{e.backtrace.join("\n")}"
       end

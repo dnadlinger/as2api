@@ -47,16 +47,16 @@ class WordToken < ActionScript::Parse::ASToken
 end
 
 class DocCommentLexer < ActionScript::Parse::AbstractLexer
-  def lex_simple_token(class_sym, match, io)
-    ActionScript::ParseDoc.const_get(class_sym).new(io.lineno-1)
+  def lex_simple_token(class_sym, match)
+    ActionScript::ParseDoc.const_get(class_sym).new(@lineno)
   end
 
-  def lex_simplebody_token(class_sym, match, io)
-    ActionScript::ParseDoc.const_get(class_sym).new(match[0], io.lineno-1)
+  def lex_simplebody_token(class_sym, match)
+    ActionScript::ParseDoc.const_get(class_sym).new(match[0], @lineno)
   end
 
-  def lex_simplecapture_token(class_sym, match, io)
-    ActionScript::ParseDoc.const_get(class_sym).new(match[1], io.lineno-1)
+  def lex_simplecapture_token(class_sym, match)
+    ActionScript::ParseDoc.const_get(class_sym).new(match[1], @lineno)
   end
 end
 

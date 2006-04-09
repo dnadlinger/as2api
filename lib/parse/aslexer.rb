@@ -43,6 +43,9 @@ class MultiLineCommentToken < CommentToken
   end
 end
 
+class IncludeToken < ASToken
+end
+
 class WhitespaceToken < ASToken
 end
 
@@ -241,17 +244,17 @@ Punctuation = [
 
 class ASLexer < AbstractLexer
 
-  def lex_simple_token(class_sym, match, io)
-    ActionScript::Parse.const_get(class_sym).new(io.lineno-1)
+  def lex_simple_token(class_sym, match)
+    ActionScript::Parse.const_get(class_sym).new(@lineno)
   end
 
-  def lex_key_or_ident_token(match, io)
+  def lex_key_or_ident_token(match)
     body = match[0]
     class_sym = @@keyword_tokens[body]
     if class_sym
-      lex_simple_token(class_sym, match, io)
+      lex_simple_token(class_sym, match)
     else
-      lex_simplebody_token(:IdentifierToken, match, io)
+      lex_simplebody_token(:IdentifierToken, match)
     end
   end
 
@@ -259,53 +262,31 @@ class ASLexer < AbstractLexer
     @@keyword_tokens = toks
   end
 
-  def lex_simplebody_token(class_sym, match, io)
-    ActionScript::Parse.const_get(class_sym).new(match[0], io.lineno-1)
+  def lex_simplebody_token(class_sym, match)
+    ActionScript::Parse.const_get(class_sym).new(match[0], @lineno)
   end
 
-  def lex_singlelinecoomment_token(class_sym, match, io)
-    SingleLineCommentToken.new(match[1], io.lineno-1)
+  def lex_singlelinecoomment_token(class_sym, match)
+    SingleLineCommentToken.new(match[1], @lineno)
   end
 
-  def lex_multilinecomment_token(class_sym, match, io)
-    lineno = io.lineno-1
-    line = match.post_match
-    comment = ''
-    until line =~ /\*\//o
-      comment << line
-      line = io.readline;
-    end
-    comment << $`
-    match.string = $'
-    MultiLineCommentToken.new(comment, lineno)
+  def lex_multilinecomment_token(class_sym, match)
+    lineno = @lineno
+    comment = match.scan_until(/\*\//o)
+    raise "#{@lineno}:unexpected EOF in comment" if comment.nil?
+    MultiLineCommentToken.new(comment[0, comment.length-2], lineno)
   end
 
-  def lex_string1_token(class_sym, match, io)
-    lineno = io.lineno-1
-    line = match.post_match
-    str = ''
-    until line =~ /#{STRING_END1}/o
-      str << line
-      line = io.readline;
-      raise "#{lineno}:unexpected EOF in string" if line.nil?
-    end
-    str << $1
-    match.string = $'
-    StringToken.new(str, lineno)
+  def lex_string1_token(class_sym, match)
+    str = match.scan_until(/#{STRING_END1}/o)
+    raise "#{@lineno}:unexpected EOF in string" if str.nil?
+    StringToken.new(str[0, str.length-1], @lineno)
   end
 
-  def lex_string2_token(class_sym, match, io)
-    lineno = io.lineno-1
-    line = match.post_match
-    str = ''
-    until line =~ /#{STRING_END2}/o
-      str << line
-      line = io.readline;
-      raise "#{lineno}:unexpected EOF in string" if line.nil?
-    end
-    str << $1
-    match.string = $'
-    StringToken.new(str, lineno)
+  def lex_string2_token(class_sym, match)
+    str = match.scan_until(/#{STRING_END2}/o)
+    raise "#{@lineno}:unexpected EOF in string" if str.nil?
+    StringToken.new(str[0, str.length-1], @lineno)
   end
 
 
@@ -317,6 +298,8 @@ def self.build_lexer
   # TODO: whitespace tokens don't span lines, which might not be the expected
   #       behaviour
   builder.add_match(WHITESPACE, :lex_simplebody_token, :WhitespaceToken)
+
+  builder.add_match("^#include [^\r\n]*", :lex_simplebody_token, :IncludeToken)
 
   builder.add_match(SINGLE_LINE_COMMENT, :lex_singlelinecoomment_token, :SingleLineCommentToken)
 
@@ -376,7 +359,7 @@ class SkipASLexer
   protected
 
   def skip?(tok)
-    tok.is_a?(CommentToken) || tok.is_a?(WhitespaceToken)
+    tok.is_a?(CommentToken) || tok.is_a?(WhitespaceToken) || tok.is_a?(IncludeToken)
   end
 
   def notify(tok)

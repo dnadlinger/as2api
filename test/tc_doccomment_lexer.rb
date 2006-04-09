@@ -65,6 +65,7 @@ class TC_DocComemntLexer < Test::Unit::TestCase
       tok = lex.get_next
       assert_equal(expected.class, tok.class)
       assert_equal(expected.body, tok.body)
+      assert_equal(expected.lineno, tok.lineno)
     end
     assert_nil(lex.get_next)
   end

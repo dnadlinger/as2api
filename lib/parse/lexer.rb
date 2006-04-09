@@ -33,9 +33,7 @@ class ASToken
   def body
     @body
   end
-  def lineno
-    @lineno
-  end
+  attr_accessor :lineno
   def to_s
     @body
   end
@@ -50,6 +48,7 @@ class AbstractLexer
     @tokens = Array.new
     @eof = false
     @source = nil
+    @lineno = io.lineno + 1
   end
 
   attr_accessor :source
@@ -77,6 +76,7 @@ class AbstractLexer
   end
 
   def emit(token)
+    @lineno += token.body.scan(/\r\n|\r|\n/).length
     token.source = @source
     @tokens << token
   end
@@ -145,23 +145,23 @@ class LexerBuilder
   def build_lexer(target_class)
     text = <<-EOS
       def fill
-        line = StringScanner.new(@io.readline)
-        until line.eos?
+        input = StringScanner.new(@io.read)
+        until input.eos?
     EOS
     @matches.each_with_index do |token_match, index|
       re, lex_method, tok_class = token_match
-      text << "if line.scan(/#{re}/)\n"
+      text << "if input.scan(/#{re}/)\n"
       if tok_class
-      	text << "  emit(#{lex_method.to_s}(:#{tok_class.to_s}, line, @io))\n"
+      	text << "  emit(#{lex_method.to_s}(:#{tok_class.to_s}, input))\n"
       else
-      	text << "  emit(#{lex_method.to_s}(line, @io))\n"
+      	text << "  emit(#{lex_method.to_s}(input))\n"
       end
       text << "  next\n"
       text << "end\n"
     end
     text << <<-EOS
           # no previous regexp matched,
-          parse_error(line.rest)
+          parse_error(input.rest)
         end
       end
     EOS
