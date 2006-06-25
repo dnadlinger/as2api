@@ -202,7 +202,7 @@
     <ulink url="http://subversion.tigris.org/">Subversion<alt>The Subversion version control system</alt></ulink>
     repository at the URL:</para>
 
-    <para><literal>http://svn.badgers-in-foil.co.uk/viewcvs.cgi/as2api/trunk/as2api/</literal></para>
+    <para><literal>http://svn.badgers-in-foil.co.uk/as2api/trunk/as2api/</literal></para>
   </section>
 
   <mailinglists>
