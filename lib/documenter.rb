@@ -19,7 +19,6 @@
 
 require 'find'
 require 'parse/lexer'  # TODO: remove this requirement
-require 'parse/as_io'
 require 'api_loader'
 
 
