@@ -108,6 +108,11 @@ class DocASParser < ActionScript::Parse::ASParser
     super()
   end
 
+  def parse_intrinsic_member
+    snarf_comment
+    super()
+  end
+
   private
 
   def snarf_comment
