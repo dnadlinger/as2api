@@ -103,13 +103,13 @@ class Page
     end
     if charset
       old_charset = Locale.charset
-      GetText.charset = charset
+      GetText.output_charset = charset
     end
     begin
       yield
     ensure
       GetText.locale = old_locale if locale
-      GetText.charset = old_charset if charset
+      GetText.output_charset = old_charset if charset
     end
   end
 
