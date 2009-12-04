@@ -688,7 +688,7 @@ class PackageIndexPage < BasicPage
 	  map = false
 	end
 	attr = {"src"=>"package-classes.png"}
-	attr["usemap"] = "class_diagram" if map
+	attr["usemap"] = "#class_diagram" if map
         html_img(attr)
       end
     end
@@ -708,7 +708,7 @@ class PackageIndexPage < BasicPage
 	  map = false
 	end
 	attr = {"src"=>"package-interfaces.png"}
-	attr["usemap"] = "interface_diagram" if map
+	attr["usemap"] = "#interface_diagram" if map
         html_img(attr)
       end
     end
