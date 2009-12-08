@@ -197,7 +197,14 @@ class APISerializer
 	attrs["method"]=ref.member_name
       when MemberRef
 	attrs["type"]=ref.type_local_name
-	attrs["field"]=ref.member_name
+        case ref.resolved_member
+          when ASField
+            attrs["field"]=ref.member_name
+          when ASMethod
+            attrs["method"]=ref.member_name
+          else
+            raise "unhandled member-type #{ref.resolved_member.class.name}"
+        end
     end
     if link.text && link.text!=""
       api_see(link.text, attrs)
@@ -237,7 +244,14 @@ class APISerializer
 	attrs["method"]=ref.member_name
       when MemberRef
 	attrs["type"]=ref.type_local_name
-	attrs["field"]=ref.member_name
+        case ref.resolved_member
+          when ASField
+            attrs["field"]=ref.member_name
+          when ASMethod
+            attrs["method"]=ref.member_name
+          else
+            raise "unhandled member-type #{ref.resolved_member.class.name}"
+        end
     end
     if link.text && link.text!=""
       api_link(link.text, attrs)
