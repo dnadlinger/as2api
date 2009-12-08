@@ -442,6 +442,9 @@ class MemberRef
   end
 end
 
+# We have an explicit MethodRef subclass but not a FIeldRef subclass because
+# a doc-comment might contain "{@link blah()}" which should possibly fail if
+# 'blah' is actually a field.
 class MethodRef < MemberRef
   def resolved_method
     @type_ref.resolved_type.get_method_called(@member_name)
