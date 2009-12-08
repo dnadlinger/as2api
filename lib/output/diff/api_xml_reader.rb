@@ -87,6 +87,8 @@ class APIXMLReader
 	@listener.start_field(attrs["name"], attrs["type"], vis, attrs["static"]=="true")
       when "exception"
 	@listener.start_exception(attrs["type"])
+      when "code"
+        @listener.start_code
       else
 	raise "unknown tag #{name.inspect}"
     end

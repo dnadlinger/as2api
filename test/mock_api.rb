@@ -57,7 +57,7 @@ module MockAPI
 	}
 
 	/**
-	 * Does some stuff
+	 * Does some stuff {@code someCode()}
 	 * 
 	 * @param anArg some argument value
 	 * @return some resulting string

@@ -213,10 +213,17 @@ class APISerializer
 	  pcdata(inline)
 	when LinkTag
 	  serialize_link_tag(inline)
+	when CodeTag
+    serialize_code_tag(inline)
 	else
 	  raise "unhandled inline #{inline.inspect}"
       end
     end
+  end
+  
+  def serialize_code_tag(code)
+    attrs = {}
+    api_code(code.text, attrs)
   end
 
   def serialize_link_tag(link)

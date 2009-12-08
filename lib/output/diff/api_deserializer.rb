@@ -271,6 +271,18 @@ class APIDeserializer
       @current_method.comment.add_block(@current_exception)
       pop_text_handler
     end
+    def start_code
+      lineno = 0
+      text = nil
+      code_tag = CodeTag.new(lineno, text)
+      # bit of a hack using LinkBlockTextHandler for CodeTag too, but CodeTag
+      # and LinkTag both have the relevant #text attribute,
+      push_text_handler(LinkBlockTextHandler.new(code_tag))
+      @current_comment_block.add_inline(code_tag)
+    end
+    def end_code
+      pop_text_handler
+    end
 
     private
 

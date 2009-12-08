@@ -56,7 +56,8 @@ module APIXMLWriter
     "return",
     "field",
     "exception",
-    "link"
+    "link",
+    "code"
   ]
 
   TAGS.each do |name|
