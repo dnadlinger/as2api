@@ -44,7 +44,7 @@ module MockAPI
        */
       class TestClass implements TestInterface {
 	/**
-	 * A text field {@link #doSoemthing()}
+	 * A text field {@link #doSomething()}
 	 */
 	public var text:AClass;
 
@@ -57,7 +57,7 @@ module MockAPI
 	}
 
 	/**
-	 * Does some stuff {@code someCode()}
+	 * Does some stuff {@code someCode()} {@link #text}
 	 * 
 	 * @param anArg some argument value
 	 * @return some resulting string

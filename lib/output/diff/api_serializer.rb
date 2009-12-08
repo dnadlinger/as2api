@@ -195,7 +195,7 @@ class APISerializer
       when MethodRef
 	attrs["type"]=ref.type_local_name
 	attrs["method"]=ref.member_name
-      when FieldRef
+      when MemberRef
 	attrs["type"]=ref.type_local_name
 	attrs["field"]=ref.member_name
     end
@@ -214,7 +214,7 @@ class APISerializer
 	when LinkTag
 	  serialize_link_tag(inline)
 	when CodeTag
-    serialize_code_tag(inline)
+          serialize_code_tag(inline)
 	else
 	  raise "unhandled inline #{inline.inspect}"
       end
@@ -235,7 +235,7 @@ class APISerializer
       when MethodRef
 	attrs["type"]=ref.type_local_name
 	attrs["method"]=ref.member_name
-      when FieldRef
+      when MemberRef
 	attrs["type"]=ref.type_local_name
 	attrs["field"]=ref.member_name
     end
