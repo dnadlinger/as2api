@@ -462,6 +462,7 @@ class TypeLocalNamespace
     @containing_type = containing_type
     @named_types = {}
     @ref_to_self = TypeRef.new(containing_type, containing_type.qualified_name)
+    @ref_to_self.resolved_type = containing_type
   end
 
   def ref_to(name, lineno=nil)
