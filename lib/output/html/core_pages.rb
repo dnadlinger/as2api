@@ -429,7 +429,7 @@ class TypePage < BasicPage
       if vararg
 	html_tr do
 	  html_td do
-	    html_code("...", {"title", _("Variable length argument list")})
+	    html_code("...", {"title" => _("Variable length argument list")})
 	  end
 	  html_td do
 	    output_doccomment_blocktag(vararg)

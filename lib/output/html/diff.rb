@@ -182,7 +182,7 @@ class PackageDiffIndexPage < BasicDiffPage
       html_td do
 	name = as_type.new_type.unqualified_name
 	href = "#{name}.html"
-	html_a(name, {"href", href})
+	html_a(name, {"href" => href})
       end
       html_td do
 	if as_type.added_methods? || as_type.modified_methods? || as_type.removed_methods?
